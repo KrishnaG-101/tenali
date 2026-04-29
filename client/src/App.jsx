@@ -28,8 +28,8 @@ import './App.css'
 const API = import.meta.env.VITE_API_BASE_URL || '';
 
 // App version — increment with each commit
-const TENALI_VERSION = '1.0.33'
-const TENALI_BUILD_DATE = '2026-04-27 08:24 IST'
+const TENALI_VERSION = '1.0.34'
+const TENALI_BUILD_DATE = '2026-04-29 08:15 IST'
 
 // Inject version badge into DOM once (appears on all routes)
 ;(() => {
@@ -50,7 +50,10 @@ const TENALI_BUILD_DATE = '2026-04-27 08:24 IST'
 // Default number of questions for quizzes
 const DEFAULT_TOTAL = 20
 // Delay before auto-advancing to next question after correct answer (ms)
-const AUTO_ADVANCE_MS = 1500
+// Delay before auto-advancing to the next question after a correct answer.
+// Bumped from 1500 → 3500 ms so users actually have time to read the feedback
+// (they can still press Enter or click "Next Question" to skip ahead immediately).
+const AUTO_ADVANCE_MS = 3500
 
 /**
  * useAutoAdvance Hook
@@ -5416,6 +5419,12 @@ function App() {
     gymarithmetic: GymArithmeticApp, // GymArithmetic — 6 arithmetic stations
     gymalgebra: GymAlgebraApp,     // GymAlgebra — 6 algebra stations
     basicgym: BasicGymApp,         // Basic Gym — combined arithmetic + algebra (12 stations)
+    gymdecimals: GymDecimalsApp,   // Gym Decimals — signed decimal multiplication (MCQ)
+    funcgym: FuncGymApp,           // Functions Gym — polynomial evaluation (MCQ)
+    dotprodgym: DotProdGymApp,     // DotProducts Gym — 2D/3D dot products (MCQ)
+    fracaddgym: FracAddGymApp,     // Fractions-add-gym — add fractions (MCQ)
+    lineqgym: LinEqGymApp,         // LinearEquations-Gym — solve linear equations (MCQ)
+    indicesgym: IndicesGymApp,     // Indices-Gym — index laws (MCQ)
   }
 
   // Get the component to render (or null if mode not set)
@@ -5458,7 +5467,7 @@ function Home({ onSelect }) {
   const regularApps = [
     { key: 'addition', name: 'Addition', subtitle: '20-question addition practice', color: 'blue' },
     { key: 'angles', name: 'Angles', subtitle: 'Lines, points, parallel lines', color: 'green' },
-    { key: 'basicarith', name: 'Arithmetic', subtitle: '+, −, × with positive & negative', color: 'purple' },
+    { key: 'basicarith', name: 'Arithmetic', subtitle: '+, −, ×, ÷ with positive & negative', color: 'purple' },
     { key: 'banking', name: 'Banking (RD)', subtitle: 'Interest & recurring deposits', color: 'blue' },
     { key: 'bearings', name: 'Bearings', subtitle: 'Three-figure bearings', color: 'green' },
     { key: 'binomial', name: 'Binomial Theorem', subtitle: 'Expansions & coefficients', color: 'purple' },
@@ -5473,7 +5482,7 @@ function Home({ onSelect }) {
     { key: 'diff', name: 'Differentiation', subtitle: 'Power rule, turning points', color: 'purple' },
     { key: 'diffeq', name: 'Differential Eq.', subtitle: 'Order, degree, solve DEs', color: 'green' },
     { key: 'dotprod', name: 'Dot Products', subtitle: 'Vectors, matrices, fill blanks', color: 'blue' },
-    { key: 'fractionadd', name: 'Fractions (Add)', subtitle: 'Add fractions and simplify', color: 'green' },
+    { key: 'fractionadd', name: 'Fractions', subtitle: 'Add, subtract, multiply & divide', color: 'green' },
     { key: 'funceval', name: 'Functions', subtitle: 'Evaluate f(x), f(x,y), f(x,y,z)', color: 'green' },
     { key: 'gk', name: 'GK', subtitle: 'General Knowledge questions', color: 'purple' },
     { key: 'gst', name: 'GST', subtitle: 'Goods & Services Tax', color: 'purple' },
@@ -5528,6 +5537,12 @@ function Home({ onSelect }) {
     { key: 'spot', name: 'Twin Hunt', subtitle: 'Find the common object', color: 'purple' },
     { key: 'gymarithmetic', name: 'GymArithmetic', subtitle: 'Mixed arithmetic workout (6 stations)', color: 'blue' },
     { key: 'gymalgebra', name: 'GymAlgebra', subtitle: 'Mixed algebra workout (6 stations)', color: 'green' },
+    { key: 'gymdecimals', name: 'Gym Decimals', subtitle: 'Signed decimal × decimal — 1-digit MCQ', color: 'purple' },
+    { key: 'funcgym', name: 'Functions Gym', subtitle: 'Evaluate small polynomials (MCQ)', color: 'blue' },
+    { key: 'dotprodgym', name: 'DotProducts Gym', subtitle: '2D/3D dot products (MCQ)', color: 'green' },
+    { key: 'fracaddgym', name: 'Fractions-add-gym', subtitle: 'Add single-digit fractions (MCQ)', color: 'purple' },
+    { key: 'lineqgym', name: 'LinearEquations-Gym', subtitle: 'Solve linear equations (MCQ)', color: 'blue' },
+    { key: 'indicesgym', name: 'Indices-Gym', subtitle: 'Index laws (MCQ)', color: 'green' },
     { key: 'basicgym', name: 'Basic Gym', subtitle: 'Combined arithmetic + algebra (12 stations)', color: 'purple' },
   ]
 
@@ -7070,8 +7085,9 @@ function BasicGymApp({ onBack }) {
 
 /**
  * BasicArithApp Component
- * Basic arithmetic (+, −, ×) with positive and negative numbers.
+ * Basic arithmetic (+, −, ×, ÷) with positive and negative numbers.
  * Difficulty levels: easy (1-digit), medium (2-digit), hard (3-digit)
+ * Division questions are guaranteed to have integer answers (server side).
  * Supports keyboard shortcuts for faster entry (number keys, minus, backspace)
  *
  * @param {Object} props
@@ -7264,7 +7280,7 @@ function BasicArithApp({ onBack }) {
   const curAdaptLevel = adaptiveLevel(adaptScore)
 
   return (
-    <QuizLayout title="Basic Arithmetic" subtitle="Add, subtract, and multiply positive & negative numbers" onBack={onBack} timer={started && !finished ? timer : null}>
+    <QuizLayout title="Basic Arithmetic" subtitle="Add, subtract, multiply & divide positive & negative numbers" onBack={onBack} timer={started && !finished ? timer : null}>
       {!started && !finished && <div className="welcome-box">
         <p className="welcome-text">Practice basic arithmetic!</p>
         <div className="checkbox-group" style={{ marginBottom: '12px' }}>
@@ -7578,284 +7594,535 @@ function QuadraticApp({ onBack }) {
 }
 
 /**
- * MultiplyApp Component
- * Multiplication tables practice with flexible table selection (2-9 times tables).
- * Key features:
- *   - User selects which multiplication tables to practice
- *   - All questions from selected tables are shuffled into a pool
- *   - Optional limit on number of questions (or use all available)
- *   - Instant local calculation (no API needed)
+ * MultiplyApp Component — three-level progressive multiplication trainer.
+ *
+ * Level 1 (Guided Random Practice):
+ *   - 10 questions sampled across all tables 2–19, ordered low → high.
+ *   - Adaptive extension: if all answered correctly AND avg time/question is
+ *     fast, add 5 more questions. Repeats while both signals stay strong.
+ *   - Caps total session at 10 + 20 extra = 30 questions max.
+ *
+ * Level 2 (Personalised Weak-Area Focus):
+ *   - Reads per-table stats stored from prior sessions.
+ *   - Suggests the user's weak tables and lets them pick a range to focus on.
+ *   - Same 10-question base + adaptive 5-extension as Level 1.
+ *   - Locked until the user has completed at least one Level 1 session.
+ *
+ * Level 3 (Rapid Fire Challenge):
+ *   - Random tables, full mix.
+ *   - 10-second countdown per question; timeout counts as incorrect and
+ *     advances immediately.
+ *   - Tracks longest streak and fastest correct answer.
+ *
+ * Persistent state lives in localStorage[MULT_STATS_KEY]:
+ *   { tableStats: { 2: { correct, total, totalTime }, ... },
+ *     hasCompletedLevel1: bool }
  *
  * @param {Object} props
  * @param {Function} props.onBack - Callback to return to home menu
  */
+
+// Configuration knobs for the 3-level system. Centralised here so the
+// development team can tune them based on user testing without hunting
+// through the component body.
+const MULT_TABLES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+const MULT_BASE_QUESTIONS = 10        // initial questions in Level 1 / 2
+const MULT_EXTENSION_STEP = 5         // questions added per extension round
+const MULT_EXTENSION_MAX = 20         // total extra questions allowed across all extensions
+const MULT_FAST_AVG_SECONDS = 4       // avg time per question must be under this to extend
+const MULT_LEVEL3_TIMEOUT_SECONDS = 10 // per-question timeout in rapid fire
+const MULT_STATS_KEY = 'tenali-mult-stats-v1'
+
+/** Load persisted multiplication stats; returns a safe default on first run. */
+function loadMultStats() {
+  try {
+    const raw = localStorage.getItem(MULT_STATS_KEY)
+    if (!raw) return { tableStats: {}, hasCompletedLevel1: false }
+    const parsed = JSON.parse(raw)
+    return {
+      tableStats: parsed.tableStats || {},
+      hasCompletedLevel1: !!parsed.hasCompletedLevel1,
+    }
+  } catch (e) {
+    return { tableStats: {}, hasCompletedLevel1: false }
+  }
+}
+
+/** Persist updated multiplication stats. Silent on failure. */
+function saveMultStats(stats) {
+  try { localStorage.setItem(MULT_STATS_KEY, JSON.stringify(stats)) } catch (e) {}
+}
+
+/**
+ * mergeTableStat: fold a single answer into the rolling per-table stat.
+ * Returns a new tableStats object (immutable update).
+ */
+function mergeTableStat(tableStats, table, correct, timeSec) {
+  const cur = tableStats[table] || { correct: 0, total: 0, totalTime: 0 }
+  return {
+    ...tableStats,
+    [table]: {
+      correct: cur.correct + (correct ? 1 : 0),
+      total: cur.total + 1,
+      totalTime: cur.totalTime + timeSec,
+    },
+  }
+}
+
+/**
+ * weakTablesFromStats: rank tables by a weakness score that combines accuracy
+ * (lower = weaker) and average response time (higher = weaker). Returns the
+ * tables sorted weakest-first; tables that haven't been seen yet bubble up
+ * because we treat unseen as "we don't know yet — practise it".
+ */
+function weakTablesFromStats(tableStats) {
+  return MULT_TABLES.map(t => {
+    const s = tableStats[t]
+    if (!s || s.total === 0) return { table: t, weakness: 1, accuracy: 0, avgTime: 0, seen: false }
+    const accuracy = s.correct / s.total
+    const avgTime = s.totalTime / s.total
+    // Weakness ∈ [0, ~1.5]: 0 = perfect & fast, 1+ = bad accuracy and/or slow.
+    // (1 - accuracy) dominates; avgTime contributes a smaller "slow" penalty.
+    const weakness = (1 - accuracy) + Math.max(0, (avgTime - MULT_FAST_AVG_SECONDS) / 10)
+    return { table: t, weakness, accuracy, avgTime, seen: true }
+  }).sort((a, b) => b.weakness - a.weakness)
+}
+
+/**
+ * buildLevel1Plan: 10 questions sampled across all tables, ordered low → high.
+ *   - Picks 10 random {table, multiplier} entries with no duplicates.
+ *   - Sorts by table number ascending so low tables come first.
+ */
+function buildLevel1Plan() {
+  const pool = []
+  for (const t of MULT_TABLES) {
+    for (let m = 2; m <= 10; m++) pool.push({ table: t, multiplier: m })
+  }
+  // Fisher-Yates partial shuffle to grab the first 10 distinct entries.
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]]
+  }
+  const picked = pool.slice(0, MULT_BASE_QUESTIONS)
+  picked.sort((a, b) => a.table - b.table || a.multiplier - b.multiplier)
+  return picked
+}
+
+/**
+ * buildExtensionBatch: random questions from the same source tables as the
+ * existing plan. Used for the +5 rounds.
+ */
+function buildExtensionBatch(sourceTables, count) {
+  const pool = []
+  for (const t of sourceTables) for (let m = 2; m <= 10; m++) pool.push({ table: t, multiplier: m })
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]]
+  }
+  return pool.slice(0, count)
+}
+
 function MultiplyApp({ onBack }) {
-  // Array of selected multiplication table numbers (e.g., [2, 3, 5])
-  const [selectedTables, setSelectedTables] = useState([])
-  // User-entered question limit (empty string = use all available questions)
-  const [numQuestions, setNumQuestions] = useState('')
-  // Quiz started flag
-  const [started, setStarted] = useState(false)
-  // Quiz finished flag
-  const [finished, setFinished] = useState(false)
-  // Current question object: {table, multiplier, prompt: "table × multiplier"}
+  // --- Persistent state ---
+  const [stats, setStats] = useState(() => loadMultStats())
+  // --- Phase: 'picker' (level chooser) | 'level2-setup' (weak-table picker) |
+  //          'quiz' (any level playing) | 'finished'
+  const [phase, setPhase] = useState('picker')
+  const [level, setLevel] = useState(1)
+  // --- Level 2 setup state ---
+  const [level2RangeMin, setLevel2RangeMin] = useState(2)
+  const [level2RangeMax, setLevel2RangeMax] = useState(9)
+  // --- Per-session state ---
+  const [plan, setPlan] = useState([])           // queued questions for level 1/2
+  const [qIndex, setQIndex] = useState(0)
   const [question, setQuestion] = useState(null)
-  // User's string input for the answer
   const [answer, setAnswer] = useState('')
-  // Number of correct answers so far
   const [score, setScore] = useState(0)
-  // Current question number (1-indexed)
-  const [questionNumber, setQuestionNumber] = useState(0)
-  // Total questions to answer in this quiz session
-  const [totalQuestions, setTotalQuestions] = useState(0)
-  // Feedback string showing correct/incorrect result
   const [feedback, setFeedback] = useState('')
-  // Is the last answer correct? (null before submission, true/false after)
   const [isCorrect, setIsCorrect] = useState(null)
-  // Loading state (not used locally, present for consistency)
-  const [loading, setLoading] = useState(false)
-  // Answer revealed flag (transition from submit mode to next mode)
   const [revealed, setRevealed] = useState(false)
-  // Array of {question, userAnswer, correctAnswer, correct, time} result objects
   const [results, setResults] = useState([])
-  // Pre-shuffled pool of all questions from selected tables
-  // Format: [{table: 2, multiplier: 1}, {table: 5, multiplier: 3}, ...]
-  const [questionPool, setQuestionPool] = useState([])
-  // Timer instance for tracking time spent per question
+  // --- Adaptive extension tracking (Levels 1 & 2) ---
+  const [extensionCount, setExtensionCount] = useState(0)  // total extra Qs added so far
+  const [allCorrectInRound, setAllCorrectInRound] = useState(true)
+  const [roundTotalTime, setRoundTotalTime] = useState(0)  // sum of times in current 5- or 10-batch
+  const [roundQuestionsCount, setRoundQuestionsCount] = useState(0)
+  // --- Source tables for the current quiz (used for extension batches) ---
+  const [sourceTables, setSourceTables] = useState([])
+  // --- Level 3 state ---
+  const [streak, setStreak] = useState(0)
+  const [longestStreak, setLongestStreak] = useState(0)
+  const [fastestTime, setFastestTime] = useState(null)
+  const [l3TimeRemaining, setL3TimeRemaining] = useState(MULT_LEVEL3_TIMEOUT_SECONDS)
+  const l3TimerRef = useRef(null)
+  const l3DeadlineRef = useRef(0)
   const timer = useTimer()
 
-  // Maximum possible questions (if all selected tables' 10 multipliers are included)
-  // Used for displaying max limit to user
-  const maxQuestions = selectedTables.length * 10
-
-  /**
-   * toggleTable(num): Add or remove multiplication table from selection
-   * If table is already selected, remove it; otherwise add it
-   */
-  const toggleTable = (num) => {
-    setSelectedTables((prev) =>
-      prev.includes(num) ? prev.filter((n) => n !== num) : [...prev, num]
-    )
-  }
-
-  /**
-   * buildPool(tables): Generate and shuffle complete question pool from selected tables
-   * Algorithm:
-   *   1. For each selected table, generate 10 questions (table × 1 through table × 10)
-   *   2. Apply Fisher-Yates shuffle to randomize order
-   * Returns: Shuffled array of {table, multiplier} objects
-   */
-  const buildPool = (tables) => {
-    const pool = []
-    tables.forEach((t) => {
-      // Generate all 10 multiplication facts for this table (table × 1 through × 10)
-      for (let m = 1; m <= 10; m++) {
-        pool.push({ table: t, multiplier: m })
-      }
-    })
-    // Fisher-Yates shuffle algorithm for unbiased randomization
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [pool[i], pool[j]] = [pool[j], pool[i]]
-    }
-    return pool
-  }
-
-  /**
-   * nextFromPool(pool, index): Load question at given index from shuffled pool
-   * Converts pool entry to question display format and resets form/state
-   * Starts timer for the question
-   */
-  const nextFromPool = (pool, index) => {
-    const q = pool[index]
-    // Create question display from table and multiplier
+  // ─── Helpers ──────────────────────────────────────────────────────────
+  const nextQuestion = (planArr, index) => {
+    const q = planArr[index]
     setQuestion({ table: q.table, multiplier: q.multiplier, prompt: `${q.table} × ${q.multiplier}` })
     setAnswer('')
     setFeedback('')
     setRevealed(false)
     setIsCorrect(null)
-    setLoading(false)
     timer.start()
+    if (level === 3) startLevel3Countdown()
   }
 
-  /**
-   * startQuiz(): Initialize multiplication quiz
-   * Process:
-   *   1. Build shuffled pool from selected tables
-   *   2. Limit to user-specified count (or all if field empty)
-   *   3. Reset quiz state and load first question from pool
-   */
-  const startQuiz = () => {
-    if (selectedTables.length === 0) return
-    // Build pool of all possible questions from selected tables
-    const pool = buildPool(selectedTables)
-    // Limit to user-specified count, or use all available
-    const count = numQuestions !== '' ? Math.min(Number(numQuestions), pool.length) : pool.length
-    const trimmedPool = pool.slice(0, count)
-    setQuestionPool(trimmedPool)
-    setTotalQuestions(count)
-    setStarted(true)
-    setFinished(false)
-    setScore(0)
-    setQuestionNumber(1)
-    setResults([])
-    nextFromPool(trimmedPool, 0)
-  }
-
-  /**
-   * Keyboard handler for MultiplyApp: Enter key
-   * - Before quiz: Start quiz if tables are selected
-   * - During quiz: Submit answer or advance to next
-   */
-  useEffect(() => {
-    const onKeyDown = (event) => {
-      if (event.key !== 'Enter') return
-      event.preventDefault()
-      if (!started && selectedTables.length > 0) {
-        startQuiz()
-      } else if (started && !finished) {
-        handleSubmitOrNext()
+  const startLevel3Countdown = () => {
+    if (l3TimerRef.current) clearInterval(l3TimerRef.current)
+    l3DeadlineRef.current = Date.now() + MULT_LEVEL3_TIMEOUT_SECONDS * 1000
+    setL3TimeRemaining(MULT_LEVEL3_TIMEOUT_SECONDS)
+    l3TimerRef.current = setInterval(() => {
+      const remain = Math.max(0, Math.ceil((l3DeadlineRef.current - Date.now()) / 1000))
+      setL3TimeRemaining(remain)
+      if (remain <= 0) {
+        clearInterval(l3TimerRef.current)
+        l3TimerRef.current = null
+        // Timeout = wrong answer; record and advance immediately.
+        handleLevel3Timeout()
       }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [started, finished, question, answer, revealed, questionNumber, loading, selectedTables, questionPool])
-
-  /**
-   * handleSubmitOrNext(): Submission and progression for MultiplyApp
-   * Phase 1 (not revealed):
-   *   - Calculate expected answer locally (table × multiplier)
-   *   - Compare with user input
-   *   - Show feedback and store result
-   * Phase 2 (revealed):
-   *   - If all questions answered, finish quiz
-   *   - Otherwise, load next question from pool
-   * Note: No API call needed; multiplication validation is local
-   */
-  const handleSubmitOrNext = async () => {
-    if (!question) return
-
-    if (!revealed) {
-      if (answer === '') return
-      const timeTaken = timer.stop()
-      // Calculate expected answer locally (no API required)
-      const correctAnswer = question.table * question.multiplier
-      const correct = Number(answer) === correctAnswer
-      setIsCorrect(correct)
-      if (correct) setScore((s) => s + 1)
-      const reasoning = `${question.table} × ${question.multiplier} = ${correctAnswer}`
-      setFeedback(correct
-        ? `Correct! ${reasoning}`
-        : `Incorrect. ${reasoning}`)
-      setResults((prev) => [...prev, {
-        question: question.prompt,
-        userAnswer: answer,
-        correctAnswer,
-        correct,
-        time: timeTaken,
-      }])
-      setRevealed(true)
-      return
-    }
-
-    // Quiz progression: check if all questions have been answered
-    if (questionNumber >= totalQuestions) {
-      setFinished(true)
-      setQuestion(null)
-      timer.reset()
-      return
-    }
-
-    // Load next question from the pool
-    const nextIdx = questionNumber
-    setQuestionNumber((n) => n + 1)
-    nextFromPool(questionPool, nextIdx)
+    }, 200)
   }
 
-  /**
-   * handleSolve(): Get the solution without submitting an answer
-   * For multiplication, simply calculates the product locally
-   */
-  const handleSolve = async () => {
-    if (revealed) return
-    const timeTaken = timer.stop()
-    // Calculate expected answer locally (no API required)
-    const correctAnswer = question.table * question.multiplier
-    setIsCorrect(false)
-    const reasoning = `${question.table} × ${question.multiplier} = ${correctAnswer}`
-    setFeedback(`Solution: ${reasoning}`)
-    setResults((prev) => [...prev, {
-      question: question.prompt,
-      userAnswer: '—',
-      correctAnswer,
-      correct: false,
+  const stopLevel3Countdown = () => {
+    if (l3TimerRef.current) { clearInterval(l3TimerRef.current); l3TimerRef.current = null }
+  }
+
+  // Cleanup the Level 3 timer on unmount/phase change.
+  useEffect(() => () => stopLevel3Countdown(), [])
+  useEffect(() => { if (phase !== 'quiz' || level !== 3) stopLevel3Countdown() }, [phase, level])
+
+  // ─── Level launchers ─────────────────────────────────────────────────
+  const startLevel1 = () => {
+    const p = buildLevel1Plan()
+    setLevel(1); setPlan(p); setQIndex(0); setScore(0); setResults([])
+    setExtensionCount(0); setAllCorrectInRound(true)
+    setRoundTotalTime(0); setRoundQuestionsCount(0)
+    setSourceTables(MULT_TABLES.slice())
+    setPhase('quiz')
+    nextQuestion(p, 0)
+  }
+
+  const beginLevel2Setup = () => {
+    setLevel(2)
+    // Default range: span the user's weakest 5–8 tables, clamped to 2..19.
+    const ranked = weakTablesFromStats(stats.tableStats).map(r => r.table)
+    const top = ranked.slice(0, 8).sort((a, b) => a - b)
+    setLevel2RangeMin(top[0] ?? 2)
+    setLevel2RangeMax(top[top.length - 1] ?? 9)
+    setPhase('level2-setup')
+  }
+
+  const startLevel2Quiz = () => {
+    const lo = Math.min(level2RangeMin, level2RangeMax)
+    const hi = Math.max(level2RangeMin, level2RangeMax)
+    const tables = MULT_TABLES.filter(t => t >= lo && t <= hi)
+    if (tables.length === 0) return
+    const initial = buildExtensionBatch(tables, MULT_BASE_QUESTIONS)
+    initial.sort((a, b) => a.table - b.table || a.multiplier - b.multiplier)
+    setPlan(initial); setQIndex(0); setScore(0); setResults([])
+    setExtensionCount(0); setAllCorrectInRound(true)
+    setRoundTotalTime(0); setRoundQuestionsCount(0)
+    setSourceTables(tables)
+    setPhase('quiz')
+    nextQuestion(initial, 0)
+  }
+
+  const startLevel3 = () => {
+    // For Level 3 we don't pre-build a plan — we keep generating until the
+    // user exits or runs out of time on a question.
+    setLevel(3); setPlan([]); setQIndex(0); setScore(0); setResults([])
+    setStreak(0); setLongestStreak(0); setFastestTime(null)
+    setSourceTables(MULT_TABLES.slice())
+    setPhase('quiz')
+    const first = buildExtensionBatch(MULT_TABLES, 1)[0]
+    setPlan([first])
+    nextQuestion([first], 0)
+  }
+
+  // ─── Submission paths ─────────────────────────────────────────────────
+  const recordAnswer = (correct, timeTaken, q, userDisplay) => {
+    setStats(prev => {
+      const next = {
+        ...prev,
+        tableStats: mergeTableStat(prev.tableStats, q.table, correct, timeTaken),
+      }
+      saveMultStats(next)
+      return next
+    })
+    setResults(prev => [...prev, {
+      question: `${q.table} × ${q.multiplier}`,
+      userAnswer: userDisplay,
+      correctAnswer: q.table * q.multiplier,
+      correct,
       time: timeTaken,
     }])
-    setRevealed(true)
   }
 
+  // Levels 1 & 2: standard submit/next flow with adaptive extension on round end.
+  const handleSubmit = () => {
+    if (!question || revealed || answer === '') return
+    const timeTaken = timer.stop()
+    const correctAnswer = question.table * question.multiplier
+    const correct = Number(answer) === correctAnswer
+    if (correct) setScore(s => s + 1)
+    else setAllCorrectInRound(false)
+    setRoundTotalTime(t => t + timeTaken)
+    setRoundQuestionsCount(c => c + 1)
+    setIsCorrect(correct); setRevealed(true)
+    setFeedback(correct ? `Correct! ${question.table} × ${question.multiplier} = ${correctAnswer}`
+                        : `Incorrect. ${question.table} × ${question.multiplier} = ${correctAnswer}`)
+    recordAnswer(correct, timeTaken, question, answer)
+  }
+
+  const handleSolve = () => {
+    if (!question || revealed) return
+    const timeTaken = timer.stop()
+    const correctAnswer = question.table * question.multiplier
+    setIsCorrect(false); setRevealed(true)
+    setAllCorrectInRound(false)
+    setFeedback(`Solution: ${question.table} × ${question.multiplier} = ${correctAnswer}`)
+    recordAnswer(false, timeTaken, question, '—')
+  }
+
+  const advanceLevel12 = () => {
+    if (qIndex + 1 < plan.length) {
+      setQIndex(qIndex + 1)
+      nextQuestion(plan, qIndex + 1)
+      return
+    }
+    // End of current batch — decide whether to extend.
+    const avgTime = roundQuestionsCount > 0 ? roundTotalTime / roundQuestionsCount : Infinity
+    const canExtend = allCorrectInRound
+      && avgTime <= MULT_FAST_AVG_SECONDS
+      && extensionCount < MULT_EXTENSION_MAX
+    if (canExtend) {
+      const remainingBudget = MULT_EXTENSION_MAX - extensionCount
+      const batchSize = Math.min(MULT_EXTENSION_STEP, remainingBudget)
+      const batch = buildExtensionBatch(sourceTables, batchSize)
+      const newPlan = [...plan, ...batch]
+      setPlan(newPlan)
+      setExtensionCount(extensionCount + batchSize)
+      setAllCorrectInRound(true)
+      setRoundTotalTime(0); setRoundQuestionsCount(0)
+      setQIndex(qIndex + 1)
+      nextQuestion(newPlan, qIndex + 1)
+      return
+    }
+    // No extension — Mark Level 1 done if relevant, then finish.
+    if (level === 1) {
+      setStats(prev => {
+        const next = { ...prev, hasCompletedLevel1: true }
+        saveMultStats(next)
+        return next
+      })
+    }
+    setPhase('finished')
+  }
+
+  // Level 3 submission — different flow: time-limited, streak-based.
+  const submitLevel3 = (rawValue) => {
+    if (!question || revealed) return
+    stopLevel3Countdown()
+    const timeTaken = timer.stop()
+    const correctAnswer = question.table * question.multiplier
+    const correct = Number(rawValue) === correctAnswer
+    if (correct) {
+      setScore(s => s + 1)
+      setStreak(s => { const n = s + 1; setLongestStreak(ls => Math.max(ls, n)); return n })
+      setFastestTime(prev => prev === null ? timeTaken : Math.min(prev, timeTaken))
+    } else {
+      setStreak(0)
+    }
+    setIsCorrect(correct); setRevealed(true)
+    setFeedback(correct ? `Correct! ${question.table} × ${question.multiplier} = ${correctAnswer}`
+                        : `Wrong. ${question.table} × ${question.multiplier} = ${correctAnswer}`)
+    recordAnswer(correct, timeTaken, question, rawValue || '—')
+    // Auto-advance after 700ms in Level 3 to keep the rapid-fire feel.
+    setTimeout(() => advanceLevel3(), 700)
+  }
+
+  const handleLevel3Timeout = () => {
+    if (!question || revealed) return
+    const correctAnswer = question.table * question.multiplier
+    setStreak(0)
+    setIsCorrect(false); setRevealed(true)
+    setFeedback(`Time! ${question.table} × ${question.multiplier} = ${correctAnswer}`)
+    recordAnswer(false, MULT_LEVEL3_TIMEOUT_SECONDS, question, '(timed out)')
+    setTimeout(() => advanceLevel3(), 700)
+  }
+
+  const advanceLevel3 = () => {
+    const next = buildExtensionBatch(MULT_TABLES, 1)[0]
+    const nextPlan = [...plan, next]
+    setPlan(nextPlan)
+    setQIndex(qIndex + 1)
+    nextQuestion(nextPlan, qIndex + 1)
+  }
+
+  const exitLevel3 = () => {
+    stopLevel3Countdown()
+    setPhase('finished')
+  }
+
+  // ─── Keyboard handling ────────────────────────────────────────────────
+  useEffect(() => {
+    if (phase !== 'quiz') return
+    const onKey = (e) => {
+      if (e.key !== 'Enter') return
+      e.preventDefault()
+      if (level === 3) {
+        if (!revealed) submitLevel3(answer)
+      } else {
+        if (!revealed) handleSubmit()
+        else advanceLevel12()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [phase, level, revealed, answer, question, plan, qIndex, allCorrectInRound, roundTotalTime, roundQuestionsCount, extensionCount, sourceTables])
+
+  // Auto-advance after correct answer in Levels 1 & 2 (uses standard hook).
   const advanceRef = useRef(() => {})
-  advanceRef.current = () => handleSubmitOrNext()
+  advanceRef.current = () => { if (level !== 3) advanceLevel12() }
   useAutoAdvance(revealed, advanceRef, isCorrect)
 
-  const tablesLabel = selectedTables.sort((a, b) => a - b).join(', ')
+  // ─── Rendering helpers ───────────────────────────────────────────────
+  const ranked = weakTablesFromStats(stats.tableStats)
+  const totalQuestionsThisSession = plan.length
+  const renderResetStats = () => (
+    <button onClick={() => {
+      const fresh = { tableStats: {}, hasCompletedLevel1: false }
+      saveMultStats(fresh); setStats(fresh)
+    }} style={{ background: 'transparent', border: '1px solid var(--clr-text-soft)', color: 'var(--clr-text-soft)', fontSize: '0.78rem', padding: '4px 10px' }}>
+      Reset stats
+    </button>
+  )
 
   return (
-    <QuizLayout title="Multiplication" subtitle="Practice your times tables" onBack={onBack}>
+    <QuizLayout title="Multiplication" subtitle="Three-level progressive trainer" onBack={onBack}>
       <div className="top-mini-row">
-        {started && !finished && !revealed && <div className="timer-pill">{timer.elapsed}s</div>}
-        <div className="score-pill">Score: {score}</div>
+        {phase === 'quiz' && level !== 3 && !revealed && <div className="timer-pill">{timer.elapsed}s</div>}
+        {phase === 'quiz' && level === 3 && <div className="timer-pill" style={l3TimeRemaining <= 3 ? { background: 'var(--clr-wrong)', color: '#fff' } : {}}>⏱ {l3TimeRemaining}s</div>}
+        <div className="score-pill">Score: {score}{level === 3 ? ` · Streak: ${streak}` : ''}</div>
       </div>
-      {!started && !finished && (
+
+      {/* ── Picker phase: choose a level ── */}
+      {phase === 'picker' && (
         <div className="welcome-box">
-          <p className="welcome-text">Select the tables you want to practice</p>
-          <div className="checkbox-group">
-            {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map((num) => (
-              <label key={num} className={`checkbox-pill ${selectedTables.includes(num) ? 'active' : ''}`}>
-                <input type="checkbox" checked={selectedTables.includes(num)} onChange={() => toggleTable(num)} />
-                {num}
-              </label>
+          <p className="welcome-text">Choose your level</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '12px 0' }}>
+            <button onClick={startLevel1}>
+              Level 1 — Guided Random Practice
+              <div style={{ fontSize: '0.78rem', opacity: 0.85, marginTop: 4 }}>10 questions across all tables, low → high. Adaptive extension if you stay accurate & fast.</div>
+            </button>
+            <button onClick={beginLevel2Setup} disabled={!stats.hasCompletedLevel1} style={!stats.hasCompletedLevel1 ? { opacity: 0.55, cursor: 'not-allowed' } : {}}>
+              Level 2 — Personalised Weak-Area Focus
+              <div style={{ fontSize: '0.78rem', opacity: 0.85, marginTop: 4 }}>{stats.hasCompletedLevel1 ? 'Targets the tables you struggled with in earlier sessions.' : 'Complete Level 1 first to unlock.'}</div>
+            </button>
+            <button onClick={startLevel3} style={{ background: 'linear-gradient(135deg, #f44336, #ff9800)', color: '#fff', border: 'none' }}>
+              Level 3 — Rapid Fire Challenge
+              <div style={{ fontSize: '0.78rem', opacity: 0.95, marginTop: 4 }}>{MULT_LEVEL3_TIMEOUT_SECONDS}-second countdown per question. Build a streak.</div>
+            </button>
+          </div>
+          {Object.keys(stats.tableStats).length > 0 && <div style={{ marginTop: '10px', textAlign: 'center' }}>{renderResetStats()}</div>}
+        </div>
+      )}
+
+      {/* ── Level 2 setup: choose tables to focus on ── */}
+      {phase === 'level2-setup' && (
+        <div className="welcome-box">
+          <p className="welcome-text">Your weakest tables</p>
+          <div style={{ fontSize: '0.88rem', color: 'var(--clr-text-soft)', marginBottom: '12px' }}>
+            We've ordered them weakest-first. Pick a range to practise.
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', marginBottom: 16 }}>
+            {ranked.slice(0, 8).map(r => (
+              <span key={r.table} className="progress-pill" style={{ background: r.seen ? `hsl(${Math.max(0, 120 - r.weakness * 100)}, 60%, 50%)` : 'var(--clr-text-soft)', color: '#fff' }}>
+                {r.table}× {r.seen ? `(${Math.round(r.accuracy * 100)}% / ${r.avgTime.toFixed(1)}s)` : '— new —'}
+              </span>
             ))}
           </div>
-          {selectedTables.length > 0 && (
-            <div className="question-count-row">
-              <label className="question-count-label">How many questions?</label>
-              <input
-                className="answer-input question-count-input"
-                type="text"
-                value={numQuestions}
-                onChange={(e) => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }}
-                placeholder={`All ${maxQuestions}`}
-              />
-            </div>
-          )}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
+            <label>From table
+              <input className="answer-input" style={{ width: 60, marginLeft: 6 }} type="number" min={2} max={19}
+                value={level2RangeMin} onChange={e => { const v = Math.max(2, Math.min(19, Number(e.target.value) || 2)); setLevel2RangeMin(v) }} />
+            </label>
+            <label>To table
+              <input className="answer-input" style={{ width: 60, marginLeft: 6 }} type="number" min={2} max={19}
+                value={level2RangeMax} onChange={e => { const v = Math.max(2, Math.min(19, Number(e.target.value) || 2)); setLevel2RangeMax(v) }} />
+            </label>
+          </div>
           <div className="button-row">
-            <button onClick={startQuiz} disabled={selectedTables.length === 0}>
-              Start Quiz ({numQuestions && Number(numQuestions) > 0 ? Math.min(Number(numQuestions), maxQuestions) : maxQuestions} questions)
-            </button>
+            <button onClick={startLevel2Quiz}>Practise these</button>
+            <button onClick={() => setPhase('picker')} style={{ background: 'transparent', border: '1px solid var(--clr-text-soft)', color: 'var(--clr-text-soft)' }}>Back</button>
           </div>
         </div>
       )}
-      {started && !finished && <>
-        <div className="progress-pill center">Question {questionNumber}/{totalQuestions} — Tables: {tablesLabel}</div>
-        <div className="question-box">{loading || !question ? 'Loading question…' : `${question.prompt} = ?`}</div>
-        <input className="answer-input" type="text" value={answer} onChange={(e) => { if (!revealed) { const v = e.target.value; if (v === '' || v === '-' || /^-?\d+$/.test(v)) setAnswer(v) } }} disabled={revealed} placeholder="Type your answer" />
+
+      {/* ── Quiz phase (all levels) ── */}
+      {phase === 'quiz' && question && <>
+        <div className="progress-pill center">
+          {level === 3 ? `Rapid Fire · Q${qIndex + 1}` : `Question ${qIndex + 1}/${totalQuestionsThisSession}`}
+          {level !== 3 && extensionCount > 0 && ` · +${extensionCount} extension`}
+        </div>
+        <div className="question-box">{`${question.prompt} = ?`}</div>
+        <input className="answer-input" type="text" value={answer}
+          onChange={(e) => { if (!revealed) { const v = e.target.value; if (v === '' || v === '-' || /^-?\d+$/.test(v)) setAnswer(v) } }}
+          disabled={revealed} placeholder="Type your answer" autoFocus />
         <NumPad value={answer} onChange={(v) => !revealed && setAnswer(v)} disabled={revealed} />
         {renderFeedback(feedback, isCorrect)}
         <div className="button-row">
           {!revealed ? <>
-            <button onClick={handleSubmitOrNext} disabled={loading || answer === ''}>Submit</button>
-            <button onClick={handleSolve} style={{ background: 'transparent', border: '1px solid var(--clr-accent)', color: 'var(--clr-accent)' }}>Solve</button>
-          </> : <button onClick={handleSubmitOrNext}>{questionNumber >= totalQuestions ? 'Finish Quiz' : 'Next Question'}</button>}
+            <button onClick={() => level === 3 ? submitLevel3(answer) : handleSubmit()} disabled={answer === ''}>Submit</button>
+            {level !== 3 && <button onClick={handleSolve} style={{ background: 'transparent', border: '1px solid var(--clr-accent)', color: 'var(--clr-accent)' }}>Solve</button>}
+            {level === 3 && <button onClick={exitLevel3} style={{ background: 'transparent', border: '1px solid var(--clr-text-soft)', color: 'var(--clr-text-soft)' }}>End</button>}
+          </> : (level !== 3 && <button onClick={advanceLevel12}>{qIndex + 1 >= plan.length ? 'Finish round' : 'Next Question'}</button>)}
         </div>
+        {level !== 3 && <div style={{ fontSize: '0.78rem', color: 'var(--clr-text-soft)', textAlign: 'center', margin: '6px 0' }}>
+          Round avg time: {roundQuestionsCount ? (roundTotalTime / roundQuestionsCount).toFixed(1) : '—'}s
+          · Stay under {MULT_FAST_AVG_SECONDS}s for an extension round.
+        </div>}
         {results.length > 0 && <ResultsTable results={results} />}
       </>}
-      {finished && <div className="welcome-box">
-        <p className="welcome-text">Quiz complete — Tables: {tablesLabel}</p>
-        <p className="final-score">Final score: {score}/{totalQuestions}</p>
-        <ResultsTable results={results} />
-        <button onClick={() => { setStarted(false); setFinished(false); setSelectedTables([]); setQuestionPool([]); setNumQuestions('') }}>Play Again</button>
-      </div>}
+
+      {/* ── Finished ── */}
+      {phase === 'finished' && (
+        <div className="welcome-box">
+          <p className="welcome-text">Session complete</p>
+          <p className="final-score">Final score: {score}/{results.length}</p>
+          {level === 3 && (
+            <div style={{ fontSize: '0.92rem', margin: '8px 0' }}>
+              Longest streak: <strong>{longestStreak}</strong>
+              {fastestTime !== null && <> · Fastest answer: <strong>{fastestTime.toFixed(1)}s</strong></>}
+            </div>
+          )}
+          {level !== 3 && extensionCount > 0 && <p style={{ fontSize: '0.9rem', color: 'var(--clr-accent)' }}>You extended {extensionCount} extra questions — strong work.</p>}
+          {/* Tables still needing work */}
+          {(() => {
+            const stillWeak = ranked.filter(r => r.seen && r.weakness >= 0.2).slice(0, 5)
+            if (stillWeak.length === 0) return null
+            return (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--clr-text-soft)', marginBottom: 6 }}>Tables that still need work:</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' }}>
+                  {stillWeak.map(r => (
+                    <span key={r.table} className="progress-pill" style={{ background: 'var(--clr-wrong)', color: '#fff' }}>
+                      {r.table}× ({Math.round(r.accuracy * 100)}%)
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+          <ResultsTable results={results} />
+          <div className="button-row" style={{ marginTop: 12 }}>
+            <button onClick={() => setPhase('picker')}>Back to levels</button>
+          </div>
+        </div>
+      )}
     </QuizLayout>
   )
 }
@@ -8190,6 +8457,260 @@ const ADAPT_COLORS = { easy: '#4caf50', medium: '#ff9800', hard: '#f44336', extr
 function adaptiveLevel(score) { return ADAPT_DIFFS[Math.min(Math.max(Math.round(score), 0), 3)] }
 function adaptivePct(score) { return Math.min(100, Math.max(0, (score / 3) * 100)) }
 
+/**
+ * makeMCQuizApp — Factory for multiple-choice quizzes (Gym-style puzzles).
+ *
+ * Server contract:
+ *   GET  /<apiPath>/question?difficulty=...
+ *     → { id, difficulty, prompt, options: [{option, text}, ...], correctOption, ...meta }
+ *   POST /<apiPath>/check  (body echoes the question + { selectedOption } or { solve: true })
+ *     → { correct, correctOption, correctDisplay, message, explanation? }
+ *
+ * The factory mirrors makeQuizApp's flow (setup → play → finished, adaptive
+ * difficulty, results table, auto-advance, "Solve" button) but renders each
+ * question as a 4-button options grid instead of a free-form text input.
+ */
+function makeMCQuizApp({ title, subtitle, apiPath, diffLabels, tip }) {
+  return function GeneratedMCQuizApp({ onBack }) {
+    const diffs = Object.keys(diffLabels)
+    const [difficulty, setDifficulty] = useState(diffs[0])
+    const [isAdaptive, setIsAdaptive] = useState(false)
+    const [adaptScore, setAdaptScore] = useState(0)
+    const [numQuestions, setNumQuestions] = useState(String(DEFAULT_TOTAL))
+    const [started, setStarted] = useState(false)
+    const [finished, setFinished] = useState(false)
+    const [question, setQuestion] = useState(null)
+    const [selectedOption, setSelectedOption] = useState('')
+    const [score, setScore] = useState(0)
+    const [questionNumber, setQuestionNumber] = useState(0)
+    const [totalQ, setTotalQ] = useState(DEFAULT_TOTAL)
+    const [feedback, setFeedback] = useState('')
+    const [isCorrect, setIsCorrect] = useState(null)
+    const [loading, setLoading] = useState(false)
+    const [loadError, setLoadError] = useState('')
+    const [revealed, setRevealed] = useState(false)
+    const [results, setResults] = useState([])
+    const [correctOption, setCorrectOption] = useState('')
+    const timer = useTimer()
+    const advanceFnRef = useRef(null)
+    const adaptScoreRef = useRef(0)
+    const submittedRef = useRef(false)
+    const advancedRef = useRef(false)
+
+    const effectiveDifficulty = () => isAdaptive ? adaptiveLevel(adaptScoreRef.current) : difficulty
+
+    const loadQuestion = async () => {
+      setLoading(true)
+      setLoadError('')
+      try {
+        const diff = effectiveDifficulty()
+        const r = await fetch(`${API}/${apiPath}/question?difficulty=${diff}`)
+        if (!r.ok) throw new Error(`Server returned ${r.status}`)
+        const data = await r.json()
+        if (!data || !data.options || !Array.isArray(data.options) || data.options.length < 2) {
+          throw new Error('Question payload missing options array')
+        }
+        setQuestion(data)
+        setSelectedOption('')
+        setCorrectOption('')
+        setFeedback('')
+        setIsCorrect(null)
+        setRevealed(false)
+        submittedRef.current = false
+        advancedRef.current = false
+        timer.start()
+      } catch (e) {
+        console.error(`Failed to load ${title} question:`, e)
+        setQuestion(null)
+        setLoadError(`Couldn't load a ${title} question (${e.message || 'unknown error'}). Tap Retry to try again.`)
+      }
+      setLoading(false)
+    }
+
+    const startQuiz = () => {
+      const t = Math.max(1, Math.min(100, Number(numQuestions) || DEFAULT_TOTAL))
+      setTotalQ(t); setScore(0); setQuestionNumber(1); setResults([]); setStarted(true); setFinished(false)
+      setAdaptScore(0); adaptScoreRef.current = 0
+      submittedRef.current = false; advancedRef.current = false
+    }
+
+    useEffect(() => { if (started && !finished && questionNumber > 0) loadQuestion() }, [started, questionNumber])
+
+    const advance = () => {
+      if (advancedRef.current) return
+      advancedRef.current = true
+      if (questionNumber >= totalQ) setFinished(true); else setQuestionNumber(n => n + 1)
+    }
+    advanceFnRef.current = advance
+    useAutoAdvance(revealed, advanceFnRef, isCorrect)
+
+    // Enter-to-advance after wrong answer
+    useEffect(() => {
+      if (!revealed || isCorrect) return
+      const h = (e) => { if (e.key === 'Enter') { e.preventDefault(); advance() } }
+      window.addEventListener('keydown', h)
+      return () => window.removeEventListener('keydown', h)
+    }, [revealed, isCorrect, questionNumber])
+
+    // Number/letter shortcuts (1-4 / a-d) for option selection during play
+    useEffect(() => {
+      if (!started || finished) return
+      const onKey = (e) => {
+        if (revealed || loading || !question || !question.options) return
+        const map = { '1':'A','2':'B','3':'C','4':'D','a':'A','b':'B','c':'C','d':'D' }
+        const letter = map[e.key.toLowerCase()]
+        if (letter && question.options.find(o => o.option === letter)) {
+          e.preventDefault()
+          handleSelect(letter)
+        }
+      }
+      window.addEventListener('keydown', onKey)
+      return () => window.removeEventListener('keydown', onKey)
+    }, [started, finished, revealed, loading, question])
+
+    const handleSelect = async (letter) => {
+      if (!question || revealed) return
+      if (submittedRef.current) return
+      submittedRef.current = true
+      setSelectedOption(letter)
+      const timeTaken = timer.stop()
+      const payload = { ...question, selectedOption: letter }
+      try {
+        const r = await fetch(`${API}/${apiPath}/check`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        const data = await r.json()
+        setIsCorrect(data.correct); setRevealed(true)
+        setCorrectOption(data.correctOption || '')
+        if (data.correct) setScore(s => s + 1)
+        const correctText = data.correctDisplay || (question.options.find(o => o.option === data.correctOption)?.text) || ''
+        setFeedback(data.correct ? `Correct! ${correctText}` : `Incorrect. Answer: ${data.correctOption}. ${correctText}`)
+        setResults(prev => [...prev, {
+          prompt: question.prompt,
+          userAnswer: letter,
+          correctAnswer: data.correctOption + (correctText ? `: ${correctText}` : ''),
+          correct: data.correct,
+          time: timeTaken,
+        }])
+        if (isAdaptive) {
+          setAdaptScore(prev => {
+            const next = data.correct ? Math.min(3, prev + 0.25) : Math.max(0, prev - 0.35)
+            adaptScoreRef.current = next
+            return next
+          })
+        }
+      } catch (e) {
+        submittedRef.current = false
+        console.error(`Failed to check ${title} answer:`, e)
+      }
+    }
+
+    const handleSolve = async () => {
+      if (!question || revealed) return
+      submittedRef.current = true
+      timer.stop()
+      try {
+        const r = await fetch(`${API}/${apiPath}/check`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...question, selectedOption: '', solve: true }),
+        })
+        const data = await r.json()
+        setIsCorrect(false); setRevealed(true)
+        setCorrectOption(data.correctOption || '')
+        const correctText = data.correctDisplay || (question.options.find(o => o.option === data.correctOption)?.text) || ''
+        const explanation = data.explanation || ''
+        setFeedback(`Solution: ${data.correctOption}${correctText ? ': ' + correctText : ''}${explanation ? '\n' + explanation : ''}`)
+        setResults(prev => [...prev, {
+          prompt: question.prompt,
+          userAnswer: '(solved)',
+          correctAnswer: data.correctOption + (correctText ? `: ${correctText}` : ''),
+          correct: false,
+          time: 0,
+        }])
+      } catch (e) {
+        submittedRef.current = false
+        console.error(`Failed to solve ${title}:`, e)
+      }
+    }
+
+    const curAdaptLevel = adaptiveLevel(adaptScore)
+
+    return (
+      <QuizLayout title={title} subtitle={subtitle} onBack={onBack} timer={started && !finished ? timer : null}>
+        {!started && !finished && <div className="welcome-box">
+          <p className="welcome-text">Practice {title.toLowerCase()}!</p>
+          {tip && <p style={{ fontSize: '0.85rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>{tip}</p>}
+          <div className="checkbox-group" style={{ marginBottom: '12px' }}>
+            {diffs.map(d => (
+              <label key={d} className={`checkbox-pill${!isAdaptive && difficulty === d ? ' active' : ''}`}>
+                <input type="radio" name={`${apiPath}-diff`} checked={!isAdaptive && difficulty === d} onChange={() => { setDifficulty(d); setIsAdaptive(false) }} />
+                {diffLabels[d]}
+              </label>
+            ))}
+            <label className={`checkbox-pill${isAdaptive ? ' active' : ''}`} style={isAdaptive ? { background: 'linear-gradient(135deg, #4caf50, #ff9800, #f44336, #9c27b0)', color: '#fff', border: 'none' } : {}}>
+              <input type="radio" name={`${apiPath}-diff`} checked={isAdaptive} onChange={() => setIsAdaptive(true)} />
+              Adaptive
+            </label>
+          </div>
+          {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
+          <div className="question-count-row">
+            <label className="question-count-label">How many questions?</label>
+            <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          </div>
+          <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
+        </div>}
+        {started && !finished && <>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.3rem' }}>
+            <div className="progress-pill center">Question {questionNumber}/{totalQ}</div>
+            {isAdaptive && <div className="progress-pill" style={{ background: ADAPT_COLORS[curAdaptLevel], color: '#fff' }}>{ADAPT_LABELS[curAdaptLevel]}</div>}
+          </div>
+          {question && <div style={{ textAlign: 'center' }}>
+            <div className="question-prompt" style={{ fontSize: '1.3rem', margin: '20px 0', lineHeight: '1.6' }}>{question.prompt}</div>
+            <div className="options-grid">
+              {question.options.map(opt => {
+                const isSelected = selectedOption === opt.option
+                const isCorrectOpt = revealed && correctOption === opt.option
+                const isWrongPick = revealed && isSelected && !isCorrect
+                return (
+                  <button key={opt.option}
+                    className={`option-card ${isSelected ? 'selected' : ''} ${isCorrectOpt ? 'correct-option' : ''} ${isWrongPick ? 'wrong-option' : ''}`}
+                    onClick={() => !revealed && handleSelect(opt.option)}
+                    disabled={revealed}>
+                    <strong>{opt.option}.</strong> {opt.text}
+                  </button>
+                )
+              })}
+            </div>
+          </div>}
+          {!question && loading && <div style={{ textAlign: 'center', padding: '24px', color: 'var(--clr-text-soft)' }}>Loading question…</div>}
+          {!question && !loading && loadError && (
+            <div style={{ textAlign: 'center', padding: '20px', color: 'var(--clr-wrong)', fontSize: '0.95rem' }}>
+              <div style={{ marginBottom: '10px' }}>{loadError}</div>
+              <button onClick={loadQuestion}>Retry</button>
+            </div>
+          )}
+          {renderFeedback(feedback, isCorrect)}
+          <div className="button-row">
+            {!revealed ? (
+              <button onClick={handleSolve} disabled={loading} style={{ background: 'transparent', border: '1px solid var(--clr-accent)', color: 'var(--clr-accent)' }}>Solve</button>
+            ) : (
+              <button onClick={advance}>{questionNumber >= totalQ ? 'Finish Quiz' : 'Next Question'}</button>
+            )}
+          </div>
+          {results.length > 0 && <ResultsTable results={results} />}
+        </>}
+        {finished && <div className="welcome-box">
+          <p className="welcome-text">Quiz complete!</p>
+          <p className="final-score">Final score: {score}/{totalQ}</p>
+          <ResultsTable results={results} />
+          <button onClick={() => { setStarted(false); setFinished(false) }}>Play Again</button>
+        </div>}
+      </QuizLayout>
+    )
+  }
+}
+
 function makeQuizApp({ title, subtitle, apiPath, diffLabels, placeholders, tip, answerField }) {
   return function GeneratedQuizApp({ onBack }) {
     const diffs = Object.keys(diffLabels)
@@ -8208,6 +8729,7 @@ function makeQuizApp({ title, subtitle, apiPath, diffLabels, placeholders, tip, 
     const [feedback, setFeedback] = useState('')
     const [isCorrect, setIsCorrect] = useState(null)
     const [loading, setLoading] = useState(false)
+    const [loadError, setLoadError] = useState('')
     const [revealed, setRevealed] = useState(false)
     const [results, setResults] = useState([])
     const timer = useTimer()
@@ -8222,10 +8744,18 @@ function makeQuizApp({ title, subtitle, apiPath, diffLabels, placeholders, tip, 
 
     const loadQuestion = async () => {
       setLoading(true)
+      setLoadError('')
       try {
         const diff = effectiveDifficulty()
         const r = await fetch(`${API}/${apiPath}/question?difficulty=${diff}`)
+        if (!r.ok) throw new Error(`Server returned ${r.status}`)
         const data = await r.json()
+        // Defensive: a question must have a non-empty prompt to be displayable.
+        // If the API returns malformed data (missing prompt), surface a clear
+        // error instead of rendering an empty quiz pane.
+        if (!data || typeof data !== 'object' || !data.prompt) {
+          throw new Error('Question payload is missing a prompt')
+        }
         setQuestion(data)
         setAnswer('')
         setFeedback('')
@@ -8234,7 +8764,11 @@ function makeQuizApp({ title, subtitle, apiPath, diffLabels, placeholders, tip, 
         submittedRef.current = false
         advancedRef.current = false
         timer.start()
-      } catch (e) { console.error(`Failed to load ${title} question:`, e) }
+      } catch (e) {
+        console.error(`Failed to load ${title} question:`, e)
+        setQuestion(null)
+        setLoadError(`Couldn't load a ${title} question (${e.message || 'unknown error'}). Tap Retry to try again.`)
+      }
       setLoading(false)
     }
     const startQuiz = () => {
@@ -8376,6 +8910,13 @@ function makeQuizApp({ title, subtitle, apiPath, diffLabels, placeholders, tip, 
             <div className="question-prompt" style={{ fontSize: '1.3rem', margin: '20px 0', lineHeight: '1.6' }}>{question.prompt}</div>
             <input className="answer-input" type="text" value={answer} onChange={e => { if (!revealed) setAnswer(e.target.value) }} disabled={revealed} placeholder={getPlaceholder()} onKeyDown={handleKeyDown} autoFocus />
           </div>}
+          {!question && loading && <div style={{ textAlign: 'center', padding: '24px', color: 'var(--clr-text-soft)' }}>Loading question…</div>}
+          {!question && !loading && loadError && (
+            <div style={{ textAlign: 'center', padding: '20px', color: 'var(--clr-wrong)', fontSize: '0.95rem' }}>
+              <div style={{ marginBottom: '10px' }}>{loadError}</div>
+              <button onClick={loadQuestion}>Retry</button>
+            </div>
+          )}
           {renderFeedback(feedback, isCorrect)}
           <div className="button-row">
             {!revealed ? <>
@@ -8977,6 +9518,88 @@ const BankingApp = makeQuizApp({
   title: 'Banking (RD)', subtitle: 'Interest & recurring deposits', apiPath: 'banking-api',
   diffLabels: { easy: 'Easy — Simple interest', medium: 'Medium — Compound interest', hard: 'Hard — RD maturity', extrahard: 'Extra Hard — Find installment' },
   placeholders: 'e.g. 12600',
+})
+
+// Gym Decimals — multiply two signed single-digit numbers each shifted by a
+// power of 10 (e.g., -0.8 × 90, 0.002 × -0.7). Multiple-choice with
+// distractors that test sign and decimal-place precision.
+const GymDecimalsApp = makeMCQuizApp({
+  title: 'Gym Decimals', subtitle: 'Signed decimal multiplication — 1-digit × 1-digit', apiPath: 'gymdecimals-api',
+  diffLabels: {
+    easy: 'Easy — shift ≤ 1 place',
+    medium: 'Medium — ≤ 2 places',
+    hard: 'Hard — ≤ 3 places',
+    extrahard: 'Extra Hard — ≤ 4 places',
+  },
+  tip: 'Each operand is one non-zero digit (1-9) with a sign and the decimal point moved. Multiply the digits, apply the sign rule, then count decimal places.',
+})
+
+// Functions Gym — evaluate degree-1/2/3 polynomials and simple linear
+// rationals at integer x. All multiplications stay within single-digit
+// times-tables.
+const FuncGymApp = makeMCQuizApp({
+  title: 'Functions Gym', subtitle: 'Evaluate small polynomials & rationals',
+  apiPath: 'funcgym-api',
+  diffLabels: {
+    easy: 'Easy — degree 1 (ax + b)',
+    medium: 'Medium — degree 2 (ax² + bx + c)',
+    hard: 'Hard — degree 3',
+    extrahard: 'Extra Hard — (ax + b) ÷ k',
+  },
+  tip: 'Substitute x and evaluate. Distractors are off by a small slip — sign or off-by-one — so read carefully.',
+})
+
+// DotProducts Gym — 2D and 3D dot products with single-digit signed integers.
+const DotProdGymApp = makeMCQuizApp({
+  title: 'DotProducts Gym', subtitle: 'a · b for 2- and 3-tuples (signed digits)',
+  apiPath: 'dotprodgym-api',
+  diffLabels: {
+    easy: 'Easy — 2D vectors',
+    medium: 'Medium — mixed 2D / 3D',
+    hard: 'Hard — 3D, components up to ±6',
+    extrahard: 'Extra Hard — 3D, components up to ±9',
+  },
+  tip: 'Multiply each pair of components and add. Watch the signs — most distractors flip exactly one term.',
+})
+
+// Fractions-add-gym — add two single-digit fractions, multiple choice.
+const FracAddGymApp = makeMCQuizApp({
+  title: 'Fractions-add-gym', subtitle: 'Add single-digit fractions',
+  apiPath: 'fracaddgym-api',
+  diffLabels: {
+    easy: 'Easy — same denominator',
+    medium: 'Medium — different denominators',
+    hard: 'Hard — answers may need simplifying',
+    extrahard: 'Extra Hard — signed numerators',
+  },
+  tip: 'Find a common denominator, add the numerators, then simplify. Distractors include the classic "added across" mistake.',
+})
+
+// LinearEquations-Gym — solve ax+b=0 (and harder forms) where every division
+// stays inside single-digit times-tables.
+const LinEqGymApp = makeMCQuizApp({
+  title: 'LinearEquations-Gym', subtitle: 'Solve linear equations with integer answers',
+  apiPath: 'lineqgym-api',
+  diffLabels: {
+    easy: 'Easy — ax + b = 0, |a| ≤ 5',
+    medium: 'Medium — ax + b = 0, |a| ≤ 9',
+    hard: 'Hard — ax + b = c',
+    extrahard: 'Extra Hard — ax + b = cx + d',
+  },
+  tip: 'Solutions are always whole numbers. The equation is built so you only ever divide by a single-digit number.',
+})
+
+// Indices-Gym — index laws (a^k · a^l = a^(k+l), a^k ÷ a^l = a^(k-l), etc.)
+const IndicesGymApp = makeMCQuizApp({
+  title: 'Indices-Gym', subtitle: 'Apply index laws — multiply, divide, power',
+  apiPath: 'indicesgym-api',
+  diffLabels: {
+    easy: 'Easy — multiply / divide on one base',
+    medium: 'Medium — adds (a^k)^l',
+    hard: 'Hard — two bases & chained ops',
+    extrahard: 'Extra Hard — power-of-power chains',
+  },
+  tip: 'Use a^k · a^l = a^(k+l), a^k ÷ a^l = a^(k−l), (a^k)^l = a^(k·l). Distractors swap the wrong rule.',
 })
 
 const GSTApp = makeQuizApp({
@@ -11589,9 +12212,12 @@ function FractionAddApp({ onBack }) {
     if (!parsed || parsed.den === 0) return
 
     const timeTaken = timer.stop()
+    // Default to '+' if the server didn't include an op (back-compat with older API)
+    const op = question.op || '+'
     const payload = {
       n1: question.n1, d1: question.d1,
       n2: question.n2, d2: question.d2,
+      op,
       ansNum: parsed.num,
       ansDen: parsed.den,
       mixed: question.mixed || false,
@@ -11615,8 +12241,8 @@ function FractionAddApp({ onBack }) {
       if (data.correct) setScore(s => s + 1)
 
       const prompt = question.mixed
-        ? `${question.w1} ${question.n1}/${question.d1} + ${question.w2} ${question.n2}/${question.d2}`
-        : `${question.n1}/${question.d1} + ${question.n2}/${question.d2}`
+        ? `${question.w1} ${question.n1}/${question.d1} ${op} ${question.w2} ${question.n2}/${question.d2}`
+        : `${question.n1}/${question.d1} ${op} ${question.n2}/${question.d2}`
 
       setFeedback(data.correct
         ? `Correct! ${prompt} = ${data.display}`
@@ -11640,9 +12266,10 @@ function FractionAddApp({ onBack }) {
   const handleSolve = async () => {
     if (!question || revealed) return
     timer.stop()
+    const op = question.op || '+'
     const prompt = question.mixed
-      ? `${question.w1} ${question.n1}/${question.d1} + ${question.w2} ${question.n2}/${question.d2}`
-      : `${question.n1}/${question.d1} + ${question.n2}/${question.d2}`
+      ? `${question.w1} ${question.n1}/${question.d1} ${op} ${question.w2} ${question.n2}/${question.d2}`
+      : `${question.n1}/${question.d1} ${op} ${question.n2}/${question.d2}`
     try {
       const r = await fetch(`${API}/fractionadd-api/check`, {
         method: 'POST',
@@ -11674,24 +12301,20 @@ function FractionAddApp({ onBack }) {
   }
 
   /**
-   * formatFraction(n, d): Render a fraction as a React element with
-   * stacked numerator/denominator layout using CSS classes.
+   * formatFraction(n, d): Render a fraction using the shared <Frac> component
+   * which draws a proper horizontal bar between numerator and denominator
+   * (the previous CSS-class-based implementation didn't render a visible bar
+   * because some host stylesheets were missing the .frac-bar rule).
    */
-  const formatFraction = (n, d) => (
-    <span className="fraction-display">
-      <span className="frac-num">{n}</span>
-      <span className="frac-bar"></span>
-      <span className="frac-den">{d}</span>
-    </span>
-  )
+  const formatFraction = (n, d) => <Frac n={n} d={d} size="1.4em" />
 
   /**
    * formatMixed(w, n, d): Render a mixed number as whole + fraction.
    */
   const formatMixed = (w, n, d) => (
-    <span className="mixed-number">
-      <span className="mixed-whole">{w}</span>
-      {formatFraction(n, d)}
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+      <span style={{ fontWeight: 600 }}>{w}</span>
+      <Frac n={n} d={d} size="1.4em" />
     </span>
   )
 
@@ -11700,7 +12323,7 @@ function FractionAddApp({ onBack }) {
 
   // ── Render ─────────────────────────────────────────────────────────────
   return (
-    <QuizLayout title="Fractions (Add)" subtitle="Add fractions and simplify" onBack={onBack} timer={started && !finished ? timer : null}>
+    <QuizLayout title="Fractions" subtitle="Add, subtract, multiply & divide fractions" onBack={onBack} timer={started && !finished ? timer : null}>
       {/* ── Setup Phase ── */}
       {!started && !finished && <div className="welcome-box">
         <p className="welcome-text">Practice adding fractions!</p>
@@ -11733,18 +12356,19 @@ function FractionAddApp({ onBack }) {
         {isAdaptive && <DifficultySlider pct={adaptivePct(adaptScore)} onChange={(p) => { const v = (p / 100) * 3; setAdaptScore(v); adaptScoreRef.current = v }} />}
         {question && (
           <div className="fraction-problem">
-            {/* Render the problem: n1/d1 + n2/d2 or mixed numbers */}
+            {/* Render the problem: n1/d1 (op) n2/d2 or mixed numbers (op) mixed numbers.
+                The operator comes from the server (default '+' for back-compat). */}
             {question.mixed ? (
               <div className="fraction-expression">
                 {formatMixed(question.w1, question.n1, question.d1)}
-                <span className="frac-operator">+</span>
+                <span className="frac-operator">{question.op || '+'}</span>
                 {formatMixed(question.w2, question.n2, question.d2)}
                 <span className="frac-operator">=</span>
               </div>
             ) : (
               <div className="fraction-expression">
                 {formatFraction(question.n1, question.d1)}
-                <span className="frac-operator">+</span>
+                <span className="frac-operator">{question.op || '+'}</span>
                 {formatFraction(question.n2, question.d2)}
                 <span className="frac-operator">=</span>
               </div>

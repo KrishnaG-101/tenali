@@ -147,7 +147,7 @@ function generateExplanation(req, data) {
       if (Number(num2) < 0) s += `Subtracting a negative is the same as adding: ${a} − (${num2}) = ${a} + ${Math.abs(num2)} = ${r}\n`;
       else s += `${a} − ${num2} = ${r}\n`;
       s += `\nTip: Think "how far apart are these numbers on the number line?"`;
-    } else {
+    } else if (op === '×') {
       s += `Multiplication means repeated addition.\n`;
       const absA = Math.abs(Number(a)), absB = Math.abs(Number(num2));
       s += `${absA} × ${absB} = ${absA * absB}\n`;
@@ -155,6 +155,19 @@ function generateExplanation(req, data) {
       if (neg) s += `One number is negative → result is negative: ${r}\n`;
       else if (Number(a) < 0 && Number(num2) < 0) s += `Both negative → result is positive: ${r}\n`;
       s += `\nRule: positive × positive = positive\nnegative × positive = negative\nnegative × negative = positive`;
+    } else if (op === '÷') {
+      // Division explanation
+      s += `Division asks: "How many times does ${num2} fit into ${a}?"\n`;
+      const absA = Math.abs(Number(a)), absB = Math.abs(Number(num2));
+      s += `\nStep 1: Divide the absolute values.\n`;
+      s += `  ${absA} ÷ ${absB} = ${absB === 0 ? 'undefined' : absA / absB}\n\n`;
+      s += `Step 2: Apply the sign rule (same as multiplication):\n`;
+      const neg = (Number(a) < 0) !== (Number(num2) < 0);
+      if (neg) s += `  One operand negative → quotient is negative.\n`;
+      else if (Number(a) < 0 && Number(num2) < 0) s += `  Both operands negative → quotient is positive.\n`;
+      else s += `  Both operands positive → quotient is positive.\n`;
+      s += `\nAnswer: ${a} ÷ ${num2} = ${r}\n\n`;
+      s += `Rule: positive ÷ positive = positive\nnegative ÷ positive = negative\nnegative ÷ negative = positive\nNote: division by 0 is undefined.`;
     }
     return s;
   }
@@ -202,29 +215,47 @@ function generateExplanation(req, data) {
     return s;
   }
 
-  // ── Fraction Addition ─────────────────────────────────────────
+  // ── Fraction Addition / Subtraction / Multiplication / Division ──
   if (p.includes('fractionadd-api')) {
     const { n1, d1, n2, d2, mixed, w1, w2 } = b;
+    const op = b.op || '+';
+    const opWord = op === '+' ? 'Add' : (op === '−' || op === '-') ? 'Subtract' : (op === '×' || op === '*') ? 'Multiply' : 'Divide';
     let s = '';
     if (mixed) {
-      s += `Problem: ${w1} ${n1}/${d1} + ${w2} ${n2}/${d2}\n\n`;
+      s += `Problem: ${w1} ${n1}/${d1} ${op} ${w2} ${n2}/${d2}\n\n`;
       s += `Step 1: Convert mixed numbers to improper fractions:\n`;
       const imp1 = w1 * d1 + n1, imp2 = w2 * d2 + n2;
       s += `  ${w1} ${n1}/${d1} = ${imp1}/${d1}\n`;
       s += `  ${w2} ${n2}/${d2} = ${imp2}/${d2}\n\n`;
-      s += `Step 2: Find common denominator and add:\n`;
-    } else {
-      s += `Problem: ${n1}/${d1} + ${n2}/${d2}\n\n`;
-      if (d1 === d2) {
-        s += `Step 1: Same denominators! Just add numerators:\n`;
-        s += `  ${n1}/${d1} + ${n2}/${d2} = ${n1 + n2}/${d1}\n\n`;
+      if (op === '+' || op === '−' || op === '-') {
+        s += `Step 2: Use a common denominator and ${opWord.toLowerCase()} numerators.\n`;
+      } else if (op === '×' || op === '*') {
+        s += `Step 2: Multiply numerators together and denominators together: (${imp1} × ${imp2}) / (${d1} × ${d2}).\n`;
       } else {
-        const lcd = (d1 * d2) / gcd(d1, d2);
-        s += `Step 1: Find LCD of ${d1} and ${d2}: LCD = ${lcd}\n`;
-        s += `Step 2: Convert fractions:\n`;
-        s += `  ${n1}/${d1} = ${n1 * (lcd/d1)}/${lcd}\n`;
-        s += `  ${n2}/${d2} = ${n2 * (lcd/d2)}/${lcd}\n\n`;
-        s += `Step 3: Add numerators: ${n1*(lcd/d1)} + ${n2*(lcd/d2)} = ${n1*(lcd/d1) + n2*(lcd/d2)}\n\n`;
+        s += `Step 2: Invert the second fraction and multiply: (${imp1}/${d1}) × (${d2}/${imp2}).\n`;
+      }
+    } else {
+      s += `Problem: ${n1}/${d1} ${op} ${n2}/${d2}\n\n`;
+      if (op === '+' || op === '−' || op === '-') {
+        if (d1 === d2) {
+          s += `Step 1: Same denominators! ${opWord} numerators directly:\n`;
+          const combined = (op === '+') ? (n1 + n2) : (n1 - n2);
+          s += `  ${n1}/${d1} ${op} ${n2}/${d2} = ${combined}/${d1}\n\n`;
+        } else {
+          const lcd = (d1 * d2) / gcd(d1, d2);
+          s += `Step 1: Find LCD of ${d1} and ${d2}: LCD = ${lcd}\n`;
+          s += `Step 2: Convert fractions:\n`;
+          s += `  ${n1}/${d1} = ${n1 * (lcd/d1)}/${lcd}\n`;
+          s += `  ${n2}/${d2} = ${n2 * (lcd/d2)}/${lcd}\n\n`;
+          const combined = (op === '+') ? (n1*(lcd/d1) + n2*(lcd/d2)) : (n1*(lcd/d1) - n2*(lcd/d2));
+          s += `Step 3: ${opWord} numerators: ${n1*(lcd/d1)} ${op} ${n2*(lcd/d2)} = ${combined}\n\n`;
+        }
+      } else if (op === '×' || op === '*') {
+        s += `Step 1: Multiply numerators and denominators:\n`;
+        s += `  (${n1} × ${n2}) / (${d1} × ${d2}) = ${n1*n2}/${d1*d2}\n\n`;
+      } else {
+        s += `Step 1: Invert the divisor and multiply:\n`;
+        s += `  ${n1}/${d1} ÷ ${n2}/${d2} = ${n1}/${d1} × ${d2}/${n2} = ${n1*d2}/${d1*n2}\n\n`;
       }
     }
     s += `Step: Simplify to lowest terms.\n`;
@@ -816,6 +847,120 @@ function generateExplanation(req, data) {
     s += `Step 2: Integrate both sides.\n`;
     s += `Step 3: Solve for y if possible. Don't forget +C!\n\n`;
     s += `Answer: ${ans}`;
+    return s;
+  }
+
+  // ── Angles ────────────────────────────────────────────────────
+  if (p.includes('angles-api')) {
+    const promptStr = b.prompt || '';
+    // Use the numeric answer (no degree symbol) so we can format consistently.
+    // Fall back to whatever 'ans' contains if 'b.answer' is unavailable.
+    const rNum = (b.answer !== undefined && b.answer !== null) ? b.answer : String(ans).replace(/°/g, '');
+    const rDeg = `${rNum}°`;
+    let s = `Problem: ${promptStr}\n\n`;
+    // Pick the right rule based on keywords in the prompt.
+    if (/straight line/i.test(promptStr) && !/cross/i.test(promptStr)) {
+      s += `Rule: angles on a straight line add up to 180°.\n`;
+      // Try to extract the given angle for an explicit subtraction.
+      const m = promptStr.match(/(\d+)\s*°/);
+      if (m) s += `  ${m[1]}° + x = 180°  →  x = 180° − ${m[1]}° = ${rDeg}\n\n`;
+      else s += `  Sum the known angles and subtract from 180°.\n\n`;
+    } else if (/at a point|meet at a point/i.test(promptStr)) {
+      s += `Rule: angles around a point add up to 360°.\n`;
+      const nums = (promptStr.match(/(\d+)\s*°/g) || []).map(x => parseInt(x));
+      if (nums.length) s += `  Sum of given angles = ${nums.reduce((a,n)=>a+n,0)}°.\n  x = 360° − sum = ${rDeg}\n\n`;
+    } else if (/vertically opposite/i.test(promptStr)) {
+      s += `Rule: vertically opposite angles are equal.\n  Answer: ${rDeg}.\n\n`;
+    } else if (/cross/i.test(promptStr) && /adjacent/i.test(promptStr)) {
+      s += `Rule: adjacent angles on a straight line add up to 180°.\n  x = 180° − given = ${rDeg}.\n\n`;
+    } else if (/alternate/i.test(promptStr)) {
+      s += `Rule: alternate angles between parallel lines are equal (Z-shape).\n  Answer: ${rDeg}.\n\n`;
+    } else if (/corresponding/i.test(promptStr)) {
+      s += `Rule: corresponding angles between parallel lines are equal (F-shape).\n  Answer: ${rDeg}.\n\n`;
+    } else if (/co-interior|cointerior|allied/i.test(promptStr)) {
+      s += `Rule: co-interior (allied) angles between parallel lines add up to 180° (C-shape).\n  Answer: 180° − given = ${rDeg}.\n\n`;
+    } else {
+      s += `Identify which angle relationship applies (line, point, or parallel lines), then apply the matching rule.\n\nAnswer: ${rDeg}.\n\n`;
+    }
+    s += `Tip: a quick sketch with the right shape (line, point, Z, F, C) makes it obvious which rule fits.`;
+    return s;
+  }
+
+  // ── Binomial Theorem ──────────────────────────────────────────
+  if (p.includes('binomial-api')) {
+    const promptStr = b.prompt || '';
+    const r = ans;
+    let s = `Problem: ${promptStr}\n\n`;
+    s += `General formula: (a + b)^n = Σ C(n,r) · a^(n−r) · b^r  for r = 0 … n.\n`;
+    s += `Where C(n,r) = n! / (r!·(n−r)!).\n\n`;
+    // Extract n and r from common shapes like "nCr" or "x^r in (...)^n"
+    const nCrMatch = promptStr.match(/(\d+)C(\d+)/);
+    const expandMatch = promptStr.match(/x\^(\d+).*\(([^)]+)\)\^(\d+)/);
+    const termMatch = promptStr.match(/(\d+)(?:nd|rd|th).*\(1\s*\+\s*x\)\^(\d+)/);
+    if (nCrMatch) {
+      const n = +nCrMatch[1], rr = +nCrMatch[2];
+      s += `Step 1: Plug in n = ${n}, r = ${rr}.\n`;
+      s += `Step 2: ${n}C${rr} = ${n}! / (${rr}!·${n-rr}!) = ${r}.\n\n`;
+    } else if (expandMatch) {
+      const power = expandMatch[1];
+      const inside = expandMatch[2];
+      const n = expandMatch[3];
+      s += `Step 1: Identify the term containing x^${power}: choose r = ${power} in (${inside})^${n}.\n`;
+      s += `Step 2: That term is C(${n}, ${power}) · (1st term)^(${n}−${power}) · (2nd term)^${power}.\n`;
+      s += `Step 3: Evaluate to get coefficient = ${r}.\n\n`;
+    } else if (termMatch) {
+      const k = +termMatch[1];
+      const n = +termMatch[2];
+      s += `Step 1: The k-th term uses r = k − 1, so r = ${k - 1}.\n`;
+      s += `Step 2: Coefficient = C(${n}, ${k - 1}) = ${r}.\n\n`;
+    } else {
+      s += `Step 1: Identify n and the desired power r.\n`;
+      s += `Step 2: Apply C(n,r)·a^(n−r)·b^r and evaluate.\n\n`;
+    }
+    s += `Answer: ${r}\n\n`;
+    s += `Tip: Pascal's triangle gives C(n,r) for small n quickly — each entry is the sum of the two above it.`;
+    return s;
+  }
+
+  // ── Bounds ────────────────────────────────────────────────────
+  if (p.includes('bounds-api')) {
+    const promptStr = b.prompt || '';
+    const r = ans;
+    let s = `Problem: ${promptStr}\n\n`;
+    s += `Key idea: when a value is rounded to a step h, the true value lies in the interval\n`;
+    s += `  [reported − h/2, reported + h/2).\n`;
+    s += `The lower bound is reported − h/2; the upper bound is reported + h/2.\n\n`;
+    if (/lower bound/i.test(promptStr)) {
+      s += `Step 1: Identify the rounding step h from the question (e.g., 1 d.p. → h = 0.1).\n`;
+      s += `Step 2: Lower bound = reported − h/2.\n\n`;
+    } else if (/upper bound/i.test(promptStr) && /a\s*[+÷×−-]\s*b/i.test(promptStr)) {
+      s += `Step 1: For combinations of bounded quantities, push each toward the extreme that\n  makes the calculation as large (upper) or as small (lower) as required.\n`;
+      s += `  • a + b: upper = a_upper + b_upper.\n`;
+      s += `  • a × b (positives): upper = a_upper × b_upper.\n`;
+      s += `  • a ÷ b (positives): upper = a_upper ÷ b_lower (smaller divisor → larger quotient).\n\n`;
+    } else if (/upper bound/i.test(promptStr)) {
+      s += `Step 1: Identify the rounding step h.\n`;
+      s += `Step 2: Upper bound = reported + h/2.\n\n`;
+    }
+    s += `Answer: ${r}\n\n`;
+    s += `Tip: write out the inequality reported − h/2 ≤ true < reported + h/2 before plugging numbers in — it stops sign mistakes.`;
+    return s;
+  }
+
+  // ── Gym Decimals ──────────────────────────────────────────────
+  if (p.includes('gymdecimals-api')) {
+    const { a, b: bStr, d1, d2, e1, e2, prodMantissa, prodExp } = b;
+    let s = `Problem: ${a} × ${bStr}\n\n`;
+    s += `Strategy: separate each number into a single digit and a power of 10.\n`;
+    s += `  ${a} = ${d1} × 10^${e1}\n`;
+    s += `  ${bStr} = ${d2} × 10^${e2}\n\n`;
+    s += `Step 1: Multiply the digits.\n`;
+    s += `  ${d1} × ${d2} = ${prodMantissa}\n\n`;
+    s += `Step 2: Add the exponents (combine the powers of 10).\n`;
+    s += `  10^${e1} × 10^${e2} = 10^${e1 + e2}\n\n`;
+    s += `Step 3: Reassemble.\n`;
+    s += `  ${prodMantissa} × 10^${prodExp} = ${d.display}\n\n`;
+    s += `Tip: count decimal places — every position the point moves left in the inputs adds one place to the answer.`;
     return s;
   }
 
@@ -2368,7 +2513,10 @@ function arithRange(difficulty) {
 /**
  * GET /basicarith-api/question
  * Generate a basic arithmetic problem with random operation and operands
- * Operations: Addition (+), Subtraction (−), Multiplication (×)
+ * Operations: Addition (+), Subtraction (−), Multiplication (×), Division (÷)
+ *
+ * Division questions are always exact (no remainder): we generate the divisor
+ * and quotient first, then compute the dividend a = b × q.
  *
  * Query Parameters:
  *   - difficulty (optional): 'easy', 'medium', or 'hard' (default: 'easy')
@@ -2377,7 +2525,7 @@ function arithRange(difficulty) {
  * {
  *   id: string,
  *   a, b: number,           // Two operands
- *   op: string,             // Operator (+, −, or ×)
+ *   op: string,             // Operator (+, −, ×, or ÷)
  *   prompt: string,         // Display text with proper formatting
  *   answer: number          // Correct result
  * }
@@ -2385,8 +2533,8 @@ function arithRange(difficulty) {
 app.get('/basicarith-api/question', (req, res) => {
   const difficulty = req.query.difficulty || 'easy';
   const range = arithRange(difficulty);
-  const ops = ['+', '−', '×'];
-  const op = ops[randomInt(0, 2)];
+  const ops = ['+', '−', '×', '÷'];
+  const op = ops[randomInt(0, 3)];
   // Generate two numbers, each randomly positive or negative
   let a = randomInt(range.min, range.max);
   let b = randomInt(range.min, range.max);
@@ -2395,13 +2543,23 @@ app.get('/basicarith-api/question', (req, res) => {
   let answer;
   if (op === '+') answer = a + b;
   else if (op === '−') answer = a - b;
-  else answer = a * b;
+  else if (op === '×') answer = a * b;
+  else {
+    // Division: ensure divisor != 0 and result is an integer.
+    // Pick a non-zero divisor b in the same range, then a quotient q in a smaller
+    // range; compute a = b * q so the answer is exact.
+    if (b === 0) b = 1;
+    // Reuse arithRange for the quotient but cap its magnitude to keep questions readable
+    const qMag = Math.max(1, Math.min(Math.abs(range.max), 12));
+    let q = randomInt(1, qMag);
+    if (Math.random() < 0.4) q = -q;
+    a = b * q;
+    answer = q;
+  }
   // Build a readable prompt with proper sign handling
-  const aStr = String(a);
-  const bAbs = Math.abs(b);
   let prompt;
-  if (op === '×') {
-    prompt = `(${a}) × (${b})`;
+  if (op === '×' || op === '÷') {
+    prompt = `(${a}) ${op} (${b})`;
   } else if (b < 0) {
     prompt = `${a} ${op} (${b})`;
   } else {
@@ -2436,7 +2594,12 @@ app.post('/basicarith-api/check', (req, res) => {
   let correctAnswer;
   if (op === '+') correctAnswer = Number(a) + Number(b);
   else if (op === '−') correctAnswer = Number(a) - Number(b);
-  else correctAnswer = Number(a) * Number(b);
+  else if (op === '×') correctAnswer = Number(a) * Number(b);
+  else if (op === '÷') {
+    // Defensive: never divide by zero. Questions are generated with b != 0,
+    // so this is just a safety net.
+    correctAnswer = Number(b) === 0 ? NaN : Number(a) / Number(b);
+  } else correctAnswer = NaN;
   const correct = Number(answer) === correctAnswer;
   res.json({ correct, correctAnswer, message: correct ? 'Correct' : 'Incorrect' });
 });
@@ -2530,22 +2693,27 @@ function toMixed(num, den) {
 app.get('/fractionadd-api/question', (req, res) => {
   const difficulty = req.query.difficulty || 'easy';
   const id = Date.now();
+  // Choose a random operation. Caller may force one via ?op=+|-|×|÷
+  const opQuery = req.query.op;
+  const opPool = ['+', '−', '×', '÷'];
+  const op = opPool.includes(opQuery) ? opQuery : opPool[Math.floor(Math.random() * opPool.length)];
 
   if (difficulty === 'easy') {
-    // Same denominators, denominators 2-10
+    // Same denominators (for + / −) or simple proper fractions (for × / ÷),
+    // denominators 2-10
     const den = Math.floor(Math.random() * 9) + 2; // 2..10
     const n1 = Math.floor(Math.random() * (den - 1)) + 1; // 1..(den-1)
     const n2 = Math.floor(Math.random() * (den - 1)) + 1;
-    res.json({ id, n1, d1: den, n2, d2: den, difficulty, mixed: false });
+    res.json({ id, n1, d1: den, n2, d2: den, op, difficulty, mixed: false });
   } else if (difficulty === 'medium') {
     // Different denominators, denominators 2-12
-    // Ensure d1 != d2 for a meaningful LCD problem
+    // Ensure d1 != d2 for a meaningful LCD problem (for + / −).
     const d1 = Math.floor(Math.random() * 11) + 2; // 2..12
     let d2 = Math.floor(Math.random() * 11) + 2;
     while (d2 === d1) d2 = Math.floor(Math.random() * 11) + 2;
     const n1 = Math.floor(Math.random() * (d1 - 1)) + 1;
     const n2 = Math.floor(Math.random() * (d2 - 1)) + 1;
-    res.json({ id, n1, d1, n2, d2, difficulty, mixed: false });
+    res.json({ id, n1, d1, n2, d2, op, difficulty, mixed: false });
   } else {
     // Hard: Mixed numbers with different denominators 2-15
     const d1 = Math.floor(Math.random() * 14) + 2; // 2..15
@@ -2555,7 +2723,7 @@ app.get('/fractionadd-api/question', (req, res) => {
     const w2 = Math.floor(Math.random() * 5) + 1;
     const n1 = Math.floor(Math.random() * (d1 - 1)) + 1;
     const n2 = Math.floor(Math.random() * (d2 - 1)) + 1;
-    res.json({ id, w1, n1, d1: d1, w2, n2, d2: d2, difficulty: 'hard', mixed: true });
+    res.json({ id, w1, n1, d1: d1, w2, n2, d2: d2, op, difficulty: 'hard', mixed: true });
   }
 });
 
@@ -2589,20 +2757,38 @@ app.get('/fractionadd-api/question', (req, res) => {
  */
 app.post('/fractionadd-api/check', (req, res) => {
   const body = req.body || {};
+  // Default op is '+' for backward compatibility with older clients that
+  // only supported addition.
+  const op = body.op || '+';
   let totalNum, totalDen;
 
+  // Convert each operand to an improper fraction (top/bot)
+  let top1, bot1, top2, bot2;
   if (body.mixed) {
-    // Hard mode: convert mixed numbers to improper fractions, then add
-    // w1 n1/d1 → (w1*d1 + n1)/d1
-    const imp1 = body.w1 * body.d1 + body.n1;
-    const imp2 = body.w2 * body.d2 + body.n2;
-    // Add fractions: imp1/d1 + imp2/d2 = (imp1*d2 + imp2*d1) / (d1*d2)
-    totalNum = imp1 * body.d2 + imp2 * body.d1;
-    totalDen = body.d1 * body.d2;
+    top1 = body.w1 * body.d1 + body.n1; bot1 = body.d1;
+    top2 = body.w2 * body.d2 + body.n2; bot2 = body.d2;
   } else {
-    // Easy/Medium: add n1/d1 + n2/d2 = (n1*d2 + n2*d1) / (d1*d2)
-    totalNum = body.n1 * body.d2 + body.n2 * body.d1;
-    totalDen = body.d1 * body.d2;
+    top1 = body.n1; bot1 = body.d1;
+    top2 = body.n2; bot2 = body.d2;
+  }
+
+  if (op === '+') {
+    totalNum = top1 * bot2 + top2 * bot1;
+    totalDen = bot1 * bot2;
+  } else if (op === '−' || op === '-') {
+    totalNum = top1 * bot2 - top2 * bot1;
+    totalDen = bot1 * bot2;
+  } else if (op === '×' || op === '*') {
+    totalNum = top1 * top2;
+    totalDen = bot1 * bot2;
+  } else if (op === '÷' || op === '/') {
+    // Division: invert second operand and multiply.
+    // Guard against the (extremely unlikely) zero numerator.
+    if (top2 === 0) { totalNum = 0; totalDen = 1; }
+    else { totalNum = top1 * bot2; totalDen = bot1 * top2; }
+  } else {
+    totalNum = top1 * bot2 + top2 * bot1;
+    totalDen = bot1 * bot2;
   }
 
   // Simplify the correct answer
@@ -4695,7 +4881,7 @@ app.get('/bearings-api/question', (req, res) => {
     const east = Math.round(distance * Math.sin(rad) * 10) / 10;
     const north = Math.round(distance * Math.cos(rad) * 10) / 10;
     const fmtB = (b) => String(b).padStart(3, '0');
-    const prompt = `Walking ${distance}m on bearing ${fmtB(bearing)}°. How far East? (1 d.p.)`;
+    const prompt = `Walking ${distance}m on bearing ${fmtB(bearing)}°. How far East? (to 1 decimal place)`;
     res.json({ id, difficulty, type: 'distance_component', prompt, answer: east, display: String(east) });
   }
 });
@@ -6773,6 +6959,661 @@ app.post('/banking-api/check', express.json(), (req, res) => {
   const correct = !isNaN(userNum) && Math.abs(userNum - answer) < 10;
   res.json({ correct, display, message: correct ? 'Correct!' : 'Incorrect' });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GYM PUZZLES — shared multiple-choice helpers
+// ───────────────────────────────────────────────────────────────────────────
+// A handful of new puzzles (Gym Decimals, Functions Gym, DotProducts Gym,
+// Fractions-add-gym, LinearEquations-Gym) share a multiple-choice format with
+// distractors that are deliberately close to the correct answer. These
+// helpers package up the common logic.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * shuffleArray(arr): Fisher-Yates in-place shuffle (returns a new array).
+ */
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/**
+ * buildOptions(correctText, distractors): Produce a 4-option MC payload.
+ *   - Deduplicates distractors against the correct answer.
+ *   - Pads with stand-in strings if the caller didn't supply enough distinct
+ *     distractors (extremely unlikely once dedup is done correctly).
+ *   - Randomly assigns A/B/C/D to the four options.
+ *
+ * Returns: { options: [{option, text}, ...], correctOption: 'A'|'B'|'C'|'D' }
+ */
+function buildOptions(correctText, distractors) {
+  const seen = new Set([String(correctText)]);
+  const cleaned = [];
+  for (const d of distractors) {
+    const s = String(d);
+    if (!seen.has(s)) { seen.add(s); cleaned.push(s); }
+    if (cleaned.length >= 3) break;
+  }
+  // Pad with safe placeholders if fewer than 3 distinct distractors.
+  let pad = 1;
+  while (cleaned.length < 3) {
+    const filler = `${correctText}_${pad++}`;
+    if (!seen.has(filler)) { seen.add(filler); cleaned.push(filler); }
+  }
+  const all = shuffleArray([{ text: String(correctText), correct: true }, ...cleaned.slice(0, 3).map(t => ({ text: t, correct: false }))]);
+  const labels = ['A', 'B', 'C', 'D'];
+  const options = all.map((o, i) => ({ option: labels[i], text: o.text }));
+  const correctOption = labels[all.findIndex(o => o.correct)];
+  return { options, correctOption, correctDisplay: String(correctText) };
+}
+
+/**
+ * mcCheck(req, res): Generic MCQ check — compares selectedOption against the
+ * correctOption stored in the question payload (echoed back by the client).
+ */
+function mcCheck(req, res) {
+  const b = req.body || {};
+  const correct = !!b.selectedOption && b.selectedOption === b.correctOption;
+  res.json({
+    correct,
+    correctOption: b.correctOption,
+    correctDisplay: b.correctDisplay,
+    message: correct ? 'Correct!' : 'Incorrect',
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GYM DECIMALS (gymdecimals-api)
+// ───────────────────────────────────────────────────────────────────────────
+// Place-value drill: each operand is a single non-zero digit (1-9) shifted
+// by some integer power of 10 (e.g., 0.8, 90, 0.002, 0.7, 10, 0.4, 0.008).
+// Operands may be positive or negative. The student practises decimal
+// multiplication, counting decimal places, and applying the sign rule.
+// All four difficulty bands use 1-digit mantissas; the difficulty determines
+// how far the decimal point can be shifted.
+// Multiple choice with distractors that perturb only the decimal place or
+// only the sign — both common student errors.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * formatScaledDigit(mantissa, exp): Render mantissa × 10^exp as a decimal
+ * string (no scientific notation), with trailing zeros stripped from the
+ * fractional part.
+ */
+function formatScaledDigit(mantissa, exp) {
+  const sign = mantissa < 0 ? '-' : '';
+  const m = Math.abs(mantissa);
+  const ms = String(m);
+  let result;
+  if (exp >= 0) {
+    result = ms + '0'.repeat(exp);
+  } else {
+    const decShift = -exp;
+    if (decShift < ms.length) {
+      const intPart = ms.slice(0, ms.length - decShift);
+      const fracPart = ms.slice(ms.length - decShift);
+      result = intPart + '.' + fracPart;
+    } else {
+      const zeros = decShift - ms.length;
+      result = '0.' + '0'.repeat(zeros) + ms;
+    }
+  }
+  if (result.includes('.')) {
+    result = result.replace(/0+$/, '').replace(/\.$/, '');
+  }
+  // Don't render "-0".
+  if (result === '0') return '0';
+  return sign + result;
+}
+
+/**
+ * gymDecimalsQuestion(difficulty): Build a signed decimal multiplication MCQ.
+ * Each operand is ±d × 10^e where d ∈ 1..9 and e ∈ [-range, +range].
+ * Distractors: same magnitude, off by ±1 place; correct magnitude with
+ * flipped sign; one with both an off-by-one place and flipped sign.
+ */
+function gymDecimalsQuestion(difficulty) {
+  const id = `q-${Date.now()}-${Math.random()}`;
+  const range = difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : difficulty === 'hard' ? 3 : 4;
+  const d1 = randomInt(1, 9);
+  const d2 = randomInt(1, 9);
+  const s1 = Math.random() < 0.5 ? -1 : 1;
+  const s2 = Math.random() < 0.5 ? -1 : 1;
+  const e1 = randomInt(-range, range);
+  const e2 = randomInt(-range, range);
+
+  const aStr = formatScaledDigit(s1 * d1, e1);
+  const bStr = formatScaledDigit(s2 * d2, e2);
+
+  const prodMantissa = d1 * d2;          // 1..81 (always positive — sign is separate)
+  const prodSign = s1 * s2;              // ±1
+  const prodExp = e1 + e2;
+  const correctText = formatScaledDigit(prodSign * prodMantissa, prodExp);
+
+  // Numeric answer for downstream uses.
+  const answer = prodSign * prodMantissa * Math.pow(10, prodExp);
+
+  // Build distractors that are deliberately close — only the decimal place or
+  // only the sign is wrong — so the student must think rather than skim.
+  const distractors = [
+    formatScaledDigit(prodSign * prodMantissa, prodExp + 1),
+    formatScaledDigit(prodSign * prodMantissa, prodExp - 1),
+    formatScaledDigit(-prodSign * prodMantissa, prodExp),
+    formatScaledDigit(-prodSign * prodMantissa, prodExp + 1),
+  ];
+  const opts = buildOptions(correctText, distractors);
+
+  // Negative operands are wrapped in parentheses for clarity.
+  const fmtOperand = (s) => s.startsWith('-') ? `(${s})` : s;
+  const prompt = `${fmtOperand(aStr)} × ${fmtOperand(bStr)} = ?`;
+  return {
+    id, difficulty, prompt, answer,
+    a: aStr, b: bStr,
+    d1, d2, s1, s2, e1, e2, prodMantissa, prodSign, prodExp,
+    ...opts,
+  };
+}
+
+app.get('/gymdecimals-api/question', (req, res) => {
+  const difficulty = req.query.difficulty || 'easy';
+  const q = gymDecimalsQuestion(difficulty);
+  res.json(q);
+});
+
+app.post('/gymdecimals-api/check', express.json(), (req, res) => {
+  // Multiple-choice check (preferred path).
+  if (req.body && req.body.correctOption !== undefined) return mcCheck(req, res);
+  // Backward-compatible numeric fallback (still used by older clients).
+  const { display, answer } = req.body || {};
+  const userStr = (req.body.userAnswer || '').trim();
+  const normalise = (s) => {
+    let v = s.replace(/^\+/, '').trim();
+    if (v.startsWith('.')) v = '0' + v;
+    if (v.endsWith('.')) v = v + '0';
+    if (v.includes('.')) v = v.replace(/0+$/, '').replace(/\.$/, '');
+    return v;
+  };
+  const userNum = parseFloat(userStr);
+
+  let correct = false;
+  if (userStr) {
+    if (normalise(userStr) === normalise(String(display))) {
+      correct = true;
+    } else if (!isNaN(userNum)) {
+      // Tolerance scales with the magnitude of the answer (1ppm relative,
+      // floor of 1e-12 absolute) so very small answers like 5.6e-7 still
+      // match cleanly.
+      const tol = Math.max(Math.abs(answer) * 1e-6, 1e-12);
+      correct = Math.abs(userNum - answer) <= tol;
+    }
+  }
+  res.json({ correct, display, message: correct ? 'Correct!' : 'Incorrect' });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FUNCTIONS GYM (funcgym-api)
+// ───────────────────────────────────────────────────────────────────────────
+// Evaluate a polynomial of degree 1, 2, or 3 with single-digit coefficients
+// at a small integer x. Also includes simple linear-in-x rational expressions
+// like (3x + 4) / 2. Multiple-choice with distractors that are off by a small
+// arithmetic slip — wrong sign, off-by-one in the multiplier, missed term, etc.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Stringify a polynomial in standard form. coeffs[0] is the constant term,
+ * coeffs[i] is the coefficient of x^i. Skips zero coefficients and produces
+ * tidy spacing/signs ("2x³ − x² + 5", not "+2x^3 +-1x^2 +5").
+ */
+function fmtPoly(coeffs) {
+  const sup = (n) => String(n).split('').map(d => '⁰¹²³⁴⁵⁶⁷⁸⁹'[d]).join('');
+  const parts = [];
+  for (let i = coeffs.length - 1; i >= 0; i--) {
+    const c = coeffs[i];
+    if (c === 0) continue;
+    let term;
+    const abs = Math.abs(c);
+    if (i === 0) term = String(abs);
+    else if (i === 1) term = (abs === 1 ? 'x' : `${abs}x`);
+    else term = (abs === 1 ? `x${sup(i)}` : `${abs}x${sup(i)}`);
+    if (parts.length === 0) {
+      parts.push((c < 0 ? '−' : '') + term);
+    } else {
+      parts.push(c < 0 ? `− ${term}` : `+ ${term}`);
+    }
+  }
+  return parts.length ? parts.join(' ') : '0';
+}
+
+/**
+ * evalPoly(coeffs, x): Evaluate Σ coeffs[i] · x^i exactly (integer math when
+ * coeffs and x are integers).
+ */
+function evalPoly(coeffs, x) {
+  let total = 0;
+  for (let i = 0; i < coeffs.length; i++) total += coeffs[i] * Math.pow(x, i);
+  return total;
+}
+
+function funcgymQuestion(difficulty) {
+  const id = `q-${Date.now()}-${Math.random()}`;
+  // All coefficients and x stay small enough that every multiplication in
+  // the evaluation involves only single-digit times-tables, so the student
+  // can solve mentally. For higher-degree polynomials we shrink the range
+  // of x because x² and x³ get big fast.
+  const randDigit = () => randomInt(1, 9) * (Math.random() < 0.5 ? -1 : 1);
+
+  let coeffs, kind, x, prompt, answer, display;
+
+  if (difficulty === 'easy') {
+    // Degree 1: ax + b. x ∈ [-9, 9] is fine since a·x stays in ≤9-table range
+    // when |a| ≤ 9 and |x| ≤ 9.
+    x = randomInt(-9, 9);
+    coeffs = [randomInt(-9, 9), randDigit()];
+    kind = 'poly1';
+    answer = evalPoly(coeffs, x);
+    prompt = `Let f(x) = ${fmtPoly(coeffs)}. Find f(${x}).`;
+  } else if (difficulty === 'medium') {
+    // Degree 2: ax² + bx + c. Cap |x| ≤ 3 so x² ≤ 9 — keeps b·x and a·x² inside
+    // single-digit times-tables.
+    x = randomInt(-3, 3);
+    coeffs = [randomInt(-9, 9), randomInt(-9, 9), randDigit()];
+    kind = 'poly2';
+    answer = evalPoly(coeffs, x);
+    prompt = `Let f(x) = ${fmtPoly(coeffs)}. Find f(${x}).`;
+  } else if (difficulty === 'hard') {
+    // Degree 3: ax³ + bx² + cx + d. Cap |x| ≤ 2 so x² ≤ 4, x³ ≤ 8 — every
+    // intermediate product still fits in a single-digit times-table.
+    x = randomInt(-2, 2);
+    coeffs = [randomInt(-9, 9), randomInt(-9, 9), randomInt(-9, 9), randDigit()];
+    kind = 'poly3';
+    answer = evalPoly(coeffs, x);
+    prompt = `Let f(x) = ${fmtPoly(coeffs)}. Find f(${x}).`;
+  } else {
+    // Linear rational: (ax + b) / k. Choose target answer first, k is a
+    // single-digit divisor, ax + b is then an exact multiple of k.
+    x = randomInt(-9, 9);
+    const k = randomInt(2, 9);
+    const num = randomInt(-9, 9);   // a
+    const target = randomInt(-9, 9);
+    const b = target * k - num * x;
+    coeffs = [b, num];
+    kind = 'rational1';
+    answer = target;
+    prompt = `Let f(x) = (${fmtPoly(coeffs)}) ÷ ${k}. Find f(${x}).`;
+  }
+
+  display = String(answer);
+  // Distractors: off by ±1 (arithmetic slip), sign flip, and a "forgot one term"
+  // result. They're forced distinct by buildOptions.
+  const distractors = [
+    String(answer + 1),
+    String(answer - 1),
+    String(-answer),
+    String(answer + 2),
+    String(answer * -1 + 1),
+  ];
+  const opts = buildOptions(display, distractors);
+  return { id, difficulty, prompt, x, coeffs, kind, answer, display, ...opts };
+}
+
+app.get('/funcgym-api/question', (req, res) => {
+  const q = funcgymQuestion(req.query.difficulty || 'easy');
+  res.json(q);
+});
+app.post('/funcgym-api/check', express.json(), mcCheck);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DOTPRODUCTS GYM (dotprodgym-api)
+// ───────────────────────────────────────────────────────────────────────────
+// Compute the dot product of two 2D or 3D vectors with single-digit signed
+// integer components. Distractors are common slips: sign flip on one term,
+// off-by-one in a single product, swapped components.
+// ═══════════════════════════════════════════════════════════════════════════
+
+function dotprodgymQuestion(difficulty) {
+  const id = `q-${Date.now()}-${Math.random()}`;
+  // 2D for easy, mixed for medium, 3D for hard, larger components for extrahard.
+  const dim = difficulty === 'easy' ? 2 : difficulty === 'medium' ? (Math.random() < 0.5 ? 2 : 3) : 3;
+  const lim = difficulty === 'extrahard' ? 9 : 6;
+  const rand = () => {
+    const v = randomInt(1, lim);
+    return Math.random() < 0.5 ? -v : v;
+  };
+  const a = Array.from({ length: dim }, rand);
+  const b = Array.from({ length: dim }, rand);
+  let total = 0;
+  for (let i = 0; i < dim; i++) total += a[i] * b[i];
+
+  const fmtVec = (v) => `(${v.join(', ')})`;
+  const prompt = `${fmtVec(a)} · ${fmtVec(b)} = ?`;
+
+  // Distractors:
+  //  d1: flip sign of just the first component pair contribution.
+  //  d2: flip sign of just the last component pair contribution.
+  //  d3: off-by-one (drop one product).
+  //  d4: total with all signs ignored (sum of |a_i * b_i|).
+  const d1 = total - 2 * (a[0] * b[0]);
+  const d2 = total - 2 * (a[dim - 1] * b[dim - 1]);
+  const d3 = total - a[0] * b[0];
+  const d4 = a.reduce((s, v, i) => s + Math.abs(v * b[i]), 0);
+  const distractors = [String(d1), String(d2), String(d3), String(d4), String(total + 1), String(-total)];
+  const correctText = String(total);
+  const opts = buildOptions(correctText, distractors);
+  return { id, difficulty, prompt, a, b, total, display: correctText, ...opts };
+}
+
+app.get('/dotprodgym-api/question', (req, res) => {
+  const q = dotprodgymQuestion(req.query.difficulty || 'easy');
+  res.json(q);
+});
+app.post('/dotprodgym-api/check', express.json(), mcCheck);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FRACTIONS-ADD-GYM (fracaddgym-api)
+// ───────────────────────────────────────────────────────────────────────────
+// Add two fractions, both with single-digit numerator and denominator.
+// Multiple choice. Distractors are the kind of mistakes students make:
+//   - "added across" (a+c)/(b+d)
+//   - forgot to find LCD: a/b + c/d → (a+c)/d
+//   - wrong sign on the answer
+//   - off-by-one in the numerator
+// ═══════════════════════════════════════════════════════════════════════════
+
+function fmtFracText(num, den) {
+  // Render a fraction as plain text. Negative is shown on the numerator.
+  if (den === 1) return String(num);
+  if (num === 0) return '0';
+  // Already simplified by the caller; preserve sign on the numerator.
+  return `${num}/${den}`;
+}
+
+function fracaddgymQuestion(difficulty) {
+  const id = `q-${Date.now()}-${Math.random()}`;
+  // Numerators and denominators are single digits.
+  const nMax = 9;
+  const a = randomInt(1, nMax);
+  let b = randomInt(2, nMax);
+  let c = randomInt(1, nMax);
+  let d = randomInt(2, nMax);
+  // For "easy" force same denominator (no LCD needed).
+  if (difficulty === 'easy') d = b;
+
+  // Optional sign on each operand for harder bands.
+  const sa = (difficulty === 'easy' || difficulty === 'medium') ? 1 : (Math.random() < 0.4 ? -1 : 1);
+  const sc = (difficulty === 'easy' || difficulty === 'medium') ? 1 : (Math.random() < 0.4 ? -1 : 1);
+
+  const aa = sa * a, cc = sc * c;
+  const num = aa * d + cc * b;
+  const den = b * d;
+  const g = gcd(Math.abs(num), den);
+  const sn = num / g, sd = den / g;
+  const display = fmtFracText(sn, sd);
+
+  const fmtA = `${aa < 0 ? '−' : ''}${a}/${b}`;
+  const fmtC = `${cc < 0 ? '−' : ''}${c}/${d}`;
+  const prompt = `${fmtA} + ${fmtC} = ?`;
+
+  // Distractors:
+  //  d1: "added across": (a+c) / (b+d) (raw, before simplification)
+  const dn1 = aa + cc, dd1 = b + d;
+  const g1 = Math.max(1, gcd(Math.abs(dn1) || 1, dd1));
+  const dist1 = fmtFracText(dn1 / g1, dd1 / g1);
+  //  d2: numerator added but denominator kept as one of them
+  const dn2 = aa + cc, dd2 = d;
+  const g2 = Math.max(1, gcd(Math.abs(dn2) || 1, dd2));
+  const dist2 = fmtFracText(dn2 / g2, dd2 / g2);
+  //  d3: sign flip
+  const dist3 = fmtFracText(-sn, sd);
+  //  d4: numerator off by one
+  const g4 = Math.max(1, gcd(Math.abs(sn + 1) || 1, sd));
+  const dist4 = fmtFracText((sn + 1) / g4, sd / g4);
+  const distractors = [dist1, dist2, dist3, dist4];
+  const opts = buildOptions(display, distractors);
+
+  return { id, difficulty, prompt, a, b, c, d, sa, sc, sn, sd, display, ...opts };
+}
+
+app.get('/fracaddgym-api/question', (req, res) => {
+  const q = fracaddgymQuestion(req.query.difficulty || 'easy');
+  res.json(q);
+});
+app.post('/fracaddgym-api/check', express.json(), mcCheck);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LINEAREQUATIONS-GYM (lineqgym-api)
+// ───────────────────────────────────────────────────────────────────────────
+// Solve ax + b = 0 for x, with the constraint that a is a single-digit
+// non-zero integer (1..9 in absolute value) and b is a multiple of a so the
+// solution is itself a small signed integer. This guarantees that the only
+// "tables knowledge" required is the table of |a| (a single-digit number).
+//
+// Difficulty controls how big the integer solution can be:
+//   easy:      |x| ≤ 5, a ∈ ±1..5
+//   medium:    |x| ≤ 9, a ∈ ±1..9
+//   hard:      adds a one-step rearrangement (ax + b = c)
+//   extrahard: adds a constant on each side (ax + b = cx + d) with c ≠ a
+// ═══════════════════════════════════════════════════════════════════════════
+
+function lineqgymQuestion(difficulty) {
+  const id = `q-${Date.now()}-${Math.random()}`;
+  // Pick a-coefficient and the integer solution; everything else follows.
+  const aMag = (difficulty === 'easy') ? randomInt(1, 5) : randomInt(1, 9);
+  const aSign = Math.random() < 0.5 ? -1 : 1;
+  const a = aSign * aMag;
+  const xMag = (difficulty === 'easy') ? randomInt(1, 5) : randomInt(1, 9);
+  const x = xMag * (Math.random() < 0.5 ? -1 : 1);
+
+  let prompt, kind;
+  if (difficulty === 'easy' || difficulty === 'medium') {
+    // ax + b = 0  ⇒  b = -a*x  (always a multiple of a, so it's solvable
+    // without going beyond a's times-table).
+    const b = -a * x;
+    const lhs = `${a === 1 ? '' : a === -1 ? '−' : a}x ${b >= 0 ? '+' : '−'} ${Math.abs(b)}`;
+    prompt = `Solve for x:  ${lhs} = 0`;
+    kind = 'simple';
+  } else if (difficulty === 'hard') {
+    // ax + b = c  ⇒  b - c = -a*x. Build c first, then choose b = -a*x + c.
+    const c = randomInt(-9, 9);
+    const b = -a * x + c;
+    const lhs = `${a === 1 ? '' : a === -1 ? '−' : a}x ${b >= 0 ? '+' : '−'} ${Math.abs(b)}`;
+    prompt = `Solve for x:  ${lhs} = ${c}`;
+    kind = 'rearrange';
+  } else {
+    // ax + b = cx + d.
+    // Constraint: the student should only ever divide by |a − c|, and that
+    // divisor must stay inside single-digit times-tables (|a − c| ≤ 9).
+    // We pick the difference k = a − c first (1..9 magnitude), then derive c.
+    const kMag = randomInt(1, 9);
+    const kSign = Math.random() < 0.5 ? -1 : 1;
+    const k = kMag * kSign;
+    let c = a - k;
+    // If c happens to fall outside the allowed single-digit range, retry by
+    // flipping the sign of k; if still bad, clamp by reducing k's magnitude.
+    if (c < -9 || c > 9 || c === 0) {
+      c = a + k;
+    }
+    if (c < -9 || c > 9 || c === 0) {
+      // Last resort: fall back to the simple "ax + b = 0" form so we never
+      // emit a question that violates the mental-math constraint.
+      const b0 = -a * x;
+      const lhs0 = `${a === 1 ? '' : a === -1 ? '−' : a}x ${b0 >= 0 ? '+' : '−'} ${Math.abs(b0)}`;
+      prompt = `Solve for x:  ${lhs0} = 0`;
+      kind = 'simple';
+      const display0 = String(x);
+      const distractors0 = [String(-x), String(x + 1), String(x - 1), String(2 * x)];
+      const opts0 = buildOptions(display0, distractors0);
+      return { id, difficulty, prompt, a, x, kind, display: display0, ...opts0 };
+    }
+    // (a − c) x  = d − b  ⇒  pick b freely, then d = (a-c)*x + b.
+    const b = randomInt(-9, 9);
+    const d = (a - c) * x + b;
+    const lhs = `${a === 1 ? '' : a === -1 ? '−' : a}x ${b >= 0 ? '+' : '−'} ${Math.abs(b)}`;
+    const rhs = `${c === 1 ? '' : c === -1 ? '−' : c}x ${d >= 0 ? '+' : '−'} ${Math.abs(d)}`;
+    prompt = `Solve for x:  ${lhs} = ${rhs}`;
+    kind = 'twosided';
+  }
+
+  const display = String(x);
+  const distractors = [String(-x), String(x + 1), String(x - 1), String(2 * x), String(Math.round(x / 2))];
+  const opts = buildOptions(display, distractors);
+
+  return { id, difficulty, prompt, a, x, kind, display, ...opts };
+}
+
+app.get('/lineqgym-api/question', (req, res) => {
+  const q = lineqgymQuestion(req.query.difficulty || 'easy');
+  res.json(q);
+});
+app.post('/lineqgym-api/check', express.json(), mcCheck);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INDICES GYM (indicesgym-api)
+// ───────────────────────────────────────────────────────────────────────────
+// Apply the index laws using symbolic variables so the student doesn't have
+// to do any arithmetic beyond adding/subtracting/multiplying single-digit
+// integer exponents.
+//
+//   product:    a^k · a^l         → a^(k+l)
+//   quotient:   a^k / a^l         → a^(k−l)
+//   power:      (a^k)^l           → a^(k·l)
+//   mixed-base: a^k · b^l · a^m   → a^(k+m) · b^l
+//
+// Exponents are kept small (|k|, |l|, |m| ≤ 5) so |k·l| ≤ 25 and the
+// student never needs anything past the 9-times tables. All variations are
+// designed to be solvable mentally in ~20 seconds.
+//
+// Distractors mirror the most common student errors: confusing the rule
+// (multiplying instead of adding exponents, etc.), swapping order in the
+// quotient, and dropping a variable.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * fmtPower(base, exp): Render base^exp as a string. base may itself be a
+ * formatted base such as "(xy)". We use Unicode superscript digits when the
+ * exponent is a small integer; otherwise fall back to "^(...)".
+ */
+function fmtPower(base, exp) {
+  if (exp === 0) return '1';
+  if (exp === 1) return String(base);
+  const sup = (n) => {
+    const s = String(n);
+    return s.split('').map(ch => ch === '-' ? '⁻' : '⁰¹²³⁴⁵⁶⁷⁸⁹'[ch] || ch).join('');
+  };
+  return `${base}${sup(exp)}`;
+}
+
+/**
+ * fmtTermList(parts): join non-trivial parts with explicit "·" so the student
+ * sees the multiplication clearly. Drops parts equal to "1".
+ */
+function fmtTermList(parts) {
+  const filtered = parts.filter(p => p !== '1');
+  if (filtered.length === 0) return '1';
+  return filtered.join(' · ');
+}
+
+function indicesgymQuestion(difficulty) {
+  const id = `q-${Date.now()}-${Math.random()}`;
+  // Available variables for the question.
+  const vars = ['a', 'b', 'x', 'y', 'm', 'n'];
+  const pickVar = (excl = []) => {
+    const choices = vars.filter(v => !excl.includes(v));
+    return choices[randomInt(0, choices.length - 1)];
+  };
+  // Small signed exponents — keeps any product within 9-times-tables.
+  const eRange = (difficulty === 'easy') ? 4 : 5;
+  const rE = () => {
+    let v = randomInt(1, eRange);
+    if (Math.random() < 0.5) v = -v;
+    return v;
+  };
+
+  // Pick the law to apply. Easy/medium = single-base laws; hard/extrahard
+  // mix two bases or chain two operations.
+  const laws = (difficulty === 'easy') ? ['product', 'quotient']
+              : (difficulty === 'medium') ? ['product', 'quotient', 'power']
+              : (difficulty === 'hard') ? ['product', 'quotient', 'power', 'mixed', 'chain']
+              : ['power', 'mixed', 'chain', 'powerchain'];
+  const law = laws[randomInt(0, laws.length - 1)];
+
+  let prompt, correctText, distractors;
+
+  if (law === 'product') {
+    const a = pickVar();
+    const k = rE(), l = rE();
+    prompt = `Simplify:  ${fmtPower(a, k)} · ${fmtPower(a, l)}`;
+    correctText = fmtPower(a, k + l);
+    distractors = [fmtPower(a, k - l), fmtPower(a, k * l), fmtPower(a, l - k), fmtPower(a, k + l + 1)];
+  } else if (law === 'quotient') {
+    const a = pickVar();
+    const k = rE(), l = rE();
+    prompt = `Simplify:  ${fmtPower(a, k)} ÷ ${fmtPower(a, l)}`;
+    correctText = fmtPower(a, k - l);
+    distractors = [fmtPower(a, k + l), fmtPower(a, l - k), fmtPower(a, k * l), fmtPower(a, k - l - 1)];
+  } else if (law === 'power') {
+    const a = pickVar();
+    // Keep |k·l| ≤ 25 (5 × 5) so it stays in single-digit-table territory.
+    const k = randomInt(2, 5) * (Math.random() < 0.4 ? -1 : 1);
+    const l = randomInt(2, 5) * (Math.random() < 0.4 ? -1 : 1);
+    // Render as (a^k)^l with a clear caret on the outer exponent so the
+    // student sees the structure unambiguously.
+    prompt = `Simplify:  (${fmtPower(a, k)})^${l < 0 ? `(${l})` : l}`;
+    correctText = fmtPower(a, k * l);
+    distractors = [fmtPower(a, k + l), fmtPower(a, k - l), fmtPower(a, k * l + 1), fmtPower(a, l - k)];
+  } else if (law === 'mixed') {
+    // Two bases, both products.
+    const a = pickVar();
+    const b = pickVar([a]);
+    const k = rE(), l = rE(), m = rE(), n = rE();
+    prompt = `Simplify:  ${fmtPower(a, k)} · ${fmtPower(b, l)} · ${fmtPower(a, m)} · ${fmtPower(b, n)}`;
+    correctText = fmtTermList([fmtPower(a, k + m), fmtPower(b, l + n)]);
+    distractors = [
+      fmtTermList([fmtPower(a, k * m), fmtPower(b, l * n)]),
+      fmtTermList([fmtPower(a, k + m), fmtPower(b, l - n)]),
+      fmtTermList([fmtPower(a, k - m), fmtPower(b, l + n)]),
+      fmtTermList([fmtPower(a, k + l), fmtPower(b, m + n)]),
+    ];
+  } else if (law === 'chain') {
+    // Mix multiplication and division on a single base.
+    const a = pickVar();
+    const k = rE(), l = rE(), m = rE();
+    prompt = `Simplify:  ${fmtPower(a, k)} · ${fmtPower(a, l)} ÷ ${fmtPower(a, m)}`;
+    correctText = fmtPower(a, k + l - m);
+    distractors = [
+      fmtPower(a, k + l + m),
+      fmtPower(a, k - l - m),
+      fmtPower(a, k - l + m),
+      fmtPower(a, k + l - m + 1),
+    ];
+  } else {
+    // powerchain: (a^k)^l · a^m
+    const a = pickVar();
+    const k = randomInt(2, 4) * (Math.random() < 0.4 ? -1 : 1);
+    const l = randomInt(2, 4) * (Math.random() < 0.4 ? -1 : 1);
+    const m = rE();
+    prompt = `Simplify:  (${fmtPower(a, k)})^${l < 0 ? `(${l})` : l} · ${fmtPower(a, m)}`;
+    correctText = fmtPower(a, k * l + m);
+    distractors = [
+      fmtPower(a, k + l + m),
+      fmtPower(a, k * l - m),
+      fmtPower(a, k * l * m),
+      fmtPower(a, (k + l) * m),
+    ];
+  }
+
+  const opts = buildOptions(correctText, distractors);
+  return { id, difficulty, prompt, law, display: correctText, ...opts };
+}
+
+app.get('/indicesgym-api/question', (req, res) => {
+  const q = indicesgymQuestion(req.query.difficulty || 'easy');
+  res.json(q);
+});
+app.post('/indicesgym-api/check', express.json(), mcCheck);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 10. GST (gst-api)
