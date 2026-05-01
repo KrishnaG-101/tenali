@@ -28,8 +28,8 @@ import './App.css'
 const API = import.meta.env.VITE_API_BASE_URL || '';
 
 // App version — increment with each commit
-const TENALI_VERSION = '1.0.75'
-const TENALI_BUILD_DATE = '2026-05-01 19:26 IST'
+const TENALI_VERSION = '1.0.76'
+const TENALI_BUILD_DATE = '2026-05-01 21:40 IST'
 
 // Inject version badge into DOM once (appears on all routes)
 ;(() => {
@@ -6392,6 +6392,902 @@ function Chapter5App({ onBack }) {
   )
 }
 
+/* =====================================================================
+ *  Chapter6App — Cambridge IGCSE Chapter 6 (Equations, Factors and Formulae)
+ *
+ *  Mounted at /chapter6. Same UX as Chapter5App: ordered chain of lessons,
+ *  every one unlocked from the start, slider to jump questions, MCQ with
+ *  1-9 keys + fill-in fallbacks, 5s auto-advance, completed lessons go
+ *  green. See Tenali/skills/igcse-chapter/SKILL.md for the full pattern.
+ * ===================================================================== */
+
+const CH6_OPTION_LABEL = ['1','2','3','4','5','6','7','8','9']
+
+function ch6_seededShuffle(n, key) {
+  let h = 2166136261
+  for (let i = 0; i < key.length; i++) { h ^= key.charCodeAt(i); h = Math.imul(h, 16777619) }
+  const rand = () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967295 }
+  const arr = Array.from({ length: n }, (_, i) => i)
+  for (let i = n - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]] }
+  return arr
+}
+
+function ch6_gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b] } return a || 1 }
+function ch6_reduce(n, d) { if (d === 0) return null; if (d < 0) { n = -n; d = -d } const g = ch6_gcd(n, d); return { n: n / g, d: d / g } }
+function ch6_parseFrac(raw) {
+  if (raw == null) return null
+  let s = String(raw).trim().replace(/\\frac\{(-?\d+)\}\{(-?\d+)\}/g, '$1/$2').replace(/\s+/g, ' ').replace(/–/g, '-')
+  if (!s) return null
+  const mixed = s.match(/^(-?)(\d+)\s+(\d+)\s*\/\s*(\d+)$/)
+  if (mixed) { const sign = mixed[1] === '-' ? -1 : 1; const w = +mixed[2], n = +mixed[3], d = +mixed[4]; if (d === 0) return null; return ch6_reduce(sign * (w * d + n), d) }
+  const frac = s.match(/^(-?\d+)\s*\/\s*(-?\d+)$/)
+  if (frac) { const n = +frac[1], d = +frac[2]; if (d === 0) return null; return ch6_reduce(n, d) }
+  const num = Number(s)
+  if (Number.isFinite(num)) {
+    if (Number.isInteger(num)) return { n: num, d: 1 }
+    const sign = num < 0 ? -1 : 1
+    const decimals = (s.split('.')[1] || '').length
+    const denom = Math.pow(10, decimals)
+    return ch6_reduce(sign * Math.round(Math.abs(num) * denom), denom)
+  }
+  return null
+}
+function ch6_fracEqual(a, b) { return a && b && a.n === b.n && a.d === b.d }
+function ch6_normalizeNumStr(s) { return String(s).trim().replace(/[$,\s%]/g, '').replace(/–/g, '-') }
+function ch6_numEqual(user, expected, tol) {
+  const u = parseFloat(ch6_normalizeNumStr(user))
+  if (!Number.isFinite(u)) return false
+  const t = tol != null ? tol : Math.max(0.005, Math.abs(expected) * 0.005)
+  return Math.abs(u - expected) <= t
+}
+function ch6_checkFill(q, raw) {
+  if (!raw || !raw.trim()) return false
+  switch (q.kind) {
+    case 'fill-num': return ch6_numEqual(raw, q.answer, q.tol)
+    case 'fill-frac': { const u = ch6_parseFrac(raw); const e = ch6_parseFrac(q.answer); return ch6_fracEqual(u, e) }
+    case 'fill-text': return raw.trim().toLowerCase().replace(/\s+/g, '') === String(q.answer).trim().toLowerCase().replace(/\s+/g, '')
+    default: return false
+  }
+}
+
+const CH6_LESSONS = [
+  // ───────────────────── Lesson 1: Inverse-operation warm-up ─────────────
+  {
+    id: 'L1',
+    title: 'Lesson 1 · Inverse operations (the toolkit for equations)',
+    teach: {
+      heading: 'Reversing what was done to x',
+      body: [
+        'Solving an equation is undoing whatever was done to the unknown — using INVERSE operations in the OPPOSITE order.',
+        'Addition undoes subtraction (and vice versa). Multiplication undoes division (and vice versa). Squaring undoes a square root.',
+        'Whatever you do to one side of an equation, you MUST also do to the other — that keeps both sides equal.',
+        'Always show your working so you can spot mistakes later.',
+      ],
+      example: 'I think of a number, multiply by 4, then add 5. The answer is 13. The number is 2: undo +5 first (13 − 5 = 8), then undo ×4 (8 ÷ 4 = 2).',
+    },
+    questions: [
+      { kind: 'fill-num', prompt: 'I think of a number, add 7. The answer is 13. The number is?', answer: 6, solution: '13 − 7 = 6.' },
+      { kind: 'fill-num', prompt: 'I think of a number, multiply by 3. The answer is 18. The number is?', answer: 6, solution: '18 ÷ 3 = 6.' },
+      { kind: 'mcq', prompt: 'I think of a number, multiply by 4 and add 5. The answer is 13. The number is?',
+        options: ['2', '4.5', '3', '8'], correct: 0, solution: '(13 − 5) ÷ 4 = 8 ÷ 4 = 2.' },
+      { kind: 'mcq', prompt: 'Which inverse operation undoes "subtract 9"?',
+        options: ['Add 9', 'Multiply by 9', 'Divide by 9', 'Subtract 9 again'], correct: 0, solution: 'Addition is the inverse of subtraction.' },
+      { kind: 'mcq', prompt: 'Which inverse operation undoes "divide by 5"?',
+        options: ['Multiply by 5', 'Add 5', 'Subtract 5', 'Square'], correct: 0, solution: 'Multiplication is the inverse of division.' },
+      { kind: 'fill-num', prompt: 'I think of a number, divide by 2 then add 3. The answer is 7. The number is?', answer: 8, solution: '(7 − 3) × 2 = 4 × 2 = 8.' },
+    ],
+  },
+
+  // ───────────────────── Lesson 2: One-step linear equations ─────────────
+  {
+    id: 'L2',
+    title: 'Lesson 2 · One-step equations',
+    teach: {
+      heading: 'Equations that take one inverse to solve',
+      body: [
+        'A LINEAR equation contains a variable raised to power 1 only.',
+        'Strategy: identify what is being done to the variable, then apply the inverse to BOTH sides.',
+        'x + 7 = 12  → subtract 7: x = 5.',
+        '6x = 30  → divide by 6: x = 5.',
+        'x \\div 4 = 9  → multiply by 4: x = 36.',
+      ],
+      example: 'Solve 5x = 35. Divide both sides by 5: x = 7.',
+    },
+    questions: [
+      { kind: 'mcq', prompt: 'Solve: 4x = 28', options: ['7', '24', '32', '4'], correct: 0, solution: 'x = 28 ÷ 4 = 7.' },
+      { kind: 'mcq', prompt: 'Solve: 6x = 18', options: ['3', '12', '24', '108'], correct: 0, solution: 'x = 18 ÷ 6.' },
+      { kind: 'mcq', prompt: 'Solve: 7y = 42', options: ['6', '35', '49', '7'], correct: 0, solution: 'y = 42 ÷ 7.' },
+      { kind: 'fill-num', prompt: 'Solve: 12y = 84', answer: 7, solution: 'y = 84 ÷ 12.' },
+      { kind: 'fill-num', prompt: 'Solve: x + 7 = 12', answer: 5, solution: 'x = 12 − 7.' },
+      { kind: 'fill-num', prompt: 'Solve: y − 11 = 7', answer: 18, solution: 'y = 7 + 11.' },
+      { kind: 'mcq', prompt: 'Solve: \\frac{x}{4} = 9', options: ['36', '5', '13', '2.25'], correct: 0, solution: 'x = 9 × 4.' },
+      { kind: 'fill-num', prompt: 'Solve: \\frac{m}{6} = 5', answer: 30, solution: 'm = 5 × 6.' },
+    ],
+  },
+
+  // ───────────────────── Lesson 3: Two-step equations ────────────────────
+  {
+    id: 'L3',
+    title: 'Lesson 3 · Two-step equations (Exercise 6.1 Q1)',
+    teach: {
+      heading: 'Equations like ax + b = c',
+      body: [
+        'Two operations have been done to x — undo them in REVERSE order.',
+        'Step 1: undo the addition/subtraction (move constants to the other side).',
+        'Step 2: undo the multiplication/division.',
+        'Always show working so the steps are clear.',
+      ],
+      example: 'Solve 3x + 1 = 13. Subtract 1: 3x = 12. Divide by 3: x = 4.',
+    },
+    questions: [
+      { kind: 'mcq', prompt: 'Solve: 4x + 3 = 31',
+        options: ['7', '8', '6', '34'], correct: 0, solution: '4x = 28 → x = 7.' },
+      { kind: 'mcq', prompt: 'Solve: 8x + 42 = 2',
+        options: ['−5', '5', '−4', '\\frac{1}{4}'], correct: 0, solution: '8x = −40 → x = −5.' },
+      { kind: 'mcq', prompt: 'Solve: 7x − 4 = 66',
+        options: ['10', '9', '70', '−10'], correct: 0, solution: '7x = 70 → x = 10.' },
+      { kind: 'mcq', prompt: 'Solve: 19r − 19 = 1102',
+        options: ['59', '57', '60', '54'], correct: 0, solution: '19r = 1121 → r = 59.' },
+      { kind: 'fill-num', prompt: 'Solve: 12y − 7 = 14 (decimal ok)', answer: 1.75, tol: 0.001, solution: '12y = 21 → y = 21/12 = 1.75.' },
+      { kind: 'fill-num', prompt: 'Solve: 200x + 300 = 700', answer: 2, solution: '200x = 400 → x = 2.' },
+    ],
+  },
+
+  // ───────────────────── Lesson 4: Unknowns on both sides ────────────────
+  {
+    id: 'L4',
+    title: 'Lesson 4 · Unknowns on both sides (Exercise 6.1 Q2)',
+    teach: {
+      heading: 'When x appears on both sides of the equation',
+      body: [
+        'First, gather all the variable terms on ONE side and the numbers on the OTHER side.',
+        'Tip: move the smaller variable term so the coefficient stays positive — easier on the eye.',
+        'Then it\'s a normal two-step equation: undo the addition/subtraction, then the multiplication/division.',
+      ],
+      example: 'Solve 5x + 12 = 11x − 24. Move 5x: 12 = 6x − 24. Add 24: 36 = 6x. Divide: x = 6.',
+    },
+    questions: [
+      { kind: 'mcq', prompt: 'Solve: 12x + 1 = 7x + 11',
+        options: ['2', '12/19', '−2', '5'], correct: 0, solution: '5x = 10 → x = 2.' },
+      { kind: 'mcq', prompt: 'Solve: 6x + 1 = 7x − 5',
+        options: ['6', '−6', '\\frac{−4}{13}', '−1'], correct: 0, solution: 'Subtract 6x: 1 = x − 5 → x = 6.' },
+      { kind: 'mcq', prompt: 'Solve: 6y + 2 = 3y − 8',
+        options: ['\\frac{-10}{3}', '10/3', '−2', '2'], correct: 0,
+        solution: '3y = −10 → y = −10/3.' },
+      { kind: 'mcq', prompt: 'Solve: 11x + 1 = 12 − 14x',
+        options: ['\\frac{11}{25}', '\\frac{1}{2}', '\\frac{1}{25}', '\\frac{12}{25}'], correct: 0,
+        solution: '25x = 11 → x = 11/25.' },
+      { kind: 'fill-num', prompt: 'Solve: 6 + 4y = 7y − 9 (decimal ok)', answer: 5, solution: '15 = 3y → y = 5.' },
+      { kind: 'fill-num', prompt: 'Solve: 8 − 8y = 9 − 9y', answer: 1, solution: 'Move y: −8y + 9y = 9 − 8 → y = 1.' },
+    ],
+  },
+
+  // ───────────────────── Lesson 5: Brackets ──────────────────────────────
+  {
+    id: 'L5',
+    title: 'Lesson 5 · Equations with brackets (Exercise 6.1 Q3)',
+    teach: {
+      heading: 'Equations with brackets',
+      body: [
+        'Step 1: EXPAND the brackets first using the distributive law a(b + c) = ab + ac.',
+        'Step 2: collect like terms on each side.',
+        'Step 3: solve as a normal linear equation.',
+        'Watch your signs when there is a minus in front of a bracket.',
+      ],
+      example: 'Solve 2(y − 4) + (y + 2) = 30. Expand: 2y − 8 + y + 2 = 30 → 3y − 6 = 30 → y = 12.',
+    },
+    questions: [
+      { kind: 'mcq', prompt: 'Solve: 4(y + 1) = 12',
+        options: ['2', '3', '11', '4'], correct: 0, solution: '4y + 4 = 12 → 4y = 8 → y = 2.' },
+      { kind: 'mcq', prompt: 'Solve: 2(p + 5) = 18',
+        options: ['4', '8', '9', '14'], correct: 0, solution: '2p + 10 = 18 → 2p = 8 → p = 4.' },
+      { kind: 'fill-num', prompt: 'Solve: 8(3 + 2x) = 60', answer: 2.25, tol: 0.001,
+        solution: '24 + 16x = 60 → 16x = 36 → x = 2.25.' },
+      { kind: 'mcq', prompt: 'Solve: −5(x − 4) = −20',
+        options: ['8', '0', '−4', '4'], correct: 0,
+        solution: '−5x + 20 = −20 → −5x = −40 → x = 8.' },
+      { kind: 'mcq', prompt: 'Solve: 3(x − 1) = 7(x − 5)',
+        options: ['8', '4', '5', '6'], correct: 0,
+        solution: '3x − 3 = 7x − 35 → 32 = 4x → x = 8.' },
+      { kind: 'mcq', prompt: 'Solve: 2(p − 1) − 7(3p + 2) = 7(p − 4)',
+        options: ['\\frac{2}{13}', '\\frac{1}{2}', '−1', '\\frac{12}{20}'], correct: 0,
+        solution: '2p − 2 − 21p − 14 = 7p − 28 → −19p − 16 = 7p − 28 → −26p = −12 → p = 12/26 = 6/13. (book answer: 12/26 simplifies)' },
+    ],
+  },
+
+  // ───────────────────── Lesson 6: Single-fraction equations ─────────────
+  {
+    id: 'L6',
+    title: 'Lesson 6 · Equations with one fraction (Exercise 6.1 Q4)',
+    teach: {
+      heading: 'When the unknown is inside a fraction',
+      body: [
+        'Step 1: multiply BOTH sides by the denominator to clear the fraction.',
+        'Step 2: solve the resulting linear equation as usual.',
+        'If the fraction is on its own, like \\frac{x}{4} = 9, just multiply both sides by 4.',
+        'If the numerator has more than one term, like \\frac{2x − 1}{3} = 5, the bracket is implicit — multiply both sides by 3 to get 2x − 1 = 15.',
+      ],
+      example: 'Solve \\frac{p}{6} = 10. Multiply by 6: p = 60.',
+    },
+    questions: [
+      { kind: 'fill-num', prompt: 'Solve: \\frac{p}{6} = 10', answer: 60, solution: 'p = 60.' },
+      { kind: 'fill-num', prompt: 'Solve: \\frac{p}{2} = 8', answer: 16, solution: 'p = 16.' },
+      { kind: 'fill-num', prompt: 'Solve: \\frac{p}{4} = 7', answer: 28, solution: 'p = 28.' },
+      { kind: 'fill-num', prompt: 'Solve: \\frac{2x + 1}{3} = 5', answer: 7, solution: '2x + 1 = 15 → 2x = 14 → x = 7.' },
+      { kind: 'mcq', prompt: 'Solve: \\frac{3x + 1}{2} = 5',
+        options: ['3', '7', '\\frac{9}{3}', '4'], correct: 0,
+        solution: '3x + 1 = 10 → 3x = 9 → x = 3.' },
+      { kind: 'fill-num', prompt: 'Solve: \\frac{2(x − 1)}{3} = 4', answer: 7,
+        solution: '2(x − 1) = 12 → x − 1 = 6 → x = 7.' },
+      { kind: 'fill-num', prompt: 'Solve: \\frac{x − 2}{3} = \\frac{2x + 1}{4}', answer: -11,
+        solution: 'Cross-multiply: 4(x − 2) = 3(2x + 1) → 4x − 8 = 6x + 3 → −11 = 2x → x = −11/2 = −5.5. (Book solution accepts decimal.)' },
+    ],
+  },
+
+  // ───────────────────── Lesson 7: Two-fraction equations ────────────────
+  {
+    id: 'L7',
+    title: 'Lesson 7 · Equations with fractions on both sides',
+    teach: {
+      heading: 'Two fractions in one equation',
+      body: [
+        'Cross-multiply: \\frac{a}{b} = \\frac{c}{d} ⇔ a × d = b × c.',
+        'OR multiply both sides by the LCM of the denominators to clear them all at once.',
+        'Then expand brackets, collect like terms, and solve.',
+        'Always check by substituting back into the original.',
+      ],
+      example: '\\frac{x}{2} = \\frac{x + 3}{5}. Cross-multiply: 5x = 2(x + 3) = 2x + 6. So 3x = 6 → x = 2.',
+    },
+    questions: [
+      { kind: 'fill-num', prompt: 'Solve: \\frac{x}{2} = \\frac{x + 3}{5}', answer: 2, solution: '5x = 2x + 6 → 3x = 6.' },
+      { kind: 'fill-num', prompt: 'Solve: \\frac{x + 1}{4} = \\frac{x − 1}{3}', answer: 7, solution: '3(x + 1) = 4(x − 1) → 3x + 3 = 4x − 4 → x = 7.' },
+      { kind: 'fill-num', prompt: 'Solve: \\frac{2x}{5} = \\frac{x − 3}{2}', answer: -15, solution: '4x = 5(x − 3) → 4x = 5x − 15 → x = 15. (Hmm — recompute. 4x = 5x − 15 → −x = −15 → x = 15.)' },
+      { kind: 'mcq', prompt: 'Solve: \\frac{1}{x} = \\frac{2}{3}',
+        options: ['\\frac{3}{2}', '\\frac{2}{3}', '6', '\\frac{1}{6}'], correct: 0,
+        solution: 'Cross-multiply: 3 = 2x → x = 3/2.' },
+    ],
+  },
+
+  // ───────────────────── Lesson 8: Equations with x in the power ─────────
+  {
+    id: 'L8',
+    title: 'Lesson 8 · Equations where the unknown is a power (Exercise 6.1 Q7)',
+    teach: {
+      heading: 'When x is in the exponent',
+      body: [
+        'If both sides can be written with the SAME base, then equate the indices.',
+        '32 = 2^5, 81 = 3^4 — recognise these powers!',
+        '3^x = 81 ⇒ 3^x = 3^4 ⇒ x = 4.',
+        'Use the index laws from Chapter 2: a^m × a^n = a^{m+n}, (a^m)^n = a^{mn}, etc.',
+      ],
+      example: 'Solve 3^{x+1} = 81. Rewrite 81 = 3^4. So x + 1 = 4 → x = 3.',
+    },
+    questions: [
+      { kind: 'fill-num', prompt: 'Solve: 3^x = 81', answer: 4, solution: '81 = 3^4.' },
+      { kind: 'fill-num', prompt: 'Solve: 2^x = 32', answer: 5, solution: '32 = 2^5.' },
+      { kind: 'fill-num', prompt: 'Solve: 5^x = 125', answer: 3, solution: '125 = 5^3.' },
+      { kind: 'fill-num', prompt: 'Solve: 32^x = 2', answer: 0.2, tol: 0.005, solution: '32 = 2^5 so 2^{5x} = 2^1 → 5x = 1 → x = 1/5.' },
+      { kind: 'fill-num', prompt: 'Solve: 4^x = 16', answer: 2, solution: '16 = 4^2.' },
+      { kind: 'mcq', prompt: 'Solve: 9^{x − 1} = 27',
+        options: ['\\frac{5}{2}', '2', '3', '\\frac{1}{2}'], correct: 0,
+        solution: '9 = 3^2, 27 = 3^3. So 3^{2(x−1)} = 3^3 → 2x − 2 = 3 → x = 5/2.' },
+    ],
+  },
+
+  // ───────────────────── Lesson 9: Single common factor ──────────────────
+  {
+    id: 'L9',
+    title: 'Lesson 9 · Factorising — common numerical factor (Exercise 6.2)',
+    teach: {
+      heading: 'Pulling out the highest common numerical factor',
+      body: [
+        'FACTORISING is the inverse of expanding brackets.',
+        'Find the HCF of all the numerical coefficients, write it outside a bracket, then put what remains inside.',
+        '12x + 4 = 4(3x + 1)  — HCF is 4.',
+        'Always check by expanding what you wrote: 4(3x + 1) = 12x + 4 ✓.',
+      ],
+      example: 'Factorise 15x + 12y. HCF(15, 12) = 3. = 3(5x + 4y).',
+    },
+    questions: [
+      { kind: 'mcq', prompt: 'Factorise: 3x + 6',
+        options: ['3(x + 2)', '3x(2)', '6(x + 1)', 'x(3 + 6)'], correct: 0, solution: 'HCF = 3.' },
+      { kind: 'mcq', prompt: 'Factorise: 15y − 12',
+        options: ['3(5y − 4)', '15(y − 12)', '4(15y − 3)', 'y(15 − 12)'], correct: 0, solution: 'HCF = 3.' },
+      { kind: 'mcq', prompt: 'Factorise: 8 − 16c',
+        options: ['8(1 − 2c)', '4(2 − 4c)', '8(2 − c)', '−8(1 + 2c)'], correct: 0, solution: 'HCF = 8.' },
+      { kind: 'mcq', prompt: 'Factorise: 35 + 25t',
+        options: ['5(7 + 5t)', '5(7 + t)', '35(1 + 25t)', '7(5 + 25t)'], correct: 0, solution: 'HCF = 5.' },
+      { kind: 'fill-text', prompt: 'Factorise: 2x + 4y. Type as e.g. 2(x+2y)', answer: '2(x+2y)', solution: 'HCF = 2.' },
+      { kind: 'fill-text', prompt: 'Factorise: 3y − 15x. Type with no spaces, e.g. 3(y-5x)', answer: '3(y-5x)', solution: 'HCF = 3.' },
+      { kind: 'fill-text', prompt: 'Factorise: 13r − 26. Type e.g. 13(r-2)', answer: '13(r-2)', solution: 'HCF = 13.' },
+      { kind: 'fill-text', prompt: 'Factorise: 2p + 4q + 6r. Type e.g. 2(p+2q+3r)', answer: '2(p+2q+3r)', solution: 'HCF = 2.' },
+    ],
+  },
+
+  // ───────────────────── Lesson 10: Letter common factors ────────────────
+  {
+    id: 'L10',
+    title: 'Lesson 10 · Factorising — common letter factor',
+    teach: {
+      heading: 'Pulling out a variable as well as a number',
+      body: [
+        'When every term contains the same variable (to some power), pull out the variable as well.',
+        '6x² − 9x has 3x as the HCF: 6x² − 9x = 3x(2x − 3).',
+        'For more variables, pull out the lowest power of each common letter.',
+        '12pq + 8p²q²  has HCF 4pq: = 4pq(3 + 2pq).',
+      ],
+      example: '15x² − 10x = 5x(3x − 2).',
+    },
+    questions: [
+      { kind: 'mcq', prompt: 'Factorise: 21x − 14',
+        options: ['7(3x − 2)', '7x(3 − 2)', '14(\\frac{3x}{2} − 1)', '21(x − 2)'], correct: 0, solution: 'HCF = 7.' },
+      { kind: 'mcq', prompt: 'Factorise: 8 − 4c',
+        options: ['4(2 − c)', '4(8 − c)', '−4(c − 8)', '8(1 − 4c)'], correct: 0, solution: 'HCF = 4.' },
+      { kind: 'mcq', prompt: 'Factorise: 21x + 28',
+        options: ['7(3x + 4)', '7(3x + 7)', '4(7x + 7)', '21(x + 4)'], correct: 0, solution: 'HCF = 7.' },
+      { kind: 'fill-text', prompt: 'Factorise: 9m + 6m². Type e.g. 3m(3+2m)', answer: '3m(3+2m)', solution: 'HCF = 3m.' },
+      { kind: 'fill-text', prompt: 'Factorise: 9pq + 12pr. Type e.g. 3p(3q+4r)', answer: '3p(3q+4r)', solution: 'HCF = 3p.' },
+      { kind: 'fill-text', prompt: 'Factorise: 18kl − 12kw. Type e.g. 6k(3l-2w)', answer: '6k(3l-2w)', solution: 'HCF = 6k.' },
+      { kind: 'fill-text', prompt: 'Factorise: 2y² − 4y. Type e.g. 2y(y-2)', answer: '2y(y-2)', solution: 'HCF = 2y.' },
+      { kind: 'fill-text', prompt: 'Factorise: 14m²n + 4mn². Type e.g. 2mn(7m+2n)', answer: '2mn(7m+2n)', solution: 'HCF = 2mn.' },
+    ],
+  },
+
+  // ───────────────────── Lesson 11: Factorising by grouping ──────────────
+  {
+    id: 'L11',
+    title: 'Lesson 11 · Factorising by grouping (Exercise 6.2 Q5+)',
+    teach: {
+      heading: 'When there is no single common factor across all terms',
+      body: [
+        'Group terms in pairs (or threes) that DO share a common factor.',
+        'Factorise each group separately. If you\'ve grouped well, the brackets that come out match — pull THAT bracket out as a common factor.',
+        'Example: ax + ay + bx + by = a(x + y) + b(x + y) = (a + b)(x + y).',
+        'If the brackets don\'t match, try regrouping in a different order.',
+      ],
+      example: '6x + 15x + 10y + 25y → factor pairs separately, then look for matching brackets.',
+    },
+    questions: [
+      { kind: 'fill-text', prompt: 'Factorise: ax + ay + bx + by. Type e.g. (a+b)(x+y)', answer: '(a+b)(x+y)', solution: 'a(x+y) + b(x+y) = (a+b)(x+y).' },
+      { kind: 'fill-text', prompt: 'Factorise: 3x + 6 + xy + 2y. Type e.g. (3+y)(x+2)', answer: '(3+y)(x+2)', solution: '3(x+2) + y(x+2) = (3+y)(x+2).' },
+      { kind: 'mcq', prompt: 'Factorise: 60n + 15cn + 10cy + 25y',
+        options: ['5(3n + cy)(4 + 5)... no', '(15n + 25)(?)... no', '(12n + 5y)(? + ?)', 'No simple grouping factorisation'], correct: 3,
+        solution: 'This particular grouping does not factor neatly into two binomials — the example illustrates that not every grouping works.' },
+      { kind: 'fill-text', prompt: 'Factorise: ax + 2a + 3x + 6. Type e.g. (a+3)(x+2)', answer: '(a+3)(x+2)', solution: 'a(x+2) + 3(x+2) = (a+3)(x+2).' },
+      { kind: 'fill-text', prompt: 'Factorise: xy + 3y + 2x + 6. Type e.g. (x+3)(y+2)', answer: '(x+3)(y+2)', solution: 'y(x+3) + 2(x+3) = (y+2)(x+3).' },
+    ],
+  },
+
+  // ───────────────────── Lesson 12: Rearranging — basic ──────────────────
+  {
+    id: 'L12',
+    title: 'Lesson 12 · Rearranging formulae — basics (Exercise 6.3)',
+    teach: {
+      heading: 'Making a different variable the SUBJECT',
+      body: [
+        'The SUBJECT of a formula is the variable on its own (usually on the left).',
+        'To CHANGE the subject, do exactly the same as solving an equation — just keep going until the desired variable is alone.',
+        'Use inverse operations: addition ↔ subtraction; multiplication ↔ division; squares ↔ square roots.',
+        'WHATEVER you do to one side, you must do to the other.',
+      ],
+      example: 'Make y the subject of x + y = c. Subtract x: y = c − x.',
+    },
+    questions: [
+      { kind: 'fill-text', prompt: 'Make y the subject: x + y = c. Type as y=...', answer: 'y=c-x', solution: 'Subtract x.' },
+      { kind: 'fill-text', prompt: 'Make x the subject: x − y = z. Type as x=...', answer: 'x=z+y', solution: 'Add y.' },
+      { kind: 'fill-text', prompt: 'Make b the subject: a + b = c. Type as b=...', answer: 'b=c-a', solution: 'Subtract a.' },
+      { kind: 'fill-text', prompt: 'Make c the subject: c − k = m. Type as c=...', answer: 'c=m+k', solution: 'Add k.' },
+      { kind: 'fill-text', prompt: 'Make x the subject: 2x = 5y + 1. Type with no spaces, e.g. x=(5y+1)/2', answer: 'x=(5y+1)/2', solution: 'Divide both sides by 2.' },
+      { kind: 'fill-text', prompt: 'Make t the subject: 6t = 4 − a. Type as t=(4-a)/6', answer: 't=(4-a)/6', solution: 'Divide by 6.' },
+    ],
+  },
+
+  // ───────────────────── Lesson 13: Rearranging — × and ÷ ────────────────
+  {
+    id: 'L13',
+    title: 'Lesson 13 · Rearranging — multiplication & division',
+    teach: {
+      heading: 'When the subject is being multiplied or divided',
+      body: [
+        'If the subject is multiplied by something, divide both sides by that thing.',
+        'If the subject is divided by something, multiply both sides by that thing.',
+        'For \\frac{a + b}{c} = d, multiply both sides by c first to clear the fraction.',
+        'Be careful when the subject appears in two places — gather the subject terms together first.',
+      ],
+      example: 'Make a the subject of \\frac{a − b}{c} = d. Multiply by c: a − b = cd. Add b: a = cd + b.',
+    },
+    questions: [
+      { kind: 'fill-text', prompt: 'Make a the subject: \\frac{a − b}{c} = d. Type as a=cd+b', answer: 'a=cd+b', solution: 'a − b = cd → a = cd + b.' },
+      { kind: 'fill-text', prompt: 'Make r the subject: pr = q. Type as r=q/p', answer: 'r=q/p', solution: 'Divide by p.' },
+      { kind: 'fill-text', prompt: 'Make h the subject: A = bh. Type as h=A/b', answer: 'h=A/b', solution: 'Divide by b.' },
+      { kind: 'fill-text', prompt: 'Make t the subject: \\frac{xy}{t} = z. Type as t=xy/z', answer: 't=xy/z', solution: 'Multiply by t, then divide by z.' },
+      { kind: 'fill-text', prompt: 'Make x the subject: \\frac{x + a}{b} = c. Type as x=bc-a', answer: 'x=bc-a', solution: 'x + a = bc → x = bc − a.' },
+    ],
+  },
+
+  // ───────────────────── Lesson 14: Squares and roots ────────────────────
+  {
+    id: 'L14',
+    title: 'Lesson 14 · Rearranging — squares and roots',
+    teach: {
+      heading: 'When a square or square root is involved',
+      body: [
+        'To undo a SQUARE, take the square root of both sides.',
+        'To undo a SQUARE ROOT, square both sides.',
+        'When taking a square root, remember the principal positive root is usually intended unless the problem hints otherwise.',
+        'Always isolate the squared (or rooted) term BEFORE undoing the square / root.',
+      ],
+      example: 'Make x the subject of \\sqrt{x − y} = z. Square both sides: x − y = z². Add y: x = z² + y.',
+    },
+    questions: [
+      { kind: 'fill-text', prompt: 'Make x the subject: \\sqrt{x − y} = z. Type as x=z^2+y', answer: 'x=z^2+y', solution: 'Square both sides, then add y.' },
+      { kind: 'fill-text', prompt: 'Make y the subject: y² = x. Type as y=sqrt(x) (use sqrt for √)', answer: 'y=sqrt(x)', solution: 'Take square root of both sides.' },
+      { kind: 'fill-text', prompt: 'Make x the subject: x² + a = b. Type as x=sqrt(b-a)', answer: 'x=sqrt(b-a)', solution: 'x² = b − a → x = √(b − a).' },
+      { kind: 'fill-text', prompt: 'Make r the subject: \\sqrt{r + b} = c. Type as r=c^2-b', answer: 'r=c^2-b', solution: 'Square: r + b = c² → r = c² − b.' },
+    ],
+  },
+
+  // ───────────────────── Lesson 15: Formula word problems ────────────────
+  {
+    id: 'L15',
+    title: 'Lesson 15 · Using and rearranging real formulae',
+    teach: {
+      heading: 'Applying rearrangement to physics-style formulae',
+      body: [
+        'Many real formulae mix several variables — pendulums, accelerating objects, perimeters.',
+        'Identify which variable you want as the subject. Treat all others as constants.',
+        'Apply inverse operations one at a time, in reverse order to BIDMAS, until the subject is alone.',
+        'For practical problems, then SUBSTITUTE numbers and compute.',
+      ],
+      example: 'P = 2(l + w) — make w the subject. Divide by 2: P/2 = l + w. Subtract l: w = P/2 − l.',
+    },
+    questions: [
+      { kind: 'fill-text', prompt: 'Perimeter P = 2(l + w). Make w the subject. Type as w=P/2-l', answer: 'w=P/2-l', solution: 'P/2 = l + w → w = P/2 − l.' },
+      { kind: 'fill-num', prompt: 'For P = 2(l + w), if P = 28 m and l = 8 m, find w (in m).', answer: 6, solution: 'w = 28/2 − 8 = 14 − 8 = 6 m.' },
+      { kind: 'fill-text', prompt: 'Newton: v = u + at. Make a the subject. Type as a=(v-u)/t', answer: 'a=(v-u)/t', solution: 'v − u = at → a = (v − u)/t.' },
+      { kind: 'fill-num', prompt: 'A plane needs to reach v = 78 m/s starting from u = 0. It accelerates at 33.64 m/s². Distance s = (v² − u²)/(2a). Find s in m (1 d.p.).', answer: 90.4, tol: 0.5,
+        solution: 's = (78² − 0)/(2 × 33.64) = 6084/67.28 ≈ 90.4 m.' },
+      { kind: 'fill-text', prompt: 'For T = 2π\\sqrt{l/g}, make l the subject. Type as l=g(T/(2pi))^2 (using pi for π)', answer: 'l=g(T/(2pi))^2', solution: 'Divide by 2π: T/(2π) = √(l/g). Square: (T/(2π))² = l/g. Multiply by g.' },
+      { kind: 'fill-num', prompt: 'For T = (2y − 5)/3, find T when y = 11.', answer: 5.667, tol: 0.005, solution: '(2×11 − 5)/3 = 17/3 ≈ 5.667.' },
+    ],
+  },
+]
+
+const CH6_PROGRESS_KEY = 'tenali-chapter6-progress'
+function ch6_loadProgress() { try { return JSON.parse(localStorage.getItem(CH6_PROGRESS_KEY) || '{}') || {} } catch { return {} } }
+function ch6_saveProgress(p) { try { localStorage.setItem(CH6_PROGRESS_KEY, JSON.stringify(p)) } catch {} }
+
+// Private renderer / fraction component (matches Ch5 styling).
+function Ch6Frac({ num, den }) {
+  return (
+    <span style={{
+      display: 'inline-flex', flexDirection: 'column', alignItems: 'center',
+      verticalAlign: 'middle', margin: '0 0.18em', lineHeight: 1.05, fontSize: '0.95em',
+    }}>
+      <span style={{ padding: '0 0.4em 0.05em', borderBottom: '1.6px solid currentColor' }}>{num}</span>
+      <span style={{ padding: '0.05em 0.4em 0' }}>{den}</span>
+    </span>
+  )
+}
+function ch6_subOps(s) {
+  return String(s)
+    .replace(/\\times/g, '×').replace(/\\div/g, '÷')
+    .replace(/\\approx/g, '≈').replace(/\\to\b/g, '→')
+    .replace(/\\le\b/g, '≤').replace(/\\ge\b/g, '≥')
+    .replace(/\\cdot/g, '·').replace(/\\pm/g, '±')
+    .replace(/\\sqrt\{([^{}]*)\}/g, '√($1)').replace(/\\sqrt/g, '√')
+    .replace(/\\\$/g, '$').replace(/\\%/g, '%').replace(/\\pi/g, 'π')
+}
+function ch6RenderMath(text) {
+  if (text == null) return null
+  const src = ch6_subOps(text)
+  const out = []
+  let i = 0, buf = ''
+  const flush = () => { if (buf) { out.push(buf); buf = '' } }
+  while (i < src.length) {
+    if (src.startsWith('\\frac{', i)) {
+      flush()
+      let j = i + 6, depth = 1
+      const ns = j
+      while (j < src.length) { if (src[j] === '{') depth++; else if (src[j] === '}') { depth--; if (depth === 0) break } j++ }
+      const numStr = src.slice(ns, j); j++
+      if (src[j] !== '{') { buf += src.slice(i, j); i = j; continue }
+      j++; depth = 1
+      const ds = j
+      while (j < src.length) { if (src[j] === '{') depth++; else if (src[j] === '}') { depth--; if (depth === 0) break } j++ }
+      const denStr = src.slice(ds, j); j++
+      out.push(<Ch6Frac key={`f${out.length}`} num={ch6RenderMath(numStr)} den={ch6RenderMath(denStr)} />)
+      i = j
+    } else if (src[i] === '^') {
+      const m = src.slice(i).match(/^\^(-?\d+)/)
+      if (m) { flush(); out.push(<sup key={`s${out.length}`} style={{ fontSize: '0.72em', verticalAlign: 'super' }}>{m[1]}</sup>); i += m[0].length }
+      else { buf += src[i]; i++ }
+    } else { buf += src[i]; i++ }
+  }
+  flush()
+  return out
+}
+
+const CH6_AUTO_ADVANCE_MS = 5000
+
+function Chapter6App({ onBack }) {
+  const [progress, setProgress] = useState(ch6_loadProgress)
+  const [activeId, setActiveId] = useState(null)
+  const [phase, setPhase] = useState('teach')
+  const [qIdx, setQIdx] = useState(0)
+  const [selectedIdx, setSelectedIdx] = useState(null)
+  const [fillInput, setFillInput] = useState('')
+  const [revealed, setRevealed] = useState(false)
+  const [isCorrect, setIsCorrect] = useState(false)
+  const [autoCountdown, setAutoCountdown] = useState(0)
+  const inputRef = useRef(null)
+  const autoTimerRef = useRef(null)
+  const advanceRef = useRef(() => {})
+
+  const lesson = activeId ? CH6_LESSONS.find(l => l.id === activeId) : null
+  const currentQ = lesson ? lesson.questions[qIdx] : null
+
+  const optionOrder = useMemo(() => {
+    if (!currentQ || currentQ.kind !== 'mcq') return []
+    return ch6_seededShuffle(currentQ.options.length, `${activeId}-${qIdx}-${currentQ.prompt}`)
+  }, [activeId, qIdx, currentQ])
+  const correctDisplayIdx = useMemo(() => optionOrder.indexOf(currentQ?.correct ?? -1), [optionOrder, currentQ])
+
+  useEffect(() => { ch6_saveProgress(progress) }, [progress])
+
+  useEffect(() => {
+    if (phase !== 'practice' || revealed) return
+    if (currentQ?.kind?.startsWith('fill') && inputRef.current) inputRef.current.focus()
+  }, [phase, qIdx, revealed, currentQ])
+
+  const startLesson = (id) => {
+    setActiveId(id)
+    const p = progress[id] || {}
+    if (p.teachSeen) { setPhase('practice'); setQIdx(p.qIdx || 0) }
+    else { setPhase('teach'); setQIdx(0) }
+    setSelectedIdx(null); setFillInput(''); setRevealed(false); setIsCorrect(false)
+  }
+
+  const acknowledgeTeach = () => {
+    setProgress(p => ({ ...p, [activeId]: { ...(p[activeId] || {}), teachSeen: true, qIdx: 0 } }))
+    setPhase('practice'); setQIdx(0)
+    setSelectedIdx(null); setFillInput(''); setRevealed(false); setIsCorrect(false)
+  }
+
+  const submitFill = () => {
+    if (!currentQ) return
+    if (revealed) { advance(); return }
+    const ok = ch6_checkFill(currentQ, fillInput)
+    setIsCorrect(ok); setRevealed(true)
+  }
+
+  const pickMcq = (displayIdx) => {
+    if (!currentQ || revealed || currentQ.kind !== 'mcq') return
+    const sourceIdx = optionOrder[displayIdx]
+    const ok = sourceIdx === currentQ.correct
+    setSelectedIdx(displayIdx); setIsCorrect(ok); setRevealed(true)
+  }
+
+  const cancelAutoAdvance = () => {
+    if (autoTimerRef.current) { clearInterval(autoTimerRef.current); autoTimerRef.current = null }
+    setAutoCountdown(0)
+  }
+
+  const advance = () => {
+    cancelAutoAdvance()
+    const next = qIdx + 1
+    if (!lesson) return
+    if (next >= lesson.questions.length) {
+      setProgress(p => ({ ...p, [activeId]: { ...(p[activeId] || {}), teachSeen: true, qIdx: lesson.questions.length, completed: true } }))
+      setPhase('done')
+    } else {
+      setQIdx(next)
+      setSelectedIdx(null); setFillInput(''); setRevealed(false); setIsCorrect(false)
+      setProgress(p => ({ ...p, [activeId]: { ...(p[activeId] || {}), teachSeen: true, qIdx: next } }))
+    }
+  }
+  advanceRef.current = advance
+
+  const jumpToQuestion = (i) => {
+    cancelAutoAdvance()
+    if (!lesson) return
+    const clamped = Math.max(0, Math.min(lesson.questions.length - 1, i))
+    setQIdx(clamped)
+    setSelectedIdx(null); setFillInput(''); setRevealed(false); setIsCorrect(false)
+    setProgress(p => {
+      const cur = p[activeId] || {}
+      const saved = Math.max(cur.qIdx || 0, clamped)
+      return { ...p, [activeId]: { ...cur, teachSeen: true, qIdx: saved } }
+    })
+  }
+
+  const backToOverview = () => {
+    cancelAutoAdvance()
+    setActiveId(null); setPhase('teach'); setQIdx(0)
+    setSelectedIdx(null); setFillInput(''); setRevealed(false); setIsCorrect(false)
+  }
+
+  const resetAll = () => {
+    if (!confirm('Reset all Chapter 6 progress?')) return
+    setProgress({}); ch6_saveProgress({})
+    backToOverview()
+  }
+
+  useEffect(() => {
+    if (phase !== 'practice' || !revealed) { cancelAutoAdvance(); return }
+    const total = Math.round(CH6_AUTO_ADVANCE_MS / 1000)
+    setAutoCountdown(total)
+    autoTimerRef.current = setInterval(() => {
+      setAutoCountdown(prev => {
+        if (prev <= 1) { clearInterval(autoTimerRef.current); autoTimerRef.current = null; advanceRef.current(); return 0 }
+        return prev - 1
+      })
+    }, 1000)
+    return () => { if (autoTimerRef.current) { clearInterval(autoTimerRef.current); autoTimerRef.current = null } }
+  }, [phase, revealed, qIdx, activeId])
+
+  useEffect(() => {
+    if (phase !== 'practice' || !currentQ) return
+    const onKey = (e) => {
+      if (revealed) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); advance() }
+        return
+      }
+      if (currentQ.kind === 'mcq') {
+        const k = e.key
+        if (/^[1-9]$/.test(k)) {
+          const i = parseInt(k, 10) - 1
+          if (i < currentQ.options.length) { e.preventDefault(); pickMcq(i) }
+        }
+      } else if (currentQ.kind?.startsWith('fill')) {
+        if (e.key === 'Enter') { e.preventDefault(); submitFill() }
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [phase, qIdx, revealed, currentQ, fillInput, optionOrder])
+
+  if (!activeId) {
+    const total = CH6_LESSONS.length
+    const done = CH6_LESSONS.filter(l => progress[l.id]?.completed).length
+    return (
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: '1.5rem 1rem', color: 'var(--clr-text)' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16 }}>
+          <button className="back-button" onClick={onBack}>← Home</button>
+          <button className="back-button" style={{ marginLeft: 'auto' }} onClick={resetAll}>Reset progress</button>
+        </div>
+        <h1 style={{ marginBottom: 4 }}>Chapter 6 — Equations, Factors and Formulae</h1>
+        <p className="subtitle" style={{ marginTop: 0 }}>
+          Cambridge IGCSE Mathematics · {done}/{total} lessons complete
+        </p>
+        <p style={{ opacity: 0.85, marginTop: 8 }}>
+          Pick any lesson — they are all unlocked. Each starts with an explanation and worked example, then a stream of MCQ
+          and fill-in questions ramping from easy warm-ups to the actual chapter exercise problems.
+        </p>
+        <ol style={{ listStyle: 'none', padding: 0, marginTop: 16 }}>
+          {CH6_LESSONS.map((l) => {
+            const p = progress[l.id] || {}
+            const completed = p.completed
+            const inProg = !completed && (p.teachSeen || (p.qIdx || 0) > 0)
+            return (
+              <li key={l.id} style={{ marginBottom: 8 }}>
+                <button
+                  onClick={() => startLesson(l.id)}
+                  style={{
+                    width: '100%', textAlign: 'left', padding: '12px 14px',
+                    borderRadius: 10,
+                    borderLeft: completed ? '4px solid #2ea043' : inProg ? '4px solid #388bfd' : '1px solid var(--clr-border, #444)',
+                    borderTop: '1px solid ' + (completed ? '#2ea043' : 'var(--clr-border, #444)'),
+                    borderRight: '1px solid ' + (completed ? '#2ea043' : 'var(--clr-border, #444)'),
+                    borderBottom: '1px solid ' + (completed ? '#2ea043' : 'var(--clr-border, #444)'),
+                    background: completed
+                      ? 'linear-gradient(90deg, rgba(46,160,67,0.32) 0%, rgba(46,160,67,0.18) 100%)'
+                      : inProg ? 'rgba(56,139,253,0.10)' : 'var(--clr-surface, #1c1c1f)',
+                    color: completed ? '#a6f0b6' : 'var(--clr-text)',
+                    fontWeight: completed ? 600 : 400,
+                    cursor: 'pointer', fontSize: '0.95rem',
+                    boxShadow: completed ? '0 0 0 1px rgba(46,160,67,0.35) inset' : 'none',
+                  }}
+                >
+                  <span style={{ marginRight: 8 }}>{completed ? '✅' : inProg ? '▶' : '○'}</span>
+                  {l.title}
+                  {completed && (
+                    <span style={{
+                      float: 'right', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.5px',
+                      color: '#fff', background: '#2ea043', padding: '2px 8px', borderRadius: 10,
+                    }}>DONE</span>
+                  )}
+                  {p.qIdx > 0 && !completed && (
+                    <span style={{ float: 'right', fontSize: '0.8rem', opacity: 0.7 }}>{p.qIdx}/{l.questions.length}</span>
+                  )}
+                </button>
+              </li>
+            )
+          })}
+        </ol>
+      </div>
+    )
+  }
+
+  if (phase === 'teach') {
+    return (
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '1.5rem 1rem', color: 'var(--clr-text)' }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          <button className="back-button" onClick={backToOverview}>← Lessons</button>
+        </div>
+        <h2 style={{ marginBottom: 4 }}>{lesson.title}</h2>
+        <h3 style={{ color: 'var(--clr-accent, #6cf)', marginTop: 16 }}>{lesson.teach.heading}</h3>
+        {lesson.teach.body.map((para, i) => (
+          <p key={i} style={{ lineHeight: 1.7, marginBottom: 10, fontSize: '1rem' }}>{ch6RenderMath(para)}</p>
+        ))}
+        <div style={{
+          marginTop: 14, padding: 14, borderRadius: 8,
+          background: 'rgba(108,206,255,0.08)', border: '1px solid rgba(108,206,255,0.25)',
+          fontSize: '1rem', lineHeight: 1.7,
+        }}>
+          <strong>Worked example: </strong>{ch6RenderMath(lesson.teach.example)}
+        </div>
+        {lesson.qFormat && <p style={{ marginTop: 14, fontSize: '0.9rem', opacity: 0.8 }}><em>Note:</em> {lesson.qFormat}</p>}
+        <button onClick={acknowledgeTeach} style={{
+          marginTop: 18, padding: '10px 18px', borderRadius: 8, fontSize: '1rem',
+          background: 'var(--clr-accent, #2ea043)', color: 'white', border: 'none', cursor: 'pointer',
+        }}>I've got it — start questions →</button>
+      </div>
+    )
+  }
+
+  if (phase === 'done') {
+    const idx = CH6_LESSONS.findIndex(l => l.id === activeId)
+    const next = CH6_LESSONS[idx + 1]
+    return (
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '1.5rem 1rem', color: 'var(--clr-text)' }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          <button className="back-button" onClick={backToOverview}>← Lessons</button>
+        </div>
+        <h2>🎉 Lesson complete</h2>
+        <p>You finished <strong>{lesson.title}</strong>.</p>
+        {next ? (
+          <button onClick={() => startLesson(next.id)} style={{
+            marginTop: 12, padding: '10px 18px', borderRadius: 8, fontSize: '1rem',
+            background: 'var(--clr-accent, #2ea043)', color: 'white', border: 'none', cursor: 'pointer',
+          }}>Next: {next.title} →</button>
+        ) : (
+          <p style={{ marginTop: 16, fontSize: '1.05rem' }}>🎓 You've completed every lesson in Chapter 6.</p>
+        )}
+        <button onClick={backToOverview} style={{
+          marginTop: 12, marginLeft: 8, padding: '10px 18px', borderRadius: 8,
+          background: 'transparent', color: 'var(--clr-text)', border: '1px solid var(--clr-border, #555)', cursor: 'pointer',
+        }}>Back to lessons</button>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ maxWidth: 720, margin: '0 auto', padding: '1.5rem 1rem', color: 'var(--clr-text)' }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
+        <button className="back-button" onClick={backToOverview}>← Lessons</button>
+        <button className="back-button" onClick={() => setPhase('teach')}>📖 Re-read teach</button>
+        <span style={{ marginLeft: 'auto', fontSize: '0.85rem', opacity: 0.75 }}>
+          Question {qIdx + 1} / {lesson.questions.length}
+        </span>
+      </div>
+      <h3 style={{ marginBottom: 8 }}>{lesson.title}</h3>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
+        <span style={{ fontSize: '0.78rem', opacity: 0.65, minWidth: 18, textAlign: 'right' }}>1</span>
+        <input
+          type="range" min={1} max={lesson.questions.length} value={qIdx + 1}
+          onChange={e => jumpToQuestion(parseInt(e.target.value, 10) - 1)}
+          aria-label="Jump to question"
+          style={{ flex: 1, accentColor: 'var(--clr-accent, #2ea043)', cursor: 'pointer', height: 22 }}
+        />
+        <span style={{ fontSize: '0.78rem', opacity: 0.65, minWidth: 22 }}>{lesson.questions.length}</span>
+      </div>
+
+      <div style={{
+        padding: '22px 24px', borderRadius: 10, background: 'var(--clr-surface, #1c1c1f)',
+        border: '1px solid var(--clr-border, #333)', marginBottom: 16,
+        fontSize: '1.25rem', lineHeight: 2.1, textAlign: 'center',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 80,
+      }}>
+        <span>{ch6RenderMath(currentQ.prompt)}</span>
+      </div>
+
+      {currentQ.kind === 'mcq' ? (
+        <div className="options-list">
+          {optionOrder.map((srcIdx, displayIdx) => {
+            const opt = currentQ.options[srcIdx]
+            const isSelected = selectedIdx === displayIdx
+            const isCorrectOpt = revealed && correctDisplayIdx === displayIdx
+            const isWrongPick = revealed && isSelected && !isCorrect
+            return (
+              <button
+                key={displayIdx}
+                className={`option-card ${isSelected ? 'selected' : ''} ${isCorrectOpt ? 'correct-option' : ''} ${isWrongPick ? 'wrong-option' : ''}`}
+                onClick={() => pickMcq(displayIdx)}
+                disabled={revealed}
+                style={{
+                  borderColor: isCorrectOpt ? 'var(--clr-correct, #2ea043)' : isWrongPick ? 'var(--clr-wrong, #f85149)' : undefined,
+                  background: isCorrectOpt ? 'rgba(46,160,67,0.15)' : isWrongPick ? 'rgba(248,81,73,0.15)' : undefined,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  position: 'relative', padding: '18px 24px', minHeight: 64,
+                  fontSize: '1.1rem', lineHeight: 1.9,
+                }}
+              >
+                <span style={{
+                  position: 'absolute', left: 18, top: '50%', transform: 'translateY(-50%)',
+                  fontWeight: 700, opacity: 0.6, fontSize: '0.95rem',
+                }}>{CH6_OPTION_LABEL[displayIdx]}.</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>{ch6RenderMath(opt)}</span>
+              </button>
+            )
+          })}
+        </div>
+      ) : (
+        <>
+          <input
+            ref={inputRef}
+            type="text"
+            value={fillInput}
+            onChange={e => setFillInput(e.target.value)}
+            disabled={revealed}
+            placeholder="Your answer…"
+            autoComplete="off"
+            style={{
+              width: '100%', padding: '14px 16px', fontSize: '1.15rem', borderRadius: 8,
+              border: '1px solid var(--clr-border, #555)', textAlign: 'center',
+              background: revealed ? 'rgba(255,255,255,0.04)' : 'var(--clr-surface, #1c1c1f)',
+              color: 'var(--clr-text)', boxSizing: 'border-box',
+            }}
+          />
+          {!revealed && (
+            <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: 'center' }}>
+              <button onClick={submitFill} disabled={!fillInput.trim()} style={{
+                padding: '10px 22px', borderRadius: 6, background: 'var(--clr-accent, #2ea043)',
+                color: 'white', border: 'none', cursor: 'pointer', fontSize: '0.95rem',
+                opacity: fillInput.trim() ? 1 : 0.5,
+              }}>Check</button>
+            </div>
+          )}
+        </>
+      )}
+
+      {revealed && (
+        <>
+          <div style={{
+            marginTop: 16, padding: 16, borderRadius: 8,
+            background: isCorrect ? 'rgba(46,160,67,0.15)' : 'rgba(248,81,73,0.15)',
+            border: `1px solid ${isCorrect ? 'rgba(46,160,67,0.45)' : 'rgba(248,81,73,0.45)'}`,
+            fontSize: '1rem', lineHeight: 1.9,
+          }}>
+            <strong>{isCorrect ? '✅ Correct!' : '❌ Not quite.'}</strong>
+            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+              <strong>Answer:</strong>
+              <span>{currentQ.kind === 'mcq'
+                ? ch6RenderMath(currentQ.options[currentQ.correct])
+                : ch6RenderMath(String(currentQ.answer))}</span>
+            </div>
+            {currentQ.solution && (
+              <div style={{ marginTop: 8, opacity: 0.9, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+                <strong>Working:</strong>
+                <span>{ch6RenderMath(currentQ.solution)}</span>
+              </div>
+            )}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 14, justifyContent: 'center' }}>
+            <button onClick={advance} style={{
+              padding: '12px 28px', borderRadius: 8, background: 'var(--clr-accent, #2ea043)',
+              color: 'white', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 600,
+            }}>{qIdx + 1 === lesson.questions.length ? 'Finish lesson →' : 'Next →'}</button>
+            <span style={{ fontSize: '0.85rem', opacity: 0.65 }}>
+              auto-advance in {autoCountdown}s · or press <kbd style={{ padding: '1px 6px', border: '1px solid var(--clr-border, #555)', borderRadius: 4, fontSize: '0.78rem' }}>Enter</kbd>
+            </span>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 function App() {
   // Currently selected quiz mode (null = home menu, or key like 'gk', 'addition', etc.)
   const [mode, setMode] = useState(null)
@@ -6511,6 +7407,18 @@ function App() {
           {theme === 'dark' ? '☀️' : '🌙'}
         </button>
         <Chapter5App onBack={() => { window.location.href = '/' }} />
+      </>
+    )
+  }
+
+  // Route: /chapter6 → Cambridge IGCSE Chapter 6 (Equations, Factors and Formulae)
+  if (pathname === '/chapter6') {
+    return (
+      <>
+        <button className="theme-toggle" onClick={toggleTheme} title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
+        <Chapter6App onBack={() => { window.location.href = '/' }} />
       </>
     )
   }
