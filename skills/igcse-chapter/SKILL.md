@@ -119,6 +119,7 @@ All prompts, options, solutions, and teach paragraphs render through the chapter
 These are non-negotiable behaviours. New chapters that omit any of these are wrong.
 
 1. **No lesson locking.** Every lesson is clickable from the moment the page loads. Show ✅ for completed, ▶ for in-progress, ○ for not started — but never disable, gray out, or 🔒 a lesson based on what came before.
+   - **Completed lessons go visibly green.** Use a green left-edge bar (`borderLeft: '4px solid #2ea043'`), a green-tinted gradient background (`linear-gradient(90deg, rgba(46,160,67,0.32) 0%, rgba(46,160,67,0.18) 100%)`), greenish text (`#a6f0b6`), and a small white-on-green `DONE` pill on the right. The student should be able to see at a glance which lessons are finished without reading any text.
 2. **Question slider.** Above the question card, render a `<input type="range" min={1} max={N} value={qIdx+1}>` that jumps straight to the chosen question. Dragging it resets the per-question state but bumps (does not lower) the saved high-water-mark in localStorage.
 3. **MCQ keyboard shortcuts.** Pressing `1`..`9` selects the corresponding option. The active card highlights green if correct, red if wrong; the correct option always highlights green after reveal.
 4. **Number labels.** Display option labels as `1. 2. 3. …` (not A/B/C). Match `CH5_OPTION_LABEL` / `CH6_OPTION_LABEL`.
@@ -156,9 +157,14 @@ function ChapterNApp({ onBack }) {
 
 ## When the user changes a UX rule
 
-If the user asks for a behaviour change ("don't lock lessons", "add a slider", "make options centered"), apply the change to **every** existing chapter component, not just the one being discussed. The chapters must stay in lockstep so they feel like one product.
+The chapters must stay in lockstep so they feel like one product. Follow this exact workflow whenever the user asks for a behaviour change ("don't lock lessons", "add a slider", "make options centered", "completed lessons go green", etc.):
 
-After making the change, update this `SKILL.md` so the rule is captured for future chapters.
+1. **Update this `SKILL.md` first.** Add or amend the relevant rule so it's the source of truth before any code is touched. Future chapters depend on this file being current.
+2. **Apply the change to the chapter the user is currently looking at.** Implement and verify (esbuild) the smallest possible change there.
+3. **Stop and ASK the user before propagating to other chapters.** Do NOT silently rewrite Chapter 5 when the user asked you to change Chapter 6. Phrase the question clearly: "I've made the change in Chapter X. Should I apply it to Chapter Y and Z too so they stay consistent?"
+4. **Only after explicit confirmation, propagate.** When you do propagate, do it everywhere at once and verify the build once at the end.
+
+The reason for the ask-first step: the user may be experimenting, may want a behaviour to differ for a reason, or may simply want to see how it lands in one chapter before committing across the rest. Don't pre-empt that decision.
 
 ---
 

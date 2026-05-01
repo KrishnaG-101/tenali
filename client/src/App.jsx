@@ -28,8 +28,8 @@ import './App.css'
 const API = import.meta.env.VITE_API_BASE_URL || '';
 
 // App version — increment with each commit
-const TENALI_VERSION = '1.0.71'
-const TENALI_BUILD_DATE = '2026-05-01 15:55 IST'
+const TENALI_VERSION = '1.0.72'
+const TENALI_BUILD_DATE = '2026-05-01 16:00 IST'
 
 // Inject version badge into DOM once (appears on all routes)
 ;(() => {
@@ -6122,14 +6122,29 @@ function Chapter5App({ onBack }) {
                 <button
                   onClick={() => startLesson(l.id)}
                   style={{
-                    width: '100%', textAlign: 'left', padding: '12px 14px', borderRadius: 10,
-                    border: '1px solid var(--clr-border, #444)',
-                    background: completed ? 'rgba(46,160,67,0.12)' : inProg ? 'rgba(56,139,253,0.10)' : 'var(--clr-surface, #1c1c1f)',
-                    color: 'var(--clr-text)', cursor: 'pointer', fontSize: '0.95rem',
+                    width: '100%', textAlign: 'left', padding: '12px 14px',
+                    borderRadius: 10,
+                    borderLeft: completed ? '4px solid #2ea043' : inProg ? '4px solid #388bfd' : '1px solid var(--clr-border, #444)',
+                    borderTop: '1px solid ' + (completed ? '#2ea043' : 'var(--clr-border, #444)'),
+                    borderRight: '1px solid ' + (completed ? '#2ea043' : 'var(--clr-border, #444)'),
+                    borderBottom: '1px solid ' + (completed ? '#2ea043' : 'var(--clr-border, #444)'),
+                    background: completed
+                      ? 'linear-gradient(90deg, rgba(46,160,67,0.32) 0%, rgba(46,160,67,0.18) 100%)'
+                      : inProg ? 'rgba(56,139,253,0.10)' : 'var(--clr-surface, #1c1c1f)',
+                    color: completed ? '#a6f0b6' : 'var(--clr-text)',
+                    fontWeight: completed ? 600 : 400,
+                    cursor: 'pointer', fontSize: '0.95rem',
+                    boxShadow: completed ? '0 0 0 1px rgba(46,160,67,0.35) inset' : 'none',
                   }}
                 >
                   <span style={{ marginRight: 8 }}>{completed ? '✅' : inProg ? '▶' : '○'}</span>
                   {l.title}
+                  {completed && (
+                    <span style={{
+                      float: 'right', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.5px',
+                      color: '#fff', background: '#2ea043', padding: '2px 8px', borderRadius: 10,
+                    }}>DONE</span>
+                  )}
                   {p.qIdx > 0 && !completed && (
                     <span style={{ float: 'right', fontSize: '0.8rem', opacity: 0.7 }}>{p.qIdx}/{l.questions.length}</span>
                   )}
