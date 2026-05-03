@@ -7761,6 +7761,169 @@ const Bridge16App = makeBridgeApp({
   nextHref: '/chapter5', nextLabel: 'On to Lesson 7',
 })
 
+// ─── Bridge 17 — Percent ↔ Decimal ────────────────────────────────────
+function generateBridge17Question() {
+  const direction = Math.random() < 0.5 ? 'p2d' : 'd2p'
+  if (direction === 'p2d') {
+    // Pick percent value (could be > 100, decimal, etc.)
+    const pool = [5, 7, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 110, 125, 175, 215]
+    const dec = bridge_pick([true, false])
+    let percent
+    if (dec) percent = bridge_pick([2.5, 7.5, 12.5, 17.5, 22.5, 37.5, 62.5, 87.5, 117.5])
+    else percent = bridge_pick(pool)
+    const value = percent / 100
+    const valueStr = value.toString()
+    const prompt = `Convert  ${percent}%  to a decimal.`
+    const candidates = [
+      String(percent),                                         // forgot to divide
+      String(value / 10),                                      // moved 3 places
+      String(value * 10),                                      // moved 1 place
+      String(percent * 10),
+    ]
+    const answerKey = `int:${valueStr}`
+    const dist = []
+    const tryAdd = (v) => {
+      const k = `int:${v}`
+      if (k === answerKey || dist.find(x => x.key === k)) return
+      dist.push({ seg: [v], key: k })
+    }
+    candidates.forEach(c => tryAdd(c))
+    while (dist.length < 3) tryAdd(String((bridge_randInt(1, 99) / 10).toFixed(1)))
+    const { options, correctIndex } = bridge_buildSegOptions([valueStr], answerKey, dist)
+    return { prompt, options, correctIndex,
+             explanation: `Percent means "out of 100". Divide by 100: ${percent} ÷ 100 = ${valueStr}.` }
+  } else {
+    // Decimal → percent
+    const decPool = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.75, 0.8, 0.9, 0.07, 0.025, 0.125, 0.625, 1.0, 1.25, 1.5]
+    const value = bridge_pick(decPool)
+    const percent = value * 100
+    // Format percent: drop ".0" if integer
+    const pStr = percent === Math.round(percent) ? String(Math.round(percent)) : String(percent)
+    const prompt = `Convert  ${value}  to a percentage.`
+    const answerKey = `int:${pStr}%`
+    const dist = []
+    const tryAdd = (v) => {
+      const k = `int:${v}%`
+      if (k === answerKey || dist.find(x => x.key === k)) return
+      dist.push({ seg: [v + '%'], key: k })
+    }
+    tryAdd(String(value))                                    // forgot to multiply
+    tryAdd(String(value / 10))                               // wrong direction
+    tryAdd(String(value * 10))                               // moved 1 place
+    tryAdd(String(percent * 10))                             // moved 3 places
+    while (dist.length < 3) {
+      const v = bridge_randInt(1, 200)
+      tryAdd(String(v))
+    }
+    const { options, correctIndex } = bridge_buildSegOptions([pStr + '%'], answerKey, dist)
+    return { prompt, options, correctIndex,
+             explanation: `To go from decimal to percent, multiply by 100: ${value} × 100 = ${pStr}%.` }
+  }
+}
+
+// ─── Bridge 18 — Percent ↔ Fraction ───────────────────────────────────
+function generateBridge18Question() {
+  const direction = Math.random() < 0.5 ? 'p2f' : 'f2p'
+  if (direction === 'p2f') {
+    // Percent → fraction (in simplest form)
+    const pPool = [10, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90, 5, 15, 35, 45, 55, 65, 85, 95]
+    const percent = bridge_pick(pPool)
+    const g = bridge_gcd(percent, 100)
+    const sn = percent / g, sd = 100 / g
+    const prompt = [`Convert  ${percent}%  to a fraction in simplest form.`]
+    const answerKey = `frac:${sn}/${sd}`
+    const dist = []
+    const tryAdd = (n, d) => {
+      if (!Number.isInteger(n) || !Number.isInteger(d) || n <= 0 || d <= 0) return
+      const k = `frac:${n}/${d}`
+      if (k === answerKey || dist.find(x => x.key === k)) return
+      dist.push({ seg: [{ frac: [n, d] }], key: k })
+    }
+    tryAdd(percent, 100)              // unsimplified
+    tryAdd(percent, 10)               // wrong denominator
+    tryAdd(100, percent)              // flipped
+    if (sn > 1) tryAdd(sn - 1, sd)
+    const { options, correctIndex } = bridge_buildSegOptions([{ frac: [sn, sd] }], answerKey, dist)
+    return { prompt, options, correctIndex,
+             explanation: [`Percent means "out of 100": `, { frac: [percent, 100] }, ` = `, { frac: [sn, sd] }, `  (HCF = ${g}).`] }
+  } else {
+    // Fraction → percent
+    // Pick a fraction whose denominator divides 100 (so the percent is a clean number)
+    const denomPool = [2, 4, 5, 8, 10, 20, 25, 50]
+    const q = bridge_pick(denomPool)
+    let p = bridge_randInt(1, q - 1)
+    while (bridge_gcd(p, q) !== 1) p = bridge_randInt(1, q - 1)
+    const percent = (p * 100) / q
+    const pStr = percent === Math.round(percent) ? String(Math.round(percent)) : String(percent)
+    const prompt = ['Express  ', { frac: [p, q] }, '  as a percentage.']
+    const answerKey = `txt:${pStr}%`
+    const dist = []
+    const tryAdd = (s) => {
+      const k = `txt:${s}`
+      if (k === answerKey || dist.find(x => x.key === k)) return
+      dist.push({ seg: [s], key: k })
+    }
+    tryAdd(`${p}%`)                       // used numerator only
+    tryAdd(`${q}%`)                       // used denominator only
+    tryAdd(`${p}/${q}%`)
+    tryAdd(`${(percent / 10).toFixed(2)}%`)
+    while (dist.length < 3) tryAdd(`${bridge_randInt(1, 100)}%`)
+    const { options, correctIndex } = bridge_buildSegOptions([pStr + '%'], answerKey, dist)
+    return { prompt, options, correctIndex,
+             explanation: ['Multiply by 100: ', { frac: [p, q] }, ` × 100 = ${p * 100} ÷ ${q} = ${pStr}%.`] }
+  }
+}
+
+function Lesson8ProgressionStrip({ current }) {
+  const nodes = [
+    { id: 'lesson7',  label: 'Lesson 7',  sub: 'Word Problems',         href: '/chapter5', done: ch5LessonDone('L7') },
+    { id: 'bridge17', label: 'Bridge 17', sub: '% ↔ Decimal',           href: '/bridge17' },
+    { id: 'bridge18', label: 'Bridge 18', sub: '% ↔ Fraction',          href: '/bridge18' },
+    { id: 'lesson8',  label: 'Lesson 8',  sub: '% ↔ Frac ↔ Decimal',    href: '/chapter5' },
+  ]
+  return renderProgressionStrip('Lesson 8 — Prerequisite Path', nodes, current)
+}
+
+const Bridge17App = makeBridgeApp({
+  id: 'bridge17', currentNode: 'bridge17', StripComponent: Lesson8ProgressionStrip,
+  title: 'Bridge 17 · Percent ↔ Decimal',
+  subtitle: 'Move the decimal two places — that is all there is to it.',
+  intro: 'A new word: PERCENT.  "Percent" literally means "per hundred", so 25% just means 25 out of 100.  To turn % into a decimal, divide by 100 — the decimal point moves 2 places left.  To turn a decimal back into %, multiply by 100 — the decimal point moves 2 places right.',
+  teach: {
+    rule: 'Percent → decimal: divide by 100 (decimal moves 2 places LEFT).   Decimal → percent: multiply by 100 (decimal moves 2 places RIGHT).   Examples:  25% = 0.25.   7% = 0.07.   1.25 = 125%.   0.625 = 62.5%.',
+    example: {
+      setup: 'Convert  7%  to a decimal.',
+      steps: [
+        '7% means "7 out of 100".  Divide 7 by 100.',
+        'Move the decimal 2 places left:  7  →  0.07.',
+      ],
+      answer: '7% = 0.07.',
+    },
+  },
+  generator: generateBridge17Question,
+  nextHref: '/bridge18', nextLabel: 'Continue to Bridge 18',
+})
+
+const Bridge18App = makeBridgeApp({
+  id: 'bridge18', currentNode: 'bridge18', StripComponent: Lesson8ProgressionStrip,
+  title: 'Bridge 18 · Percent ↔ Fraction',
+  subtitle: 'Convert between percentages and fractions.',
+  intro: 'Percent → fraction: write the percent over 100, then simplify (use Bridge 4 / Bridge 5).  Fraction → percent: multiply by 100 (or rewrite over 100).',
+  teach: {
+    rule: ['Percent → fraction: ', { frac: ['P', 100] }, ', then simplify.   Fraction → percent: ', { frac: ['p', 'q'] }, ' × 100 = ', { frac: ['100p', 'q'] }, ' percent.   If the denominator divides 100 cleanly, the percent comes out neat.'],
+    example: {
+      setup: ['Convert 30% to a fraction in simplest form.'],
+      steps: [
+        ['Write over 100: ', { frac: [30, 100] }, '.'],
+        'HCF(30, 100) = 10. Divide both by 10.',
+      ],
+      answer: ['30% = ', { frac: [3, 10] }, '.'],
+    },
+  },
+  generator: generateBridge18Question,
+  nextHref: '/chapter5', nextLabel: 'On to Lesson 8',
+})
+
 function Chapter5App({ onBack }) {
   const [progress, setProgress] = useState(ch5_loadProgress)
   const [activeId, setActiveId] = useState(null)
@@ -8018,6 +8181,7 @@ function Chapter5App({ onBack }) {
         {activeId === 'L5' && <Lesson5ProgressionStrip current="lesson5" />}
         {activeId === 'L6' && <Lesson6ProgressionStrip current="lesson6" />}
         {activeId === 'L7' && <Lesson7ProgressionStrip current="lesson7" />}
+        {activeId === 'L8' && <Lesson8ProgressionStrip current="lesson8" />}
         <h2 style={{ marginBottom: 4 }}>{ch5RenderMath(lesson.title)}</h2>
         <h3 style={{ color: 'var(--clr-accent, #6cf)', marginTop: 16 }}>{lesson.teach.heading}</h3>
         {lesson.teach.body.map((para, i) => (
@@ -8055,6 +8219,7 @@ function Chapter5App({ onBack }) {
         {activeId === 'L5' && <Lesson5ProgressionStrip current="lesson5" />}
         {activeId === 'L6' && <Lesson6ProgressionStrip current="lesson6" />}
         {activeId === 'L7' && <Lesson7ProgressionStrip current="lesson7" />}
+        {activeId === 'L8' && <Lesson8ProgressionStrip current="lesson8" />}
         <h2>🎉 Lesson complete</h2>
         <p>You finished <strong>{ch5RenderMath(lesson.title)}</strong>.</p>
         {next ? (
@@ -8094,6 +8259,7 @@ function Chapter5App({ onBack }) {
       {activeId === 'L5' && <Lesson5ProgressionStrip current="lesson5" />}
       {activeId === 'L6' && <Lesson6ProgressionStrip current="lesson6" />}
       {activeId === 'L7' && <Lesson7ProgressionStrip current="lesson7" />}
+      {activeId === 'L8' && <Lesson8ProgressionStrip current="lesson8" />}
       <h3 style={{ marginBottom: 8 }}>{ch5RenderMath(lesson.title)}</h3>
       {/* Question slider — drag to jump to any question in the play sequence */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
@@ -34807,6 +34973,8 @@ function App() {
   if (pathname === '/bridge14') return (<><button className="theme-toggle" onClick={toggleTheme}>{theme === 'dark' ? '☀️' : '🌙'}</button><div className="app-shell"><div className="card"><AuthGate><Bridge14App onBack={() => { window.location.href = '/chapter5' }} /></AuthGate></div></div></>)
   if (pathname === '/bridge15') return (<><button className="theme-toggle" onClick={toggleTheme}>{theme === 'dark' ? '☀️' : '🌙'}</button><div className="app-shell"><div className="card"><AuthGate><Bridge15App onBack={() => { window.location.href = '/chapter5' }} /></AuthGate></div></div></>)
   if (pathname === '/bridge16') return (<><button className="theme-toggle" onClick={toggleTheme}>{theme === 'dark' ? '☀️' : '🌙'}</button><div className="app-shell"><div className="card"><AuthGate><Bridge16App onBack={() => { window.location.href = '/chapter5' }} /></AuthGate></div></div></>)
+  if (pathname === '/bridge17') return (<><button className="theme-toggle" onClick={toggleTheme}>{theme === 'dark' ? '☀️' : '🌙'}</button><div className="app-shell"><div className="card"><AuthGate><Bridge17App onBack={() => { window.location.href = '/chapter5' }} /></AuthGate></div></div></>)
+  if (pathname === '/bridge18') return (<><button className="theme-toggle" onClick={toggleTheme}>{theme === 'dark' ? '☀️' : '🌙'}</button><div className="app-shell"><div className="card"><AuthGate><Bridge18App onBack={() => { window.location.href = '/chapter5' }} /></AuthGate></div></div></>)
 
   // Route: /chapter1 → Cambridge IGCSE Chapter 1 (Reviewing Number Concepts)
   if (pathname === '/chapter1') {
