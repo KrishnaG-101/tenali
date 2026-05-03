@@ -7603,6 +7603,89 @@ const Bridge14App = makeBridgeApp({
   nextHref: '/chapter5', nextLabel: 'On to Lesson 5',
 })
 
+// ─── Bridge 15 — Clear Decimals from Fractions ────────────────────────
+function generateBridge15Question() {
+  // Pick clean integer pair (n, d), then pick decimal shifts s_n, s_d ∈ {0,1,2}.
+  // Displayed top = n / 10^s_n  (with s_n decimal places).
+  // Displayed bot = d / 10^s_d.
+  // To clear, multiply both by 10^max(s_n, s_d), then simplify.
+  let n, d, sn, sd, attempts = 0
+  while (attempts++ < 30) {
+    n = bridge_randInt(1, 30)
+    d = bridge_randInt(2, 30)
+    sn = bridge_randInt(0, 2)
+    sd = bridge_randInt(0, 2)
+    if (sn === 0 && sd === 0) sd = 1
+    if (n / Math.pow(10, sn) > 0 && d / Math.pow(10, sd) > 0) break
+  }
+  const topStr = sn > 0 ? (n / Math.pow(10, sn)).toFixed(sn) : String(n)
+  const botStr = sd > 0 ? (d / Math.pow(10, sd)).toFixed(sd) : String(d)
+  const maxShift = Math.max(sn, sd)
+  const newTop = n * Math.pow(10, maxShift - sn)
+  const newBot = d * Math.pow(10, maxShift - sd)
+  const g = bridge_gcd(newTop, newBot)
+  const sN = newTop / g, sD = newBot / g
+  const prompt = ['Simplify  ', { frac: [topStr, botStr] }]
+  const answerKey = `frac:${sN}/${sD}`
+  const dist = []
+  const tryAdd = (nn, dd) => {
+    if (!Number.isInteger(nn) || !Number.isInteger(dd) || nn <= 0 || dd <= 0) return
+    const k = `frac:${nn}/${dd}`
+    if (k === answerKey || dist.find(x => x.key === k)) return
+    dist.push({ seg: [{ frac: [nn, dd] }], key: k })
+  }
+  if (sN !== newTop || sD !== newBot) tryAdd(newTop, newBot)  // unsimplified after clearing
+  // Decimal-error distractors: only multiplied one side
+  if (sn > 0 && sd > 0) {
+    tryAdd(newTop, d)            // forgot to clear bottom
+    tryAdd(n, newBot)            // forgot to clear top
+  }
+  // Wrong power
+  if (maxShift >= 2) {
+    tryAdd(n * 10, d * 10)
+  }
+  tryAdd(sD, sN)
+  if (sN > 1) tryAdd(sN - 1, sD)
+  const { options, correctIndex } = bridge_buildSegOptions([{ frac: [sN, sD] }], answerKey, dist)
+  const explanation = [
+    `Multiply top and bottom by 10^${maxShift} = ${Math.pow(10, maxShift)} to clear decimals: `,
+    { frac: [topStr, botStr] }, ' = ', { frac: [newTop, newBot] },
+    sN !== newTop ? [' = ', { frac: [sN, sD] }] : '',
+    '.',
+  ]
+  return { prompt, options, correctIndex, explanation }
+}
+
+function Lesson6ProgressionStrip({ current }) {
+  const nodes = [
+    { id: 'lesson5',  label: 'Lesson 5',  sub: 'Dividing Fractions', href: '/chapter5', done: ch5LessonDone('L5') },
+    { id: 'bridge15', label: 'Bridge 15', sub: 'Clear Decimals',     href: '/bridge15' },
+    { id: 'lesson6',  label: 'Lesson 6',  sub: 'Fractions w/ Decimals', href: '/chapter5' },
+  ]
+  return renderProgressionStrip('Lesson 6 — Prerequisite Path', nodes, current)
+}
+
+const Bridge15App = makeBridgeApp({
+  id: 'bridge15', currentNode: 'bridge15', StripComponent: Lesson6ProgressionStrip,
+  title: 'Bridge 15 · Clear Decimals',
+  subtitle: 'Tidy up a fraction with decimals in the numerator or denominator.',
+  intro: 'A fraction with a decimal in it is messy. To clean it up, multiply BOTH top and bottom by the same power of 10 — enough to make both whole numbers — then simplify.',
+  teach: {
+    rule: ['Count the decimal places. 1 decimal place needs ×10, 2 needs ×100, 3 needs ×1000. If top and bottom have different counts, use the BIGGER power on both. After clearing, simplify.'],
+    example: {
+      setup: ['Simplify  ', { frac: ['0.7', '2.5'] }],
+      steps: [
+        'Both top and bottom have 1 decimal place — multiply both by 10.',
+        ['0.7 × 10 = 7,  2.5 × 10 = 25.'],
+        ['Result: ', { frac: [7, 25] }, '. 7 and 25 share no factor — already simplest.'],
+      ],
+      answer: [{ frac: ['0.7', '2.5'] }, ' = ', { frac: [7, 25] }, '.'],
+    },
+  },
+  generator: generateBridge15Question,
+  nextHref: '/chapter5', nextLabel: 'On to Lesson 6',
+})
+
 function Chapter5App({ onBack }) {
   const [progress, setProgress] = useState(ch5_loadProgress)
   const [activeId, setActiveId] = useState(null)
@@ -7858,6 +7941,7 @@ function Chapter5App({ onBack }) {
         {activeId === 'L3' && <Lesson3ProgressionStrip current="lesson3" />}
         {activeId === 'L4' && <Lesson4ProgressionStrip current="lesson4" />}
         {activeId === 'L5' && <Lesson5ProgressionStrip current="lesson5" />}
+        {activeId === 'L6' && <Lesson6ProgressionStrip current="lesson6" />}
         <h2 style={{ marginBottom: 4 }}>{ch5RenderMath(lesson.title)}</h2>
         <h3 style={{ color: 'var(--clr-accent, #6cf)', marginTop: 16 }}>{lesson.teach.heading}</h3>
         {lesson.teach.body.map((para, i) => (
@@ -7893,6 +7977,7 @@ function Chapter5App({ onBack }) {
         {activeId === 'L3' && <Lesson3ProgressionStrip current="lesson3" />}
         {activeId === 'L4' && <Lesson4ProgressionStrip current="lesson4" />}
         {activeId === 'L5' && <Lesson5ProgressionStrip current="lesson5" />}
+        {activeId === 'L6' && <Lesson6ProgressionStrip current="lesson6" />}
         <h2>🎉 Lesson complete</h2>
         <p>You finished <strong>{ch5RenderMath(lesson.title)}</strong>.</p>
         {next ? (
@@ -7930,6 +8015,7 @@ function Chapter5App({ onBack }) {
       {activeId === 'L3' && <Lesson3ProgressionStrip current="lesson3" />}
       {activeId === 'L4' && <Lesson4ProgressionStrip current="lesson4" />}
       {activeId === 'L5' && <Lesson5ProgressionStrip current="lesson5" />}
+      {activeId === 'L6' && <Lesson6ProgressionStrip current="lesson6" />}
       <h3 style={{ marginBottom: 8 }}>{ch5RenderMath(lesson.title)}</h3>
       {/* Question slider — drag to jump to any question in the play sequence */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
@@ -34641,6 +34727,7 @@ function App() {
   if (pathname === '/bridge12') return (<><button className="theme-toggle" onClick={toggleTheme}>{theme === 'dark' ? '☀️' : '🌙'}</button><div className="app-shell"><div className="card"><AuthGate><Bridge12App onBack={() => { window.location.href = '/chapter5' }} /></AuthGate></div></div></>)
   if (pathname === '/bridge13') return (<><button className="theme-toggle" onClick={toggleTheme}>{theme === 'dark' ? '☀️' : '🌙'}</button><div className="app-shell"><div className="card"><AuthGate><Bridge13App onBack={() => { window.location.href = '/chapter5' }} /></AuthGate></div></div></>)
   if (pathname === '/bridge14') return (<><button className="theme-toggle" onClick={toggleTheme}>{theme === 'dark' ? '☀️' : '🌙'}</button><div className="app-shell"><div className="card"><AuthGate><Bridge14App onBack={() => { window.location.href = '/chapter5' }} /></AuthGate></div></div></>)
+  if (pathname === '/bridge15') return (<><button className="theme-toggle" onClick={toggleTheme}>{theme === 'dark' ? '☀️' : '🌙'}</button><div className="app-shell"><div className="card"><AuthGate><Bridge15App onBack={() => { window.location.href = '/chapter5' }} /></AuthGate></div></div></>)
 
   // Route: /chapter1 → Cambridge IGCSE Chapter 1 (Reviewing Number Concepts)
   if (pathname === '/chapter1') {
