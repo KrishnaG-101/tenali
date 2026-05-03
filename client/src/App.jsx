@@ -8115,6 +8115,60 @@ const Bridge21App = makeBridgeApp({
   nextHref: '/chapter5', nextLabel: 'On to Lesson 11',
 })
 
+// ─── Bridge 22 — Multiplier Method ────────────────────────────────────
+function generateBridge22Question() {
+  const isIncrease = Math.random() < 0.5
+  const Yq = bridge_pick([20, 25, 40, 50, 80, 100, 120, 200, 300, 500])
+  const Mu = bridge_randInt(1, 8)
+  const Y = Yq * Mu
+  const Pp = bridge_pick([4, 5, 8, 10, 15, 20, 25, 30, 40, 50, 75])
+  const multiplier = isIncrease ? (1 + Pp / 100) : (1 - Pp / 100)
+  const answer = Math.round(Y * multiplier * 100) / 100
+  const direction = isIncrease ? 'Increase' : 'Decrease'
+  const prompt = `${direction} ${Y} by ${Pp}%.`
+  const wrongMultiplier = isIncrease ? (1 - Pp / 100) : (1 + Pp / 100)
+  const candidates = [
+    Math.round(Y * wrongMultiplier * 100) / 100,    // wrong direction
+    Math.round(Y * (Pp / 100) * 100) / 100,         // forgot the 1, used Pp/100 only
+    Y + Pp,                                          // added directly
+    Y * Pp,                                          // multiplied by Pp
+    Y - Pp,
+    answer + 1, answer - 1,
+  ]
+  const { options, correctIndex } = bridge_buildOptions(answer, candidates.filter(c => typeof c === 'number' && isFinite(c) && c > 0))
+  return { prompt, options, correctIndex,
+           explanation: `Multiplier for ${isIncrease ? '+' : '−'}${Pp}%  =  ${isIncrease ? '1 + ' : '1 − '}${Pp}/100  =  ${multiplier}.   ${Y} × ${multiplier} = ${answer}.` }
+}
+
+function Lesson12ProgressionStrip({ current }) {
+  const nodes = [
+    { id: 'lesson11', label: 'Lesson 11', sub: '% Inc/Dec',          href: '/chapter5', done: ch5LessonDone('L11') },
+    { id: 'bridge22', label: 'Bridge 22', sub: 'Multiplier Method',  href: '/bridge22' },
+    { id: 'lesson12', label: 'Lesson 12', sub: 'Multiplier',         href: '/chapter5' },
+  ]
+  return renderProgressionStrip('Lesson 12 — Prerequisite Path', nodes, current)
+}
+
+const Bridge22App = makeBridgeApp({
+  id: 'bridge22', currentNode: 'bridge22', StripComponent: Lesson12ProgressionStrip,
+  title: 'Bridge 22 · Multiplier Method',
+  subtitle: 'Increase or decrease by p% in one multiplication.',
+  intro: 'Building a "multiplier" lets you do a percentage change in ONE step instead of two (compute change → add or subtract).  Faster, fewer mistakes, and essential for chaining successive percentages.',
+  teach: {
+    rule: ['Multiplier for an INCREASE of p%:  1 + p/100.   (e.g. +15% → ×1.15)   Multiplier for a DECREASE of p%:  1 − p/100.   (e.g. −25% → ×0.75)   Then  new value = original × multiplier.'],
+    example: {
+      setup: 'Increase 56 by 15%.',
+      steps: [
+        'Multiplier = 1 + 15/100 = 1.15.',
+        '56 × 1.15 = 64.4.',
+      ],
+      answer: 'Increased value is 64.4.',
+    },
+  },
+  generator: generateBridge22Question,
+  nextHref: '/chapter5', nextLabel: 'On to Lesson 12',
+})
+
 function Chapter5App({ onBack }) {
   const [progress, setProgress] = useState(ch5_loadProgress)
   const [activeId, setActiveId] = useState(null)
@@ -8376,6 +8430,7 @@ function Chapter5App({ onBack }) {
         {activeId === 'L9' && <Lesson9ProgressionStrip current="lesson9" />}
         {activeId === 'L10' && <Lesson10ProgressionStrip current="lesson10" />}
         {activeId === 'L11' && <Lesson11ProgressionStrip current="lesson11" />}
+        {activeId === 'L12' && <Lesson12ProgressionStrip current="lesson12" />}
         <h2 style={{ marginBottom: 4 }}>{ch5RenderMath(lesson.title)}</h2>
         <h3 style={{ color: 'var(--clr-accent, #6cf)', marginTop: 16 }}>{lesson.teach.heading}</h3>
         {lesson.teach.body.map((para, i) => (
@@ -8417,6 +8472,7 @@ function Chapter5App({ onBack }) {
         {activeId === 'L9' && <Lesson9ProgressionStrip current="lesson9" />}
         {activeId === 'L10' && <Lesson10ProgressionStrip current="lesson10" />}
         {activeId === 'L11' && <Lesson11ProgressionStrip current="lesson11" />}
+        {activeId === 'L12' && <Lesson12ProgressionStrip current="lesson12" />}
         <h2>🎉 Lesson complete</h2>
         <p>You finished <strong>{ch5RenderMath(lesson.title)}</strong>.</p>
         {next ? (
@@ -8460,6 +8516,7 @@ function Chapter5App({ onBack }) {
       {activeId === 'L9' && <Lesson9ProgressionStrip current="lesson9" />}
       {activeId === 'L10' && <Lesson10ProgressionStrip current="lesson10" />}
       {activeId === 'L11' && <Lesson11ProgressionStrip current="lesson11" />}
+      {activeId === 'L12' && <Lesson12ProgressionStrip current="lesson12" />}
       <h3 style={{ marginBottom: 8 }}>{ch5RenderMath(lesson.title)}</h3>
       {/* Question slider — drag to jump to any question in the play sequence */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
@@ -35178,6 +35235,7 @@ function App() {
   if (pathname === '/bridge19') return (<><button className="theme-toggle" onClick={toggleTheme}>{theme === 'dark' ? '☀️' : '🌙'}</button><div className="app-shell"><div className="card"><AuthGate><Bridge19App onBack={() => { window.location.href = '/chapter5' }} /></AuthGate></div></div></>)
   if (pathname === '/bridge20') return (<><button className="theme-toggle" onClick={toggleTheme}>{theme === 'dark' ? '☀️' : '🌙'}</button><div className="app-shell"><div className="card"><AuthGate><Bridge20App onBack={() => { window.location.href = '/chapter5' }} /></AuthGate></div></div></>)
   if (pathname === '/bridge21') return (<><button className="theme-toggle" onClick={toggleTheme}>{theme === 'dark' ? '☀️' : '🌙'}</button><div className="app-shell"><div className="card"><AuthGate><Bridge21App onBack={() => { window.location.href = '/chapter5' }} /></AuthGate></div></div></>)
+  if (pathname === '/bridge22') return (<><button className="theme-toggle" onClick={toggleTheme}>{theme === 'dark' ? '☀️' : '🌙'}</button><div className="app-shell"><div className="card"><AuthGate><Bridge22App onBack={() => { window.location.href = '/chapter5' }} /></AuthGate></div></div></>)
 
   // Route: /chapter1 → Cambridge IGCSE Chapter 1 (Reviewing Number Concepts)
   if (pathname === '/chapter1') {
