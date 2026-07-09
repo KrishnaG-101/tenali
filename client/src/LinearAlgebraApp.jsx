@@ -535,6 +535,129 @@ function GGBEmbed({ missionId, ggbType }) {
   );
 }
 
+/* ── Mini graph for real-life expanded view ──────────── */
+function parseLinearParams(story) {
+  const pat1 = story.match(/=\s*(\d+(?:\.\d+)?)\s*x\s*\+\s*(\d+(?:\.\d+)?)/);
+  if (pat1) return { m: +pat1[1], b: +pat1[2] };
+  const pat2 = story.match(/=\s*(\d+(?:\.\d+)?)\s*\+\s*(\d+(?:\.\d+)?)\s*x/i);
+  if (pat2) return { m: +pat2[2], b: +pat2[1] };
+  const pat3 = story.match(/=\s*(\d+(?:\.\d+)?)\s*x\s*[\.\s,;]/);
+  if (pat3) return { m: +pat3[1], b: 0 };
+  const pat4 = story.match(/(\d+(?:\.\d+)?)\s*\+\s*(\d+(?:\.\d+)?)\s*\//);
+  if (pat4) return { m: +pat4[2], b: +pat4[1] };
+  const pat5 = story.match(/=\s*(\d+(?:\.\d+)?)\s*x\s*\+\s*(\d+(?:\.\d+)?)/i);
+  if (pat5) return { m: +pat5[1], b: +pat5[2] };
+  const pat6 = story.match(/(\d+(?:\.\d+)?)\s*x\s*\+\s*(\d+(?:\.\d+)?)/);
+  if (pat6) return { m: +pat6[1], b: +pat6[2] };
+  const pat7 = story.match(/=\s*(\d+(?:\.\d+)?)\s*[a-z]\s*\+\s*(\d+(?:\.\d+)?)/i);
+  if (pat7) return { m: +pat7[1], b: +pat7[2] };
+  const pat8 = story.match(/=\s*(\d+(?:\.\d+)?)\s*\+\s*(\d+(?:\.\d+)?)\s*[a-z]/i);
+  if (pat8) return { m: +pat8[2], b: +pat8[1] };
+  return null;
+}
+
+function parseAxisLabels(story) {
+  const s = story.toLowerCase();
+  const unitMap = {'/km':'km','/min':'min','/screen':'screens','/litre':'litres','/liter':'litres','/kg':'kg','/unit':'units','/yr':'years','/week':'weeks','/hr':'hrs','/hour':'hrs','/day':'days','/mo':'mo'};
+  let xLabel = 'x';
+  for (const [k,v] of Object.entries(unitMap)) { if (s.includes(k)) { xLabel = v; break; } }
+  if (s.includes('time') && xLabel==='x') xLabel = 'time';
+  if (s.includes('quantity') && xLabel==='x') xLabel = 'quantity';
+  let yLabel = 'y';
+  if (s.includes('total=')||s.includes('total ')) yLabel = 'Total';
+  else if (s.includes('fare')) yLabel = 'Fare (Rs)';
+  else if (s.includes('interest')) yLabel = 'Interest';
+  else if (s.includes('revenue')) yLabel = 'Revenue';
+  else if (s.includes('cost')) yLabel = 'Cost (Rs)';
+  else if (s.includes('price')) yLabel = 'Price';
+  else if (s.includes('height')||s.includes('cm')||s.includes('cm/yr')) yLabel = 'Height (cm)';
+  else if (s.includes('volume')) yLabel = 'Volume';
+  else if (s.includes('distance')) yLabel = 'Distance';
+  else if (s.includes('profit')) yLabel = 'Profit';
+  if (s.includes('rs') && yLabel==='y') yLabel = 'Cost (Rs)';
+  if (s.includes('inr') && yLabel==='y') yLabel = 'INR';
+  return { xLabel, yLabel };
+}
+
+function MiniGraph({ story }) {
+  const { xLabel, yLabel } = parseAxisLabels(story || '');
+  const params = parseLinearParams(story);
+  const hasEq = params && !isNaN(params.m) && !isNaN(params.b);
+  const W = 260, H = 210, titleH = hasEq ? 24 : 0, pad = 36;
+  const defaultMax = 10;
+  const fmt = v => Number.isInteger(v) ? v.toString() : v.toFixed(1);
+
+  let m, b, xMax, yEnd, yMax, eqLabel, sx, sy, xTicks, yTicks, xStep, yStep;
+  if (hasEq) {
+    m = params.m; b = params.b;
+    xMax = Math.max(10, Math.min(50, Math.ceil(Math.abs(b) / (Math.abs(m) || 1) * 0.8)));
+    yEnd = m * xMax + b;
+    yMax = Math.max(b, yEnd, 10) * 1.2;
+    xTicks = Math.min(Math.floor(xMax / 2) + 1, 6);
+    yTicks = Math.min(Math.floor(yMax / 2) + 1, 6);
+    xStep = Math.ceil(xMax / xTicks);
+    yStep = Math.ceil(yMax / yTicks);
+    const mStr = m === 1 ? '' : m === -1 ? '-' : fmt(m);
+    eqLabel = `y = ${mStr}x${b > 0 ? ' + ' + b : b < 0 ? ' - ' + Math.abs(b) : ''}`;
+  } else {
+    xMax = defaultMax; yEnd = defaultMax; yMax = defaultMax * 1.2;
+    xTicks = 5; yTicks = 5; xStep = 2; yStep = 2;
+    eqLabel = null;
+  }
+  sx = x => pad + (x / xMax) * (W - 2 * pad);
+  sy = y => (H - titleH - pad) - (y / yMax) * (H - titleH - 2 * pad);
+  const legendX = W - 75, legendY = titleH + 4;
+
+  return (
+    <div style={{ textAlign: 'center', marginBottom: 6 }}>
+      {eqLabel && <div style={{ fontSize:'0.85rem', fontWeight:600, color:'#e67e22', marginBottom:2, fontFamily:'var(--font-mono, monospace)' }}>{eqLabel}</div>}
+      <svg viewBox={`0 0 ${W} ${H}`} className="la-mini-graph" style={{ width:'100%', maxWidth:300, display:'inline-block', background:'#fafafa', borderRadius:8, border:'1px solid #e0e0e0' }}>
+        {Array.from({length: xTicks+1}, (_, i) => i * xStep).map(v => (
+          <line key={`gx${v}`} x1={sx(v)} y1={sy(0)} x2={sx(v)} y2={sy(yMax)} stroke="#eee" strokeWidth={0.5} />
+        ))}
+        {Array.from({length: yTicks+1}, (_, i) => i * yStep).map(v => (
+          <line key={`gy${v}`} x1={sx(0)} y1={sy(v)} x2={sx(xMax)} y2={sy(v)} stroke="#eee" strokeWidth={0.5} />
+        ))}
+        <line x1={sx(0)} y1={sy(0)} x2={sx(xMax)} y2={sy(0)} stroke="#999" strokeWidth={1.5} />
+        <line x1={sx(0)} y1={sy(0)} x2={sx(0)} y2={sy(yMax)} stroke="#999" strokeWidth={1.5} />
+
+        {hasEq && <line x1={sx(0)} y1={sy(b)} x2={sx(xMax)} y2={sy(yEnd)} stroke="#e67e22" strokeWidth={2.5} strokeLinecap="round" />}
+
+        {Array.from({length: xTicks+1}, (_, i) => i * xStep).filter(v => v > 0).map(v => (
+          <text key={`xl${v}`} x={sx(v)} y={sy(0)+14} fontSize={8} fill="#888" textAnchor="middle">{v}</text>
+        ))}
+        {Array.from({length: yTicks+1}, (_, i) => i * yStep).filter(v => v > 0).map(v => (
+          <text key={`yl${v}`} x={sx(0)-8} y={sy(v)+3} fontSize={8} fill="#888" textAnchor="end">{v}</text>
+        ))}
+        <text x={sx(0)-5} y={sy(0)-4} fontSize={8} fill="#888" textAnchor="middle">O</text>
+
+        <text x={sx(xMax)-5} y={sy(0)+16} fontSize={10} fill="#333" fontWeight={600}>{xLabel}</text>
+        <text x={sx(0)+7} y={sy(yMax)+3} fontSize={10} fill="#333" fontWeight={600}>{yLabel}</text>
+
+        {hasEq && b > 0 && (
+          <>
+            <line x1={sx(0)} y1={sy(b)} x2={sx(xMax*0.15)} y2={sy(b)} stroke="#e74c3c" strokeWidth={0.5} strokeDasharray="2,2" />
+            <text x={sx(0)-5} y={sy(b/2)} fontSize={8} fill="#e74c3c" textAnchor="end" opacity={0.6}>b</text>
+          </>
+        )}
+        {hasEq && <circle cx={sx(0)} cy={sy(b)} r={4.5} fill="#e74c3c" stroke="#fff" strokeWidth={1.5} />}
+        {hasEq && <text x={sx(0)-6} y={sy(b)-8} fontSize={9} fill="#e74c3c" textAnchor="end" fontWeight={600}>{`(0, ${fmt(b)})`}</text>}
+        {hasEq && yEnd > 0 && (
+          <text x={sx(xMax)} y={sy(yEnd)-8} fontSize={9} fill="#e67e22" textAnchor="middle" fontWeight={600}>{`(${fmt(xMax)}, ${fmt(yEnd)})`}</text>
+        )}
+
+        {hasEq && (
+          <>
+            <rect x={legendX} y={legendY} width={68} height={34} rx={4} fill="#fff" stroke="#e0e0e0" strokeWidth={0.5} />
+            <text x={legendX+6} y={legendY+13} fontSize={8} fill="#e74c3c" fontWeight={600}>{`b = ${fmt(b)}`}</text>
+            <text x={legendX+6} y={legendY+26} fontSize={8} fill="#e67e22" fontWeight={600}>{`m = ${fmt(m)}`}</text>
+          </>
+        )}
+      </svg>
+    </div>
+  );
+}
+
 /* ── LinearAlgebraApp component ────────────────────── */
 function LinearAlgebraApp({ onBack }) {
   const [currentMission, setCurrentMission] = useState(1);
@@ -553,6 +676,7 @@ function LinearAlgebraApp({ onBack }) {
     try { return JSON.parse(sessionStorage.getItem('la_solved') || '[]'); } catch { return []; }
   });
   const [selectedRL, setSelectedRL] = useState(null);
+  const [showRLSummary, setShowRLSummary] = useState(false);
   const [rlAnswer, setRlAnswer] = useState('');
   const [rlFeedback, setRlFeedback] = useState(null);
   const [shuffledQuiz, setShuffledQuiz] = useState([]);
@@ -630,7 +754,10 @@ function LinearAlgebraApp({ onBack }) {
     setQuizPassed(allCorrect);
   };
 
-  const handleRLSelect = (idx) => { setSelectedRL(idx); setRlAnswer(''); setRlFeedback(null); };
+  const handleRLSelect = (idx) => {
+    if (selectedRL === idx) { setSelectedRL(null); setRlFeedback(null); setRlAnswer(''); }
+    else { setSelectedRL(idx); setRlAnswer(''); setRlFeedback(null); }
+  };
 
   const guidancePanel = () => {
     if (phase !== 'play' || !mission) return null;
@@ -749,28 +876,64 @@ function LinearAlgebraApp({ onBack }) {
     );
   };
 
+
+  const makeMissionDescriptive = (m) => {
+    return (
+      <>
+        <div style={{ fontWeight:700, color:'var(--la-accent)', marginBottom:4 }}>Your Mission: {m.goal}</div>
+        <div style={{ fontWeight:400, fontSize:'0.9rem', lineHeight:1.5 }}>{m.story}</div>
+      </>
+    );
+  };
+
+  const makeDescriptiveQuestion = (rl) => {
+    const q = (rl.question || '').toLowerCase();
+    const s = (rl.story || '');
+    if (q.includes('y-intercept')||q.includes('intercept value')||q.includes('intercept?')) return `Looking at the graph above, what is the y-intercept? That is, what is the value of y when x is 0 in this scenario?`;
+    if (q.includes('slope?')) return `What is the slope of this line? Remember, slope represents the rate of change — how much y increases for each unit increase in x.`;
+    if (q.includes('total for')) return `Using the graph, figure out the total value when x is the given number in this real-world context.`;
+    if (q.includes('why through origin')) return `Why does this line pass through the origin (0,0)? Look at the graph — what is special about the y-intercept?`;
+    if (q.includes('cost for')) return `Based on the graph, what is the total cost for the given quantity? Find the y-value at the corresponding x-value.`;
+    if (q.includes('fixed charge')) return `What is the fixed charge or base cost in this scenario? This is the y-intercept — the cost when usage is zero.`;
+    if (q.includes('height after')) return `Using the graph, find the height after the given number of years. What is the y-value at that x-value?`;
+    if (q.includes('type of function')) return `What type of function is represented by this line? Is it linear, quadratic, or something else? How can you tell from the graph?`;
+    if (q.includes('distance for')) return `Looking at the graph, find the x-value (distance) that gives the total cost shown. Trace from the y-value to the line and down to the x-axis.`;
+    if (q.includes('what does intersection')) return `What does the intersection point of these two lines represent in this real-world scenario? Think about what it means when the two quantities are equal.`;
+    if (q.includes('break-even')) return `What is the break-even point? This is where cost equals revenue — the x-value at which the two lines intersect.`;
+    if (q.includes('what does collinear')) return `What does it mean for points to be collinear? Look at the graph — do all the points lie on a single straight line?`;
+    if (q.includes('through origin?')) return `Does this line pass through the origin (0,0)? Look at the graph and check whether (0,0) lies on the line.`;
+    if (q.includes('what does inverse')) return `What does the inverse of this function tell us? How do we reverse the calculation to find the original input from the output?`;
+    if (q.includes('inverse')) return `What is the inverse of this function? How would you reverse the calculation to go from y back to x?`;
+    if (q.includes('why')) return `Look at the graph and explain: ${q}`;
+    return `Based on the graph above, ${q} Look at the line and the labeled points to figure out the answer.`;
+  };
+
   const realLifeSection = () => {
     const rls = mission.realLife || [];
     const rl = selectedRL !== null ? rls[selectedRL] : null;
     return (
       <div className="la-reallife">
         <div className="la-reallife-title">Real-Life Applications</div>
-        {selectedRL === null ? (
-          <div className="la-reallife-grid">
-            {rls.map((rlItem, i) => (
-              <button key={i} className="la-reallife-card" onClick={() => handleRLSelect(i)}>
-                <span className="rl-emoji">{rlItem.emoji}</span>
-                <span className="rl-title">{rlItem.title}</span>
-              </button>
-            ))}
-          </div>
-        ) : (
+        <div className="la-reallife-grid">
+          {rls.map((rlItem, i) => (
+            <button key={i} className={'la-reallife-card' + (selectedRL === i ? ' active' : '')} onClick={() => handleRLSelect(i)}>
+              <span className="rl-emoji">{rlItem.emoji}</span>
+              <span className="rl-title">{rlItem.title}</span>
+            </button>
+          ))}
+        </div>
+        {selectedRL !== null && (
           <div className="la-reallife-expanded">
-            <button className="rl-back-btn" onClick={() => { setSelectedRL(null); setRlFeedback(null); setRlAnswer(''); }}>&larr; Back to gallery</button>
-            <div className="rl-emoji-large">{rl.emoji}</div>
+            <MiniGraph story={rl.story} />
             <div className="rl-story">{rl.story}</div>
             <div className="rl-puzzle-box">
-              <div className="rl-question"><strong>Your turn:</strong> {rl.question}</div>
+              <div className="rl-question">
+                <strong>{showRLSummary ? 'Quick question:' : 'What to find:'}</strong>
+                {showRLSummary ? rl.question : makeDescriptiveQuestion(rl)}
+              </div>
+              <button className="rl-summary-toggle" onClick={() => setShowRLSummary(v => !v)}>
+                {showRLSummary ? 'Show Full Context' : 'View Summary'}
+              </button>
               <div className="rl-input-area">
                 <input className="la-text-input" type="text" value={rlAnswer}
                   onChange={e => setRlAnswer(e.target.value)}
@@ -863,8 +1026,10 @@ function LinearAlgebraApp({ onBack }) {
 
       {phase === 'play' && (
         <div className="la-mission">
+          <div className="la-question-prompt" style={{ fontSize:'1rem', margin:'0 0 8px', lineHeight:1.5, fontWeight:600 }}>
+            {makeMissionDescriptive(mission)}
+          </div>
           <GGBEmbed missionId={currentMission} ggbType={mission.ggbType} />
-          <div className="la-question-prompt" style={{ fontSize:'1rem', margin:'12px 0 10px', lineHeight:1.5, fontWeight:600 }}>{mission.prompt}</div>
           {actionButtons()}
           {guidancePanel()}
           {answerArea()}
