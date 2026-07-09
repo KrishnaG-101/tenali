@@ -390,3 +390,153 @@ Limitations introduced in v1.2: None — feature is purely additive.
 Pre-existing limitations (from Phase 1/2) carried forward unchanged.
 
 Testing performed: Manual review via verification script (since removed) — all 326 term-key references across 64 topics resolve to entries in `glossaryTerms.json`. 6 entries were silently dropped during development (clockwise, side, regular polygon, direct/inverse proportion, binomial-as-standalone) and removed from `topicGlossaryMap.json`. No automated tests exist for this feature. User instructed that the dev server and backend remain running for the duration of the session, so no live browser tests were executed.
+
+---
+
+### v1.3 (Phase 3 follow-up — disclosure pattern refinement)
+
+Date: 2026-07-09
+
+Summary: Refined the Phase 3 "Learn These Words" feature from an always-visible chips box into a calm disclosure pattern: a small `Learn These Words (N) ▾` toggle button that opens an anchored, lightweight panel listing the terms. The existing glossary popup for individual word definitions is reused unchanged — still one glossary system, one source of truth for definitions.
+
+Files Changed:
+- `client/src/components/KeyTerms.jsx` (**rewritten** — ~150 lines, was ~80. Default export and `topicKey` prop interface unchanged, so `App.jsx` and the 65 wirings require no changes.)
+- `client/src/App.css` (**replaced** entire `.learn-these-words-*` CSS block, was ~65 lines, now ~85 lines)
+
+Breaking Changes: None.
+
+Migration Required: None.
+
+Architecture (unchanged from v1.2):
+- Single glossary system preserved — `glossaryTerms.json` remains the only definition source
+- `matchMap` and `GlossaryTooltip` from `GlossaryText.jsx` are reused directly
+- The popover for each chip is the SAME `GlossaryTooltip` used inside quiz questions
+- Updating a definition in `glossaryTerms.json` still updates both surfaces
+
+Component behaviour:
+
+- Renders a `<button className="learn-these-words-toggle">` with format `Learn These Words ({N}) ▾`. The count `(N)` always appears (whenever the section renders, `N ≥ 1` because the filter short-circuits to `null` at 0). The caret `▾` is a Unicode `▾` glyph. Rotates 180° via CSS `transform: rotate(180deg)` when `aria-expanded="true"`.
+- Clicking the toggle reveals a `<div className="learn-these-words-panel">` directly below the toggle, anchored via CSS `position: absolute; top: calc(100% + 6px); left: 0`. Panel layout is vertical list; each entry is a `<TermChip>`.
+- Each `<TermChip>` is a self-contained state wrapper that manages local popover open/close state and renders the existing exported `GlossaryTooltip` with a `wrapperClassName` chosen at toggle-open time based on `getBoundingClientRect().top` — if `< 120`, `wrapperClassName=""` (default = opens below), otherwise `"glossary-term-wrapper--above"` (opens above).
+- Panel closes on: (a) re-clicking the toggle, (b) document mousedown/touchstart outside the wrapper (with the same 10 ms setTimeout pattern used inside `GlossaryTooltip`), (c) `Escape` key. Pattern matches the GlossaryTooltip behavior.
+- Popover behaviour is unchanged from v1.2 — reuses existing controlled-state `GlossaryTooltip`. Closing the popover via outside-click / Escape / 6 s auto-dismiss does NOT close the panel.
+
+Visual design (CSS additions / changes):
+
+- `.learn-these-words` — invisible anchor (`position: relative; margin: 0 0 16px 0;`), no background, border, or radius. Carries no visual weight.
+- `.learn-these-words-toggle` — text-button style. `background: transparent; color: var(--clr-text-soft); font: inherit; font-size: 0.95rem; font-weight: 500; min-height: 44px; padding: 0 14px; border-radius: var(--radius-sm);` Brightens to `--clr-text` on hover/focus; gains a 2px accent-soft focus ring via `box-shadow`. `aria-expanded="true"` makes the text darker again for visual confirmation.
+- `.learn-these-words-caret` — inline-block span with `transform: rotate(180deg)` when the toggle has `aria-expanded="true"`.
+- `.learn-these-words-panel` — `position: absolute; top: calc(100% + 6px); left: 0; z-index: 100; min-width: 240px; max-width: min(480px, calc(100vw - 32px)); max-height: calc(100vh - 200px); overflow-y: auto;` then `background: var(--clr-card); border: 1px solid var(--clr-border); border-left: 3px solid var(--clr-accent); border-radius: var(--radius-sm); padding: 14px 18px; box-shadow: var(--shadow-card); animation: glossary-appear-above 0.13s ease;` — reuses the existing animation keyframe (which does `translateY(5px) → 0` + opacity), and every color/spacing token from the existing design system.
+- `.learn-these-words-list` — `display: flex; flex-direction: column; gap: 6px;` (vertical list).
+- `.learn-these-words-list .glossary-term` — list-item style: `display: flex; justify-content: space-between; align-items: center; width: 100%; background: var(--clr-card); border: 1px solid var(--clr-border); border-radius: var(--radius-sm); padding: 12px 16px; min-height: 44px; font-size: 0.98rem; color: var(--clr-text);` deliberately NOT a pill (`border-radius: var(--radius-sm)`, not 999px) and slightly taller than the previous chips for finger-friendly touch.
+- `.learn-these-words-list .glossary-term-icon` — `display: none` (hides the 📖 emoji that the existing in-question `.glossary-term` shows).
+- `.learn-these-words-list .glossary-term::after` — adds a `›` chevron (Unicode) with `opacity: 0.5; transition: opacity, transform;`; brightens to `opacity: 1; transform: translateX(3px);` on hover/focus for affordance feedback.
+- `.learn-these-words-list .glossary-term:hover, .learn-these-words-list .glossary-term:focus-visible` — `background: var(--clr-accent-soft); border-color: var(--clr-accent); color: var(--clr-accent);` reuses the existing chip-highlight tokens.
+- `.learn-these-words-list .glossary-term--open` — same highlight (existing GlossaryTooltip `--open` pattern).
+
+Accessibility:
+
+- `aria-expanded` on the toggle button (true / false)
+- `aria-controls="learn-these-words-panel-{topicKey}"` on the toggle button, with the panel's `id` matching
+- `role="region"` and `aria-label="Glossary terms for this topic"` on the panel
+- `aria-hidden="true"` on the decorative caret `▾` character
+- Keyboard: Enter / Space toggles the panel and individual chips; Escape closes panel and / or popover
+- Focus ring on the toggle button via `box-shadow: 0 0 0 2px var(--clr-accent-soft);` on `:focus-visible`
+- Min-height 44px on both toggle button and each chip — comfortable touch targets
+
+Fail-safe (per user Q14):
+
+- The entire data-resolution block (`validEntries` filter) is wrapped in `try/catch`. If the loop throws — for example, malformed `topicGlossaryMap.json` or empty `matchMap` — the entire section returns `null` and emits a `console.warn`. Quizzes still work; the user just doesn't see a Learn These Words panel.
+- All inputs (`topicKey`, `topicGlossaryMap`, `matchMap`) are type-checked before use to prevent accidental throws.
+- Returns `null` early if `topicKey` is missing/non-string, or if either data source is missing/non-object.
+
+Limitations introduced in v1.3: None (functionally additive on top of v1.2).
+
+Pre-existing limitations (from Phase 1/2) carried forward unchanged.
+
+Testing performed: Self-review only (no automated tests exist). User instructed that the dev server and backend remain running, so no live browser tests were executed.
+
+---
+
+### v1.4 (Phase 3 follow-up 2 — "Word Explorer" split-panel design, in-progress)
+
+Date: 2026-07-09
+
+Summary: Replace the previous "Learn These Words" disclosure (button → dropdown-feel panel → floating tooltips on each word) with a calmer mini learning workspace called "Word Explorer". Clicking the toggle expands a split panel: LEFT = vertical word list (navigation); RIGHT = reading area that is itself the definition viewer (NO floating tooltip, NO nested popover, NO dropdown menu styling). Auto-selects the first word on open. In-question glossary behavior is preserved unchanged.
+
+This entry documents the design — implementation pending.
+
+Files Changed So Far (design + docs only):
+- `AI_HANDOVER.md` — appended new dated session entry
+- `context.md` — rewritten to reflect the Word Explorer design in progress
+- `documentation.md` — this `v1.4` entry
+
+Files To Be Changed (implementation pending):
+- `client/src/components/KeyTerms.jsx` — full rewrite (~150-180 lines). Internal component name unchanged. Default export and `{ topicKey }` prop interface unchanged. New internal state: `isOpen` (panel) + `selectedKey` (canonical term name of the selected word). Auto-sets `selectedKey` to the first entry's term when the panel opens via `useEffect` watching `isOpen`. Renders the panel as a 2-column CSS Grid layout. Renders the right pane as plain `<h4>{term}</h4>` + `<p>{definition}</p>` (no tooltip, no popover). Fail-safe try/catch around the `validEntries` resolution is preserved.
+- `client/src/App.css` — replace `.learn-these-words-*` block. New selectors: `.word-explorer`, `.word-explorer-toggle`, `.word-explorer-panel`, `.word-explorer-list`, `.word-explorer-item`, `.word-explorer-item.is-selected`, `.word-explorer-reader`, `.word-explorer-reader-term`, `.word-explorer-reader-def`. CSS Grid for layout; media query for mobile stacking.
+
+Files NOT Modified (intentional, per user spec):
+- `client/src/components/GlossaryText.jsx` — UNCHANGED. The in-question floating tooltip remains.
+- `client/src/data/glossaryTerms.json` — UNCHANGED.
+- `client/src/data/topicGlossaryMap.json` — UNCHANGED.
+- `client/src/App.jsx` — UNCHANGED. All 65 `<KeyTerms topicKey="X" />` wirings keep working.
+- `server/index.js`, `package.json`, `vite.config.js`, `client/src/index.css` — UNCHANGED.
+
+Breaking Changes: None.
+
+Migration Required: None.
+
+User-facing rename only (per user spec):
+- `"Learn These Words"` → `"Word Explorer"` in the toggle button label.
+- Internal component name `KeyTerms` and CSS classes `.learn-these-words*` are NOT renamed.
+
+Design decisions (confirmed with user this session):
+
+- **Split-panel layout** (2 columns desktop, stacked vertical on mobile):
+  - LEFT: vertical list of curated terms; each row is a navigation button.
+  - RIGHT: reading area — heading (term) + paragraph (definition). The right pane IS the explanation viewer — NOT a tooltip, NOT a popover.
+- **Auto-select first word on open** — when the panel opens, the first curated term is automatically selected and its definition is shown in the right pane. Never show an empty panel.
+- **Clicking the already-selected word is a no-op** — word stays selected; right pane unchanged.
+- **Selected word visual** — full-row accent background fill (`--clr-accent-soft` background + `--clr-accent` text + `--clr-accent` border). Consistent with the existing chip-highlight pattern.
+- **Right pane typography** — simple hierarchy: term as `<h4>` heading, definition as `<p>` body.
+- **Missing definition fallback** — if a selected term somehow has no definition (defensive), render `"Definition unavailable."` in the right pane. Never crash.
+- **No search input** — list is small (3-8 words).
+- **Independent scrolling** — left list scrolls internally if content overflows; right pane stays fixed-height (no scroll). Prevents the right pane from jumping as the student browses the list.
+- **No animations on word selection** — only the panel-opening slide-in plays. Word selection is instant.
+- **Responsive layout** — CSS Grid `grid-template-columns: auto 1fr` on desktop. Below a breakpoint (panel width too small for split), stacks via `grid-template-columns: 1fr`. No hardcoded widths — adapts naturally. Panel max-width capped at `min(640px, calc(100vw - 32px))`.
+- **Generous whitespace** — prioritize readability over compactness; tall rows, comfortable padding, clear typography hierarchy.
+- **Reuse existing glossary data only** — `topicGlossaryMap.json` + `matchMap` from `GlossaryText.jsx`. No new data files. No changes to `glossaryTerms.json`. No changes to `topicGlossaryMap.json`.
+- **In-question glossary UNCHANGED** — `<GlossaryText>` floating tooltip at the 14 in-question wiring sites continues to work exactly as it does today.
+- **Fail-safe** — if reading data throws or returns zero valid entries, the entire `<KeyTerms>` returns `null`. Quizzes still work.
+
+Data flow (planned):
+
+1. App setup page mounts → calls `<KeyTerms topicKey="trigonometry" />`.
+2. `KeyTerms` (in a try/catch) reads `topicGlossaryMap.json` and `matchMap`, resolves each key, dedupes, deduces `validEntries`.
+3. If zero valid entries (or data load throws) → returns `null` → entire section hidden, quizzes still work.
+4. Otherwise renders a `<button>Word Explorer ({N}) ▾</button>`.
+5. On click, panel state flips to open; an anchored `<div className="word-explorer">` appears below the button.
+6. The panel has a 2-column CSS Grid layout:
+   - LEFT: vertical list of words. Each item is a `<button>` that calls `setSelectedKey(entry.term)`.
+   - RIGHT: definition viewer — `<h4>{selectedEntry.term}</h4>` + `<p>{selectedEntry.definition}</p>` (or `"Definition unavailable."` if missing).
+7. On panel open, `useEffect` watches `isOpen` and auto-sets `selectedKey` to the first entry's term. Right pane immediately shows that term's definition.
+8. User clicks a word on the left → `selectedKey` updates → right pane re-renders. Panel stays open. Clicking the already-selected word is a no-op.
+9. Panel closes on: (a) toggle button click, (b) document mousedown/touchstart outside the wrapper, (c) Escape key.
+10. Mobile: when panel effective width is too small for split, the 2 columns stack vertically via a media query on `grid-template-columns`.
+
+Edge cases (planned):
+
+- **No curated terms for topic** → entire component returns `null`. Toggle button hidden.
+- **All listed terms missing from glossary** → silently filtered; component then returns `null`.
+- **Data files malformed / missing** → wrapped in try/catch, `console.warn`, `return null`.
+- **Selected term somehow has no definition** (defensive) → render `"Definition unavailable."` in right pane.
+- **User toggles panel open/closed rapidly** → outside-click listener attached / detached via the 10 ms setTimeout pattern (mirrors `GlossaryTooltip`).
+- **Click outside panel** → wrapperRef.contains check → setIsOpen(false).
+- **Press Escape while panel open** → keydown listener → setIsOpen(false).
+- **Click word while another is selected** → updates selectedKey; right pane re-renders; panel stays open (no close).
+- **Click already-selected word** → no-op (state stays the same).
+- **Empty / no right pane state** → impossible by design — auto-select on open guarantees a term.
+
+Limitations: None introduced (functionally additive on top of v1.3).
+
+Testing performed: Self-review pending after implementation; no automated tests exist. User instructed that the dev server and backend remain running, so no live browser tests will be executed until review time.

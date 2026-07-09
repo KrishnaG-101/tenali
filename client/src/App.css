@@ -743,69 +743,184 @@ button:disabled {
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-/* LEARN THESE WORDS — Topic-page glossary preview           */
+/* WORD EXPLORER — Topic-page split-panel mini dictionary         */
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-.learn-these-words-section {
+/* Invisible anchor wrapper. Carries no chrome; the panel below carries
+   the visual weight. */
+.word-explorer {
+  position: relative;
   margin: 0 0 16px 0;
-  padding: 12px 14px;
-  background: var(--clr-surface);
-  border: 1px solid var(--clr-border);
-  border-left: 3px solid var(--clr-accent);
-  border-radius: var(--radius-sm);
   text-align: left;
 }
 
-.learn-these-words-title {
-  font-size: 0.78rem;
-  font-weight: 700;
+/* Toggle button — subtle text-button. Muted by default so it does not
+   compete with Start Quiz; brightens on hover / focus. */
+.word-explorer-toggle {
+  background: transparent;
+  border: none;
   color: var(--clr-text-soft);
-  margin: 0 0 8px 0;
-  font-family: var(--font-body);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.learn-these-words-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 10px;
-}
-
-.learn-these-words-list li {
-  margin: 0;
-  padding: 0;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
+  gap: 6px;
+  transition: background var(--transition), color var(--transition);
+}
+.word-explorer-toggle:hover,
+.word-explorer-toggle:focus-visible {
+  background: var(--clr-hover);
+  color: var(--clr-text);
+  outline: none;
+}
+.word-explorer-toggle:focus-visible {
+  box-shadow: 0 0 0 2px var(--clr-accent-soft);
+}
+.word-explorer-toggle[aria-expanded="true"] {
+  color: var(--clr-text);
 }
 
-/* In the Learn These Words chips, the term should look like a clickable
-   pill — keep the dotted underline but add a soft chip background so the
-   affordance reads as "tap me" without screaming. */
-.learn-these-words-list .glossary-term {
+/* Rotating caret — flips 180° when the panel is open. */
+.word-explorer-caret {
+  display: inline-block;
+  font-size: 0.85em;
+  opacity: 0.7;
+  transition: transform var(--transition);
+}
+.word-explorer-toggle[aria-expanded="true"] .word-explorer-caret {
+  transform: rotate(180deg);
+}
+
+/* ━━━ Anchored split-panel — fixed top-right corner ━━━ */
+.word-explorer-panel {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 100;
+  width: min(520px, calc(100vw - 32px));
+  min-width: 280px;
+  max-height: calc(100vh - 32px);
   background: var(--clr-card);
-  padding: 3px 8px;
-  border-radius: 999px;
-  border: 1px solid var(--clr-border);
-  border-bottom-style: solid;
-  border-bottom-width: 1.5px;
-  border-bottom-color: var(--clr-border);
+  /* Visible light-color border — distinct from the faint --clr-border,
+     makes the panel read as a clear card on the page. */
+  border: 1px solid var(--clr-text-soft);
+  border-left: 3px solid var(--clr-accent);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+  animation: glossary-appear-above 0.13s ease;
+  display: grid;
+  /* Desktop default: 2 columns — list navigation on the left,
+     definition reader on the right. */
+  grid-template-columns: minmax(160px, auto) minmax(240px, 1fr);
+  overflow: hidden;
+}
+/* When the panel is too narrow to fit both columns comfortably, stack
+   them vertically. */
+@media (max-width: 520px) {
+  .word-explorer-panel {
+    width: calc(100vw - 32px);
+    grid-template-columns: 1fr;
+    max-height: calc(100vh - 32px);
+  }
 }
 
-.learn-these-words-list .glossary-term:hover,
-.learn-these-words-list .glossary-term:focus-visible {
-  background: var(--clr-accent-soft);
-  border-color: var(--clr-accent);
-  color: var(--clr-accent);
+/* ━━━ Left column: word navigation ━━━ */
+.word-explorer-list {
+  display: flex;
+  flex-direction: column;
+  /* Independently scrollable when content exceeds the panel height.
+     Generous interior padding for tap comfort. */
+  overflow-y: auto;
+  padding: 14px 12px;
+  border-right: 1px solid var(--clr-border);
+  min-height: 0;          /* allow flex/grid child to shrink & scroll */
+}
+@media (max-width: 480px) {
+  .word-explorer-list {
+    border-right: none;
+    border-bottom: 1px solid var(--clr-border);
+    max-height: 220px;   /* on stacked layout, give list a fixed cap */
+  }
 }
 
-.learn-these-words-list .glossary-term--open {
-  background: var(--clr-accent-soft);
+.word-explorer-item {
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--clr-text-soft);
+  font: inherit;
+  font-size: 0.98rem;
+  text-align: left;
+  width: 100%;
+  min-height: 44px;       /* touch target */
+  padding: 10px 14px;
+  cursor: pointer;
+  margin: 0 0 4px 0;
+  transition: background var(--transition), color var(--transition),
+              border-color var(--transition);
+}
+.word-explorer-item:last-child {
+  margin-bottom: 0;
+}
+.word-explorer-item:hover {
+  background: var(--clr-hover);
+  color: var(--clr-text);
+}
+.word-explorer-item:focus-visible {
+  outline: none;
   border-color: var(--clr-accent);
+  background: var(--clr-hover);
+  color: var(--clr-text);
+}
+.word-explorer-item.is-selected {
+  background: var(--clr-accent-soft);
   color: var(--clr-accent);
+  border-color: var(--clr-accent);
+  font-weight: 600;
+}
+.word-explorer-item.is-selected:focus-visible {
+  /* Keep accent ring on the selected item even on focus. */
+  box-shadow: 0 0 0 2px var(--clr-accent-soft);
+}
+
+/* ━━━ Right column: the explanation viewer ━━━ */
+.word-explorer-reader {
+  /* Generous padding to prioritise readability over compactness. */
+  padding: 28px 32px;
+  overflow-y: auto;
+  min-height: 0;          /* allow this column to scroll if needed */
+  background: var(--clr-bg);     /* subtle contrast vs the left list */
+}
+@media (max-width: 480px) {
+  .word-explorer-reader {
+    padding: 24px 22px;
+  }
+}
+
+.word-explorer-reader-term {
+  margin: 0 0 14px 0;
+  padding: 0 0 12px 0;
+  border-bottom: 1px solid var(--clr-border);
+  font-family: var(--font-body);
+  font-size: 1.45rem;     /* heading tier */
+  font-weight: 700;
+  color: var(--clr-text);
+  letter-spacing: -0.005em;
+  text-transform: capitalize;
+}
+
+.word-explorer-reader-def {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: var(--clr-text);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
