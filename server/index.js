@@ -52,7 +52,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 4000;
 const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
-const questionsDir = path.join(__dirname, '..', 'chitragupta', 'questions');
+const questionsDir = path.join(__dirname, '..', 'questions', 'gk');
 
 // CORS: Enable cross-origin requests for client communication
 app.use(cors());
@@ -1050,11 +1050,20 @@ function bandForStep(step) {
  * @returns {Array<object>} Array of question objects
  */
 function loadQuestions() {
-  const files = fs.readdirSync(questionsDir).filter((file) => file.endsWith('.json'));
-  return files.map((file) => {
-    const fullPath = path.join(questionsDir, file);
-    return JSON.parse(fs.readFileSync(fullPath, 'utf8'));
-  });
+  if (!fs.existsSync(questionsDir)) {
+    console.warn(`[Warning] Questions directory not found at ${questionsDir}. Starting with 0 GK questions.`);
+    return [];
+  }
+  try {
+    const files = fs.readdirSync(questionsDir).filter((file) => file.endsWith('.json'));
+    return files.map((file) => {
+      const fullPath = path.join(questionsDir, file);
+      return JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+    });
+  } catch (err) {
+    console.error(`[Error] Failed to load questions:`, err.message);
+    return [];
+  }
 }
 
 // Load all GK questions at server startup
@@ -1462,7 +1471,7 @@ app.post('/sqrt-api/check', (req, res) => {
  */
 
 // Directory containing vocabulary question JSON files
-const vocabDir = path.join(__dirname, '..', 'vocab', 'questions');
+const vocabDir = path.join(__dirname, '..', 'questions', 'vocab');
 
 /**
  * Load all vocabulary questions from JSON files
@@ -4408,7 +4417,7 @@ app.get('/ineq-api/question', (req, res) => {
   }
   else {
     // Represent on number line: find integer solutions to compound inequality
-    const a = triRand(-3, 3); if (a === 0) a = 1;
+    let a = triRand(-3, 3); if (a === 0) a = 1;
     const b = triRand(-5, 5);
     const lo = triRand(-10, 0);
     const hi = triRand(1, 10);
@@ -4988,7 +4997,7 @@ app.get('/matrix-api/question', (req, res) => {
   }
   else if (difficulty === 'medium') {
     // Scalar multiplication
-    const k = triRand(-3, 5); if (k === 0) k = 2;
+    let k = triRand(-3, 5); if (k === 0) k = 2;
     const A = [[triRand(-5,9), triRand(-5,9)], [triRand(-5,9), triRand(-5,9)]];
     const R = [[k*A[0][0], k*A[0][1]], [k*A[1][0], k*A[1][1]]];
     const fmtM = (m) => `[${m[0][0]},${m[0][1]};${m[1][0]},${m[1][1]}]`;
@@ -5059,7 +5068,7 @@ app.get('/vectors-api/question', (req, res) => {
   }
   else if (difficulty === 'medium') {
     // Scalar multiplication
-    const k = triRand(-3, 5); if (k === 0) k = 2;
+    let k = triRand(-3, 5); if (k === 0) k = 2;
     const a = [triRand(-6,6), triRand(-6,6)];
     const ans = [k*a[0], k*a[1]];
     const prompt = `a = (${a[0]}, ${a[1]}). Find ${k}a.`;
@@ -5559,7 +5568,7 @@ app.get('/diff-api/question', (req, res) => {
   }
   else if (difficulty === 'medium') {
     // Differentiate polynomial: ax² + bx + c
-    const a = triRand(-5, 5); const b = triRand(-8, 8); const c = triRand(-10, 10);
+    let a = triRand(-5, 5); const b = triRand(-8, 8); const c = triRand(-10, 10);
     if (a === 0) a = 2;
     const x = triRand(-3, 3);
     const deriv = 2 * a * x + b;
@@ -7070,7 +7079,8 @@ app.get('/lineareq-api/question', (req, res) => {
 app.post('/lineareq-api/check', express.json(), (req, res) => {
   const { answer, display } = req.body;
   const userStr = (req.body.userAnswer || '').trim();
-  const userNum = parseFloat(userStr);
+  const fracMatch = userStr.match(/^(-?\d+)\/(-?\d+)$/);
+  const userNum = fracMatch ? parseFloat(fracMatch[1]) / parseFloat(fracMatch[2]) : parseFloat(userStr);
   const correct = !isNaN(userNum) && Math.abs(userNum - answer) < 0.1;
   res.json({ correct, display, message: correct ? 'Correct!' : 'Incorrect' });
 });
@@ -7373,7 +7383,8 @@ app.get('/limits-api/question', (req, res) => {
 app.post('/limits-api/check', express.json(), (req, res) => {
   const { answer, display } = req.body;
   const userStr = (req.body.userAnswer || '').trim();
-  const userNum = parseFloat(userStr);
+  const fracMatch = userStr.match(/^(-?\d+)\/(-?\d+)$/);
+  const userNum = fracMatch ? parseFloat(fracMatch[1]) / parseFloat(fracMatch[2]) : parseFloat(userStr);
   const correct = !isNaN(userNum) && Math.abs(userNum - answer) < 0.05;
   res.json({ correct, display, message: correct ? 'Correct!' : 'Incorrect' });
 });
@@ -8649,7 +8660,8 @@ app.post('/section-api/check', express.json(), (req, res) => {
   const { answer, display } = req.body;
   const userStr = (req.body.userAnswer || '').trim();
   if (Array.isArray(answer)) {
-    const parts = userStr.split(',').map(p => parseFloat(p.trim()));
+    const cleaned = userStr.replace(/[()]/g, '');
+    const parts = cleaned.split(',').map(p => parseFloat(p.trim()));
     const correct = parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1]) &&
                     Math.abs(parts[0] - answer[0]) < 0.2 && Math.abs(parts[1] - answer[1]) < 0.2;
     res.json({ correct, display, message: correct ? 'Correct!' : 'Incorrect' });
@@ -8750,7 +8762,7 @@ function circmeasureQuestion(difficulty) {
     // radians to degrees
     const radMult = triPick([0.5, 1, 1.5, 2, 3]);
     const rad = radMult;
-    const answer = (rad * 180) / Math.PI;
+    const answer = rad * 180;
     const prompt = `Convert ${rad}π radians to degrees`;
     return { id, difficulty, prompt, answer, display: String(Math.round(answer)) };
   } else if (difficulty === 'hard') {

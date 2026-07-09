@@ -99,12 +99,16 @@ router.post('/login', async (req, res) => {
   if (!username || !password) return res.status(400).json({ error: 'username and password are required' });
 
   if (connected) {
-    const user = await User.findOne({ username });
-    if (!user) return res.status(401).json({ error: 'invalid credentials' });
-    const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok) return res.status(401).json({ error: 'invalid credentials' });
-    const token = signToken(user);
-    return res.json({ token, user: { username: user.username } });
+    try {
+      const user = await User.findOne({ username });
+      if (!user) return res.status(401).json({ error: 'invalid credentials' });
+      const ok = await bcrypt.compare(password, user.passwordHash);
+      if (!ok) return res.status(401).json({ error: 'invalid credentials' });
+      const token = signToken(user);
+      return res.json({ token, user: { username: user.username } });
+    } catch (err) {
+      console.error('[auth] Database query failed, falling back to in-memory auth:', err);
+    }
   }
 
   // Fallback: check against in-memory seed users when MongoDB is unavailable.

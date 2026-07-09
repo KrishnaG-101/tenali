@@ -501,7 +501,7 @@ function DifficultySlider({ pct, onChange, maxWidth = 260 }) {
   )
 }
 
-function NumPad({ value, onChange, onSubmit, disabled, showDecimal, showSlash, showCaret, showX }) {
+function NumPad({ value, onChange, onSubmit, disabled, showDecimal, showSlash, showCaret, showX, showComma }) {
   /**
    * press(key): Handle numpad key press
    * - '0'-'9': append to value
@@ -555,6 +555,7 @@ function NumPad({ value, onChange, onSubmit, disabled, showDecimal, showSlash, s
         {showSlash && <button type="button" className="numpad-key numpad-special" onClick={() => press('/')} disabled={disabled}>/</button>}
         {showCaret && <button type="button" className="numpad-key numpad-special" onClick={() => press('^')} disabled={disabled}>^</button>}
         {showX && <button type="button" className="numpad-key numpad-special" onClick={() => press('x')} disabled={disabled}>x</button>}
+        {showComma && <button type="button" className="numpad-key numpad-special" onClick={() => press(',')} disabled={disabled}>,</button>}
         <button type="button" className="numpad-key numpad-special" onClick={() => press('⌫')} disabled={disabled}>⌫</button>
       </div>
     </div>
@@ -39496,6 +39497,7 @@ function makeQuizApp({ title, subtitle, apiPath, diffLabels, placeholders, tip, 
           {question && <div style={{ textAlign: 'center' }}>
             <div className="question-prompt" style={{ fontSize: '1.3rem', margin: '20px 0', lineHeight: '1.6' }}>{question.prompt}</div>
             <input className="answer-input" type="text" value={answer} onChange={e => { if (!revealed) setAnswer(e.target.value) }} disabled={revealed} placeholder={getPlaceholder()} onKeyDown={handleKeyDown} autoFocus />
+            <NumPad value={answer} onChange={v => !revealed && setAnswer(v)} disabled={revealed} showComma={apiPath === 'coordgeom' || apiPath === 'section' || apiPath === 'vectors'} />
           </div>}
           {!question && loading && <div style={{ textAlign: 'center', padding: '24px', color: 'var(--clr-text-soft)' }}>Loading question…</div>}
           {!question && !loading && loadError && (
@@ -42009,7 +42011,7 @@ function RandomMixApp({ onBack }) {
     return { ...prev, [topicKey]: Math.max(0, Math.min(DIFF_LEVELS.length - 1, next)) }
   })
 
-  const loadQuestion = async () => {
+  const loadQuestion = async (retries = 0) => {
     const topic = pickRandomTopic()
     if (!topic) {
       setFeedback('No topics left! Un-skip some topics or finish.')
@@ -42032,9 +42034,13 @@ function RandomMixApp({ onBack }) {
       timer.reset()
       timer.start()
     } catch {
-      setFeedback('Failed to load question. Trying another topic...')
-      // Try again with a different topic
-      setTimeout(loadQuestion, 300)
+      if (retries < 2) {
+        setFeedback('Failed to load question. Trying another topic...')
+        // Try again with a different topic
+        setTimeout(() => loadQuestion(retries + 1), 300)
+      } else {
+        setFeedback('Failed to load question after 3 attempts. Please check network connection or try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -46934,6 +46940,43 @@ function CustomApp({ onBack }) {
           {question.eqs.map((eq, i) => <div key={i}>{is3 ? fmtEq3(eq) : fmtEq2(eq)}</div>)}
         </div>
       </>
+    }
+    // Dot products and matrix multiplication visualization
+    if (curType === 'dotprod') {
+      const { type } = question
+      if (type === 'dot2d' || type === 'dot3d') {
+        const dim = question.vecA.length
+        return <>
+          <div className="custom-type-badge">{typeName}</div>
+          <div className="question-box">
+            <div className="dotprod-question" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div className="hint-text" style={{ marginBottom: '8px' }}>Find the dot product</div>
+              <div className="dotprod-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <MatrixBox matrix={[question.vecA]} label={`1×${dim}`} />
+                <span className="matrix-op">·</span>
+                <MatrixBox matrix={question.vecB.map(v => [v])} label={`${dim}×1`} />
+              </div>
+            </div>
+          </div>
+        </>
+      }
+      if (type === 'matmul' || type === 'matfill') {
+        return <>
+          <div className="custom-type-badge">{typeName}</div>
+          <div className="question-box">
+            <div className="dotprod-question" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div className="hint-text" style={{ marginBottom: '8px' }}>
+                {type === 'matmul' ? 'Compute the matrix product A × B' : 'Find the missing values in C = A × B'}
+              </div>
+              <div className="dotprod-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <MatrixBox matrix={question.matA} label="A" />
+                <span className="matrix-op">×</span>
+                <MatrixBox matrix={question.matB} label="B" />
+              </div>
+            </div>
+          </div>
+        </>
+      }
     }
     // Default: use generic prompt from getPromptForType()
     return <>
