@@ -49688,6 +49688,26 @@ const VachanaIcons = {
       <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
     </svg>
   ),
+  graphstory: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <path d="M3 3v18h18" />
+      <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
+    </svg>
+  ),
+  proofreview: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <path d="M14 2H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="9.5" y1="15" x2="14.5" y2="15" />
+    </svg>
+  ),
+  simplify: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5" />
+      <line x1="9" y1="18" x2="15" y2="18" />
+      <line x1="10" y1="22" x2="14" y2="22" />
+    </svg>
+  ),
   header: (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, color: 'var(--clr-accent)' }}>
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -49719,7 +49739,10 @@ function VachanaApp({ onBack }) {
     { id: 'schema', label: 'Schema Classifier', icon: VachanaIcons.schema, desc: 'Categorize word problems by arithmetic schema' },
     { id: 'goal', label: 'Goal-State Predictor', icon: VachanaIcons.goal, desc: 'Identify the exact target question requirements' },
     { id: 'rewrite', label: 'Syntactic Rewriter', icon: VachanaIcons.rewrite, desc: 'Translate passive word problems to chronological active voice' },
-    { id: 'storymatch', label: 'Equation-to-Story', icon: VachanaIcons.storymatch, desc: 'Connect abstract algebra with real-world scenarios' }
+    { id: 'storymatch', label: 'Equation-to-Story', icon: VachanaIcons.storymatch, desc: 'Connect abstract algebra with real-world scenarios' },
+    { id: 'graphstory', label: 'Visual-to-Narrative', icon: VachanaIcons.graphstory, desc: 'Translate visual function graphs into descriptive stories' },
+    { id: 'proofreview', label: 'Error Communication', icon: VachanaIcons.proofreview, desc: 'Identify and explain algebraic step errors' },
+    { id: 'simplify', label: 'Concept Simplification', icon: VachanaIcons.simplify, desc: 'Explain complex math definitions simply to beginners' }
   ];
 
   // --- 1. Vocab Explorer Data & State ---
@@ -50170,6 +50193,61 @@ function VachanaApp({ onBack }) {
     }
   };
 
+  // --- 19. Visual-to-Narrative State ---
+  const [graphstorySelected, setGraphstorySelected] = useState(null);
+  const [graphstoryMsg, setGraphstoryMsg] = useState('');
+  const graphstoryOptions = [
+    { text: 'A car accelerates rapidly for 2 minutes to 60 km/h, travels at that constant speed for 3 minutes, and then stops instantly.', correct: true },
+    { text: 'A car drives at a constant speed of 60 km/h for 5 minutes, then stops.', correct: false },
+    { text: 'A car accelerates for 5 minutes to 60 km/h, then slowly decelerates.', correct: false }
+  ];
+
+  const checkGraphstory = (opt) => {
+    setGraphstorySelected(opt.text);
+    if (opt.correct) {
+      setGraphstoryMsg('✅ Correct! (0,0) to (2, 60) represents rapid acceleration to 60 km/h over 2 units of time. (2, 60) to (5, 60) represents traveling at a constant speed of 60 for 3 units of time. (5, 60) to (5, 0) is a vertical drop representing an instantaneous stop.');
+    } else {
+      setGraphstoryMsg('❌ Incorrect narrative. Pay attention to the slopes of each line segment (steep climb, flat plateau, vertical drop) and their corresponding time durations.');
+    }
+  };
+
+  // --- 20. Error Communication State ---
+  const [proofreviewAnswer, setProofreviewAnswer] = useState(null);
+  const [proofreviewMsg, setProofreviewMsg] = useState('');
+  const proofreviewSteps = [
+    { label: 'Step 1: 2x + 5 = 15', correct: false },
+    { label: 'Step 2: 2x = 15 + 5', correct: true, feedback: 'In Step 2, moving +5 to the other side of the equation should have inverted the sign to minus: 2x = 15 − 5.' },
+    { label: 'Step 3: 2x = 20', correct: false },
+    { label: 'Step 4: x = 10', correct: false }
+  ];
+
+  const checkProofreview = (step) => {
+    setProofreviewAnswer(step.label);
+    if (step.correct) {
+      setProofreviewMsg(`✅ Correct! ${step.feedback}`);
+    } else {
+      setProofreviewMsg('❌ Incorrect step. This step is mathematically valid based on the previous step. Keep looking for where the logic went wrong!');
+    }
+  };
+
+  // --- 21. Concept Simplification State ---
+  const [simplifySelected, setSimplifySelected] = useState(null);
+  const [simplifyMsg, setSimplifyMsg] = useState('');
+  const simplifyOptions = [
+    { text: 'By division pattern: x³ / x³ = x^(3-3) = x⁰. Since any number divided by itself is 1, x⁰ must equal 1.', correct: true },
+    { text: 'By axiomatic definition: it is defined as a boundary rule in mathematics so that operations do not divide by zero.', correct: false },
+    { text: 'By multiplication pattern: x multiplied by itself 0 times means you do not multiply anything, leaving 0.', correct: false }
+  ];
+
+  const checkSimplify = (opt) => {
+    setSimplifySelected(opt.text);
+    if (opt.correct) {
+      setSimplifyMsg('✅ Correct! Showing that x³ / x³ is both equal to x⁰ (by subtraction of exponents rule) and equal to 1 (any number divided by itself) is the most intuitive way to explain why x⁰ = 1.');
+    } else {
+      setSimplifyMsg('❌ That explanation is either confusing, incorrect, or lacks pattern-based intuition for a beginner.');
+    }
+  };
+
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: '1rem', color: 'var(--clr-text)' }}>
       {/* Vachana Header */}
@@ -50214,6 +50292,12 @@ function VachanaApp({ onBack }) {
                 setRewriteMsg('');
                 setStorymatchSelected(null);
                 setStorymatchMsg('');
+                setGraphstorySelected(null);
+                setGraphstoryMsg('');
+                setProofreviewAnswer(null);
+                setProofreviewMsg('');
+                setSimplifySelected(null);
+                setSimplifyMsg('');
               }}
               style={{
                 display: 'flex',
@@ -51071,6 +51155,132 @@ function VachanaApp({ onBack }) {
                   border: storymatchMsg.startsWith('✅') ? '1px solid var(--clr-correct, #2ea043)' : '1px solid red'
                 }}>
                   {storymatchMsg}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 19. VISUAL-TO-NARRATIVE */}
+          {activeTab === 'graphstory' && (
+            <div>
+              <div style={{ background: 'var(--clr-surface)', padding: '16px', borderRadius: '12px', border: '1px solid var(--clr-border)', marginBottom: '16px' }}>
+                <p style={{ margin: '0 0 10px 0', fontSize: '0.98rem', fontStyle: 'italic', lineHeight: '1.5' }}>
+                  A speed-time coordinate graph starts at (0,0), rises linearly to (2, 60), stays completely flat until (5, 60), and then instantly drops vertically back down to (5, 0).
+                </p>
+                <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--clr-text-soft)' }}>
+                  Which real-world physical scenario accurately matches the visual representation?
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                {graphstoryOptions.map((opt, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => checkGraphstory(opt)}
+                    className="submit-btn"
+                    style={{
+                      textAlign: 'left',
+                      padding: '12px 16px',
+                      background: graphstorySelected === opt.text ? 'var(--clr-accent)' : 'transparent',
+                      border: '1px solid var(--clr-accent)',
+                      color: graphstorySelected === opt.text ? '#fff' : 'var(--clr-accent)'
+                    }}
+                  >
+                    {opt.text}
+                  </button>
+                ))}
+              </div>
+
+              {graphstoryMsg && (
+                <div style={{
+                  fontSize: '0.95rem', padding: '12px', borderRadius: '10px',
+                  background: graphstoryMsg.startsWith('✅') ? 'rgba(46,160,67,0.1)' : 'rgba(255,0,0,0.08)',
+                  border: graphstoryMsg.startsWith('✅') ? '1px solid var(--clr-correct, #2ea043)' : '1px solid red'
+                }}>
+                  {graphstoryMsg}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 20. ERROR COMMUNICATION */}
+          {activeTab === 'proofreview' && (
+            <div>
+              <div style={{ background: 'var(--clr-surface)', padding: '16px', borderRadius: '12px', border: '1px solid var(--clr-border)', marginBottom: '16px' }}>
+                <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: '1.5' }}>
+                  Analyze the step-by-step algebraic derivation below:
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                {proofreviewSteps.map((step, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => checkProofreview(step)}
+                    className="submit-btn"
+                    style={{
+                      textAlign: 'left',
+                      padding: '12px 16px',
+                      background: proofreviewAnswer === step.label ? 'var(--clr-accent)' : 'transparent',
+                      border: '1px solid var(--clr-accent)',
+                      color: proofreviewAnswer === step.label ? '#fff' : 'var(--clr-accent)'
+                    }}
+                  >
+                    {step.label}
+                  </button>
+                ))}
+              </div>
+
+              {proofreviewMsg && (
+                <div style={{
+                  fontSize: '0.95rem', padding: '12px', borderRadius: '10px',
+                  background: proofreviewMsg.startsWith('✅') ? 'rgba(46,160,67,0.1)' : 'rgba(255,0,0,0.08)',
+                  border: proofreviewMsg.startsWith('✅') ? '1px solid var(--clr-correct, #2ea043)' : '1px solid red'
+                }}>
+                  {proofreviewMsg}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 21. CONCEPT SIMPLIFICATION */}
+          {activeTab === 'simplify' && (
+            <div>
+              <div style={{ background: 'var(--clr-surface)', padding: '16px', borderRadius: '12px', border: '1px solid var(--clr-border)', marginBottom: '16px' }}>
+                <p style={{ margin: '0 0 10px 0', fontSize: '0.98rem', fontWeight: 600 }}>
+                  Concept Challenge: How would you explain to a beginner why any non-zero number to the power of 0 is 1? (e.g., x⁰ = 1)
+                </p>
+                <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--clr-text-soft)' }}>
+                  Select the most intuitive explanation:
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                {simplifyOptions.map((opt, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => checkSimplify(opt)}
+                    className="submit-btn"
+                    style={{
+                      textAlign: 'left',
+                      padding: '12px 16px',
+                      background: simplifySelected === opt.text ? 'var(--clr-accent)' : 'transparent',
+                      border: '1px solid var(--clr-accent)',
+                      color: simplifySelected === opt.text ? '#fff' : 'var(--clr-accent)'
+                    }}
+                  >
+                    {opt.text}
+                  </button>
+                ))}
+              </div>
+
+              {simplifyMsg && (
+                <div style={{
+                  fontSize: '0.95rem', padding: '12px', borderRadius: '10px',
+                  background: simplifyMsg.startsWith('✅') ? 'rgba(46,160,67,0.1)' : 'rgba(255,0,0,0.08)',
+                  border: simplifyMsg.startsWith('✅') ? '1px solid var(--clr-correct, #2ea043)' : '1px solid red'
+                }}>
+                  {simplifyMsg}
                 </div>
               )}
             </div>

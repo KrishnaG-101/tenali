@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 2026-07-10
+
+### Added
+- **3 New General Math Literacy Exercises**:
+  1. *Visual-to-Narrative*: Translate visual speed-time coordinate graphs into physical stories.
+  2. *Error Communication*: Review algebraic steps, identify errors, and explain them.
+  3. *Concept Simplification*: Simplify mathematical definitions (e.g. why $x^0 = 1$) for beginners.
+
 ## [0.1.1] - 2026-07-10
 
 ### Added
