@@ -86,6 +86,7 @@ export default function InteractiveLcmHcfApp({ onBack }) {
   // --- Confidence State ---
   const [confidence, setConfidence] = useState(null); // 'very', 'mod', 'not'
 
+
   // --- Quiz State ---
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [quizIndex, setQuizIndex] = useState(0);
@@ -300,6 +301,7 @@ export default function InteractiveLcmHcfApp({ onBack }) {
       setActivityPopup(null);
       setActivityState({});
       setUnlockedCollectibles({}); // RESET COLLECTIBLES!
+      setConfidence(null);
     }
   }, [level]);
 
@@ -2250,7 +2252,9 @@ export default function InteractiveLcmHcfApp({ onBack }) {
 
       return (
         <div className="quiz-results-summary">
-          <h2 style={{ fontFamily: 'var(--font-display)', marginBottom: '16px' }}>Quiz Completed!</h2>
+          <h2 style={{ fontFamily: 'var(--font-display)', marginBottom: '16px' }}>
+            {confidence === 'very' ? 'Final Results & Summary' : 'Quiz Completed!'}
+          </h2>
           
           <div className="quiz-score-circle">
             <span className="score-num">{quizScore}</span>
@@ -2258,7 +2262,10 @@ export default function InteractiveLcmHcfApp({ onBack }) {
           </div>
 
           <p style={{ color: 'var(--clr-text-soft)', marginBottom: '20px' }}>
-            {quizScore === 5 ? '🏆 Perfect score! Fantastic job!' : quizScore >= 3 ? '🎉 Good job! You understand HCF & LCM well!' : '📚 Review the concepts once more and try again!'}
+            {confidence === 'very'
+              ? (quizScore === 5 ? '🏆 Perfect final score! You are an HCF & LCM master!' : '🎉 Final quiz completed! Great job completing the full path!')
+              : `📚 Completed the ${confidence === 'not' ? 'Less' : 'Moderately'} Confident quiz. Let's move on to the next level!`
+            }
           </p>
 
           <div className="results-list">
@@ -2303,23 +2310,23 @@ export default function InteractiveLcmHcfApp({ onBack }) {
           )}
 
           <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-            {quizScore === 5 && confidence === 'not' ? (
+            {confidence === 'not' ? (
               <>
-                <button className="btn-back" onClick={() => setCurrentStep(11)}>Skip to Rewards ➡</button>
+                <button className="btn-back" onClick={() => startQuiz('not')}>Retry Quiz</button>
                 <button className="btn-next" onClick={() => { setConfidence('mod'); startQuiz('mod'); }}>
-                  Take Moderately Confident Quiz ➡
+                  Continue to Moderately Confident Quiz ➡
                 </button>
               </>
-            ) : quizScore === 5 && confidence === 'mod' ? (
+            ) : confidence === 'mod' ? (
               <>
-                <button className="btn-back" onClick={() => setCurrentStep(11)}>Skip to Rewards ➡</button>
+                <button className="btn-back" onClick={() => startQuiz('mod')}>Retry Quiz</button>
                 <button className="btn-next" onClick={() => { setConfidence('very'); startQuiz('very'); }}>
-                  Take Very Confident Quiz ➡
+                  Continue to Highly Confident Quiz ➡
                 </button>
               </>
             ) : (
               <>
-                <button className="btn-back" onClick={() => startQuiz(confidence)}>Retry Quiz</button>
+                <button className="btn-back" onClick={() => startQuiz('very')}>Retry Quiz</button>
                 <button className="btn-next" onClick={() => setCurrentStep(11)}>View Rewards Bank ➡</button>
               </>
             )}
