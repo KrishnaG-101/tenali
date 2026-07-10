@@ -36481,8 +36481,8 @@ function GKApp({ onBack }) {
       {!started && !finished && <div className="welcome-box">
         <p className="welcome-text">Test your general knowledge with random questions!</p>
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -36733,8 +36733,8 @@ function AdditionApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -37567,8 +37567,8 @@ function GymQuiz({ title, subtitle, typeKeys, welcomeText, algebraInput, onBack 
             </label>
           </div>
           <div className="question-count-row">
-            <label className="question-count-label">How many questions?</label>
-            <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
+            <label className="question-count-label">How many questions? (max 100)</label>
+            <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
           </div>
           <p style={{ fontSize: '0.85rem', color: 'var(--clr-dim)', textAlign: 'center', margin: '0 0 8px' }}>
             Questions are sorted easy → hard across the session.
@@ -37866,8 +37866,8 @@ function BasicArithApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -38121,8 +38121,8 @@ function QuadraticApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -38947,8 +38947,8 @@ function VocabApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -39243,8 +39243,8 @@ function makeMCQuizApp({ title, subtitle, apiPath, diffLabels, tip, adaptiveOnly
           )}
           {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
           <div className="question-count-row">
-            <label className="question-count-label">How many questions?</label>
-            <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+            <label className="question-count-label">How many questions? (max 100)</label>
+            <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
           </div>
           <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
         </div>}
@@ -39481,8 +39481,8 @@ function makeQuizApp({ title, subtitle, apiPath, diffLabels, placeholders, tip, 
             Starts easy and smoothly adjusts to your level as you answer.
           </p>}
           <div className="question-count-row">
-            <label className="question-count-label">How many questions?</label>
-            <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+            <label className="question-count-label">How many questions? (max 100)</label>
+            <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
           </div>
           <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
         </div>}
@@ -39877,8 +39877,8 @@ function DotProdApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -41682,8 +41682,8 @@ function SquaringApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -42213,7 +42213,7 @@ function RandomMixApp({ onBack }) {
           You can skip any topic you don't want to see.
         </p>
         <div style={{ marginBottom: '1rem' }}>
-          <label style={{ fontWeight: 600 }}>Number of questions: </label>
+          <label style={{ fontWeight: 600 }}>Number of questions (max 100): </label>
           <input type="number" value={numQInput} onChange={e => setNumQInput(e.target.value)}
             style={{ width: 70, padding: '0.3rem 0.5rem', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)' }}
             min={5} max={100} />
@@ -42504,8 +42504,8 @@ function SetsApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -42657,8 +42657,8 @@ function SequencesApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -42826,8 +42826,8 @@ function RatioApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -42994,8 +42994,8 @@ function PercentApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -43195,8 +43195,8 @@ function IndicesApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -43451,8 +43451,8 @@ function SurdsApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -43773,8 +43773,8 @@ function FractionAddApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -44324,8 +44324,8 @@ function SqrtApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -44550,8 +44550,8 @@ function PolyMulApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -44788,8 +44788,8 @@ function PolyFactorApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -45064,8 +45064,8 @@ function PrimeFactorApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -45299,8 +45299,8 @@ function QFormulaApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -45553,8 +45553,8 @@ function SimulApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -45766,8 +45766,8 @@ function FuncEvalApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -45985,8 +45985,8 @@ function LineEqApp({ onBack }) {
         </div>
         {isAdaptive && <p style={{ fontSize: '0.82rem', color: 'var(--clr-dim)', marginBottom: '8px' }}>Starts easy and smoothly adjusts to your level as you answer.</p>}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -46360,7 +46360,7 @@ function CustomApp({ onBack }) {
    * Transition to 'quiz' phase and load first question
    */
   const startQuiz = async () => {
-    const count = numQuestions !== '' && Number(numQuestions) > 0 ? Number(numQuestions) : 20
+    const count = numQuestions !== '' && Number(numQuestions) > 0 ? Math.min(100, Number(numQuestions)) : 20
     let questionPlan = []
     if (ordering === 'sequential') {
       // Distribute count evenly: if count=10, selected=['a','b','c'], then 4,3,3
@@ -47036,8 +47036,8 @@ function CustomApp({ onBack }) {
         </>}
 
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row">
           <button onClick={startQuiz} disabled={selected.length === 0}>Start Custom Quiz</button>
