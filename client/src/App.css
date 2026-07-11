@@ -4086,7 +4086,7 @@ button:disabled {
 .badge-icon-container {
   border-radius: 50%;
   padding: 4px;
-  background: rgba(255, 255, 255, 0.05);
+  background: #ffffff !important;
   border: 2px solid transparent;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
   transition: all 0.3s ease;
@@ -4095,6 +4095,11 @@ button:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.badge-icon-container.badge-locked {
+  background: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: none !important;
 }
 
 .badge-icon-container img {
@@ -4107,28 +4112,24 @@ button:disabled {
 /* Blue Level: Started topic (at least 1 correct solution) */
 .badge-icon-container.badge-level-blue {
   border-color: #3b82f6;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, rgba(0, 0, 0, 0) 75%);
   box-shadow: 0 0 14px rgba(59, 130, 246, 0.5);
 }
 
 /* Bronze Level: Completed Easy difficulty */
 .badge-icon-container.badge-level-bronze {
   border-color: #cd7f32;
-  background: radial-gradient(circle, rgba(205, 127, 50, 0.25) 0%, rgba(0, 0, 0, 0) 75%);
   box-shadow: 0 0 14px rgba(205, 127, 50, 0.5);
 }
 
 /* Silver Level: Completed Medium difficulty */
 .badge-icon-container.badge-level-silver {
   border-color: #c0c0c0;
-  background: radial-gradient(circle, rgba(192, 192, 192, 0.25) 0%, rgba(0, 0, 0, 0) 75%);
   box-shadow: 0 0 14px rgba(192, 192, 192, 0.5);
 }
 
 /* Gold Level: Completed Hard difficulty or Album Completion */
 .badge-icon-container.badge-level-gold {
   border-color: #ffd700;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, rgba(0, 0, 0, 0) 75%);
   box-shadow: 0 0 18px rgba(255, 215, 0, 0.7);
 }
 

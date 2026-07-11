@@ -41778,7 +41778,9 @@ function BadgeIcon({ type, size = 64, locked = false, level = '' }) {
   };
 
   const mappedType = badgeMap[type] || type;
-  const imagePath = `/badges/${mappedType}.png`;
+  const imagePath = mappedType === 'topic'
+    ? `/badges/topic_${(level && level !== 'locked') ? level : 'blue'}.png`
+    : `/badges/${mappedType}.png`;
   const levelClass = level ? `badge-level-${level}` : '';
 
   return (
@@ -42392,7 +42394,7 @@ function ProfileShowcase({ onSelectTopic }) {
                             type={item.badgeType}
                             size={48}
                             level={itemLevel}
-                            className={item.locked ? 'badge-locked-gray' : ''}
+                            locked={item.locked}
                           />
                           {item.locked && <div className="locked-badge-padlock">🔒</div>}
                         </div>
@@ -42423,7 +42425,7 @@ function ProfileShowcase({ onSelectTopic }) {
                               ? getTopicBadgeLevel(selectedBadge.badgeId, completedTopics)
                               : ''
                         }
-                        className={selectedBadge.locked ? 'badge-locked-gray' : ''}
+                        locked={selectedBadge.locked}
                       />
                       {selectedBadge.locked && <div className="locked-badge-padlock">🔒</div>}
                     </div>
@@ -42441,18 +42443,9 @@ function ProfileShowcase({ onSelectTopic }) {
                           <strong>How to Unlock</strong>
                           {selectedBadge.requirement}
                         </div>
-                        {selectedBadge.type === 'topic' ? (
-                          <button
-                            className="preview-action-btn btn-practice"
-                            onClick={() => handleGoPractice(selectedBadge.badgeId)}
-                          >
-                            Go Practice
-                          </button>
-                        ) : (
-                          <button className="preview-action-btn btn-keep-practicing" disabled>
-                            Keep Practicing!
-                          </button>
-                        )}
+                        <button className="preview-action-btn btn-keep-practicing" disabled>
+                          Keep Practicing!
+                        </button>
                       </>
                     ) : (
                       <>
