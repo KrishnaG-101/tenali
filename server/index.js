@@ -9161,8 +9161,20 @@ app.get('/api/collections/progress', async (req, res) => {
           completed: isStage3CompletedServer(topicKey, completedTopics)
         };
       });
-      const completedCount = topicsProgress.filter(t => t.completed).length;
-      const percentage = Math.round((completedCount / col.topics.length) * 100);
+      
+      let totalWeight = 0;
+      col.topics.forEach(topicKey => {
+        const level = getTopicBadgeLevelServer(topicKey, completedTopics);
+        if (level === 'gold') totalWeight += 1.0;
+        else if (level === 'silver') totalWeight += 0.6;
+        else if (level === 'bronze') totalWeight += 0.3;
+        else if (level === 'blue') totalWeight += 0.1;
+      });
+
+      const rawCompletedCount = Math.round(totalWeight * 10) / 10;
+      const completedCount = Number(rawCompletedCount.toFixed(1));
+      const percentage = Math.min(100, Math.round((totalWeight / col.topics.length) * 100));
+      
       const completedLog = user.achievements && user.achievements.completedCollections
         ? user.achievements.completedCollections.find(c => c.collectionId === col.collectionId)
         : null;
@@ -9176,7 +9188,7 @@ app.get('/api/collections/progress', async (req, res) => {
         totalTopics: col.topics.length,
         completedCount,
         percentage,
-        completed: completedCount === col.topics.length,
+        completed: rawCompletedCount === col.topics.length,
         topics: topicsProgress,
         nextTopic: nextIncomplete ? nextIncomplete.topicKey : null,
         coinReward: col.coinReward,

@@ -42102,14 +42102,13 @@ function AchievementCollections({ completedTopics = [], onSelectTopic }) {
 function ProfileShowcase({ onSelectTopic }) {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [pinModalOpen, setPinModalOpen] = useState(false)
-  const [activeSlot, setActiveSlot] = useState(null)
   const [inventory, setInventory] = useState([])
-  const [selectedTab, setSelectedTab] = useState('all')
-  const [selectedBadge, setSelectedBadge] = useState(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [sortBy, setSortBy] = useState('status-unlocked')
-  const [mobileView, setMobileView] = useState('grid')
+  const [selectedSection, setSelectedSection] = useState('bookshelf')
+  const [activeBadgeDetail, setActiveBadgeDetail] = useState(null)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [sectionExpanded, setSectionExpanded] = useState(false)
+  
+  const dropdownRef = useRef(null)
 
   const completedTopics = useMemo(() => {
     try {
@@ -42119,48 +42118,42 @@ function ProfileShowcase({ onSelectTopic }) {
     }
   }, [])
 
+  // Close dropdown on click outside
   useEffect(() => {
-    if (pinModalOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [pinModalOpen]);
-
-  const fetchProfile = async () => {
-    const token = localStorage.getItem('tenali-auth-token')
-    if (!token) return
-    try {
-      const r = await fetch(`${API}/api/profile/showcase`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      if (r.ok) {
-        const res = await r.json()
-        setProfile(res)
+    if (!dropdownOpen) return
+    const handleOutsideClick = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false)
       }
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setLoading(false)
     }
-  }
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => document.removeEventListener('mousedown', handleOutsideClick)
+  }, [dropdownOpen])
 
-  const fetchInventory = async () => {
+  const fetchProfileAndBadges = async () => {
     const token = localStorage.getItem('tenali-auth-token')
     if (!token) return
     try {
-      const r = await fetch(`${API}/api/collections/progress`, {
+      // 1. Fetch Profile Info
+      const profileRes = await fetch(`${API}/api/profile/showcase`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
-      if (r.ok) {
-        const res = await r.json()
+      let profileData = null
+      if (profileRes.ok) {
+        profileData = await profileRes.json()
+        setProfile(profileData)
+      }
+
+      // 2. Fetch Collections Progress to build the full badge inventory
+      const progressRes = await fetch(`${API}/api/collections/progress`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (progressRes.ok) {
+        const progressData = await progressRes.json()
         const allBadges = []
 
-        // 1. Collections Badges
-        res.collections.forEach(col => {
+        // A. Album Badges
+        progressData.collections.forEach(col => {
           allBadges.push({
             badgeId: col.collectionId,
             name: col.name,
@@ -42172,14 +42165,13 @@ function ProfileShowcase({ onSelectTopic }) {
           })
         })
 
-        // 2. Topics Badges (ensure unique keys across collections)
-        const completed = JSON.parse(localStorage.getItem('tenali-completed-topics') || '[]')
+        // B. Topic Badges
         const addedTopics = new Set()
-        res.collections.forEach(col => {
+        progressData.collections.forEach(col => {
           col.topics.forEach(topic => {
             if (!addedTopics.has(topic.topicKey)) {
               addedTopics.add(topic.topicKey)
-              const level = getTopicBadgeLevel(topic.topicKey, completed)
+              const level = getTopicBadgeLevel(topic.topicKey, completedTopics)
               const topicName = topic.topicKey.charAt(0).toUpperCase() + topic.topicKey.slice(1)
               allBadges.push({
                 badgeId: topic.topicKey,
@@ -42194,8 +42186,8 @@ function ProfileShowcase({ onSelectTopic }) {
           })
         })
 
-        // 3. Streak Milestones
-        const userStreak = profile ? profile.streak : 0
+        // C. Streak Badges
+        const userStreak = profileData ? profileData.streak : 0
         const streaksConfig = [
           { days: 3, id: 'streak_3', name: '3-Day Streak' },
           { days: 7, id: 'streak_7', name: '7-Day Streak' },
@@ -42216,157 +42208,30 @@ function ProfileShowcase({ onSelectTopic }) {
         setInventory(allBadges)
       }
     } catch (e) {
-      console.error('Failed to load badges inventory:', e)
+      console.error('Failed to load profile details & badges:', e)
+    } finally {
+      setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchProfile()
+    fetchProfileAndBadges()
   }, [])
-
-  useEffect(() => {
-    if (pinModalOpen) {
-      document.body.classList.add('modal-open-scroll-lock');
-    } else {
-      document.body.classList.remove('modal-open-scroll-lock');
-    }
-    return () => {
-      document.body.classList.remove('modal-open-scroll-lock');
-    };
-  }, [pinModalOpen]);
-
-  const handleOpenPinModal = (slotIndex) => {
-    setActiveSlot(slotIndex)
-    setSelectedBadge(null)
-    setSelectedTab('all')
-    fetchInventory().then(() => setPinModalOpen(true))
-  }
-
-  const handlePinBadge = async (badgeId) => {
-    const token = localStorage.getItem('tenali-auth-token')
-    if (!token) return
-    try {
-      const r = await fetch(`${API}/api/profile/pin`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          badgeId,
-          slotIndex: activeSlot
-        })
-      })
-      if (r.ok) {
-        setPinModalOpen(false)
-        fetchProfile()
-      }
-    } catch (e) {
-      console.error(e)
-    }
-  }
-
-  const handleGoPractice = (topicKey) => {
-    setPinModalOpen(false)
-    if (onSelectTopic) {
-      onSelectTopic(topicKey)
-    }
-  }
-
-  const filteredInventory = useMemo(() => {
-    let result = [...inventory];
-
-    // Filter by tab
-    if (selectedTab !== 'all') {
-      result = result.filter(item => item.type === selectedTab);
-    }
-
-    // Filter by search query
-    if (searchQuery.trim() !== '') {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(item =>
-        (item.name && item.name.toLowerCase().includes(q)) ||
-        (item.description && item.description.toLowerCase().includes(q)) ||
-        (item.requirement && item.requirement.toLowerCase().includes(q))
-      );
-    }
-
-    // Sort by selection
-    result.sort((a, b) => {
-      if (sortBy === 'status-unlocked') {
-        if (a.locked !== b.locked) {
-          return a.locked ? 1 : -1;
-        }
-      } else if (sortBy === 'status-locked') {
-        if (a.locked !== b.locked) {
-          return a.locked ? -1 : 1;
-        }
-      } else if (sortBy === 'name-asc') {
-        return (a.name || '').localeCompare(b.name || '');
-      } else if (sortBy === 'name-desc') {
-        return (b.name || '').localeCompare(a.name || '');
-      } else if (sortBy === 'type') {
-        const typeOrder = { 'topic': 1, 'collection': 2, 'streak': 3 };
-        const orderA = typeOrder[a.type] || 99;
-        const orderB = typeOrder[b.type] || 99;
-        if (orderA !== orderB) {
-          return orderA - orderB;
-        }
-      }
-      return (a.name || '').localeCompare(b.name || '');
-    });
-
-    return result;
-  }, [inventory, selectedTab, searchQuery, sortBy]);
 
   if (loading) {
     return <div className="loading-screen">Opening Profile Showcase...</div>
   }
 
-  const pins = profile ? profile.pinnedBadges : [null, null, null];
-  while (pins.length < 3) pins.push(null);
+  const unlockedBadges = inventory.filter(b => !b.locked)
+  const lockedTopics = inventory.filter(b => b.type === 'topic' && (b.locked || getTopicBadgeLevel(b.badgeId, completedTopics) !== 'gold'))
+  const lockedStreaks = inventory.filter(b => b.type === 'streak' && b.locked)
 
   return (
     <div className="profile-container">
       <h2 className="profile-title">{profile ? profile.username.toUpperCase() : 'STUDENT'}'S CORNER</h2>
 
-      <div className="pinned-showcase-section">
-        <h3>Featured Pinned Badges</h3>
-        <div className="pinned-slots-grid">
-          {pins.map((badge, idx) => {
-            return (
-              <div key={idx} className="pin-slot-card">
-                {badge ? (
-                  <div className="pin-badge-display">
-                    <BadgeIcon
-                      type={badge.badgeType}
-                      size={110}
-                      level={
-                        badge.type === 'collection'
-                          ? 'gold'
-                          : badge.type === 'topic'
-                            ? getTopicBadgeLevel(badge.badgeId, completedTopics)
-                            : ''
-                      }
-                    />
-                    <span className="pinned-badge-name">{badge.name}</span>
-                    <button className="unpin-btn" onClick={() => handlePinBadge("")} title="Unpin Badge">✕</button>
-                  </div>
-                ) : (
-                  <div className="pin-empty-display" onClick={() => handleOpenPinModal(idx)}>
-                    <div className="plus-symbol">+</div>
-                    <span>Featured Slot {idx + 1}</span>
-                    <button className="pin-action-btn">Pin Badge</button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Gamified Stats Section */}
-      <div className="gamified-stats-section">
+      <div className="gamified-stats-section" style={{ marginBottom: '32px' }}>
         {/* Streak Pod */}
         <div className="dashboard-stat-pod streak-pod">
           <div className="fire-flame-wrapper">🔥</div>
@@ -42389,7 +42254,178 @@ function ProfileShowcase({ onSelectTopic }) {
         </div>
       </div>
 
-      <div className="profile-timeline-section">
+      {/* My Badges Cabinet Section */}
+      <div className="my-badges-section">
+        <h3>My Badges Showcase</h3>
+        {unlockedBadges.length === 0 ? (
+          <div className="empty-badges-card">
+            <span style={{ fontSize: '2.5rem' }}>🏆</span>
+            <p>You haven't unlocked any badges yet. Start solving quizzes to earn your first badge!</p>
+          </div>
+        ) : (
+          <div className="unlocked-badges-grid">
+            {unlockedBadges.map(badge => {
+              const itemLevel = badge.type === 'collection'
+                ? 'gold'
+                : badge.type === 'topic'
+                  ? getTopicBadgeLevel(badge.badgeId, completedTopics)
+                  : '';
+              return (
+                <div
+                  key={badge.badgeId}
+                  className={`unlocked-badge-card level-${itemLevel}`}
+                  title={`${badge.name}: ${badge.description}`}
+                  onClick={() => setActiveBadgeDetail({ ...badge, level: itemLevel, isLocked: false })}
+                >
+                  <div className="unlocked-badge-aura" />
+                  <BadgeIcon
+                    type={badge.badgeType}
+                    size={64}
+                    level={itemLevel}
+                  />
+                  <span className="unlocked-badge-name">{badge.name}</span>
+                  <span className="unlocked-badge-type-tag">{badge.type}</span>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Badges Yet to Receive Collapsible Section */}
+      <div className="yet-to-receive-section" style={{ marginTop: '32px' }}>
+        <button 
+          className={`collapsible-header-btn ${!sectionExpanded ? 'collapsed' : ''}`}
+          onClick={() => setSectionExpanded(!sectionExpanded)}
+          type="button"
+        >
+          <span style={{ fontSize: '1.3rem', fontWeight: 800, fontFamily: 'var(--font-display)' }}>Badges Yet to Receive</span>
+          <span className="collapsible-chevron" style={{ transform: sectionExpanded ? 'rotate(180deg)' : 'rotate(0deg)', display: 'inline-block' }}>▼</span>
+        </button>
+
+        {sectionExpanded && (
+          <div className="collapsible-content-wrapper" style={{ marginTop: '20px' }}>
+            {/* Custom Interactive Dropdown Menu */}
+            <div className="yet-to-receive-dropdown-container" ref={dropdownRef}>
+              <button 
+                className={`yet-to-receive-trigger ${dropdownOpen ? 'open' : ''}`}
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                type="button"
+              >
+                <div className="trigger-content">
+                  <div className="trigger-text-wrapper">
+                    <span className="trigger-lbl">Show Category</span>
+                    <span className="trigger-val">
+                      {selectedSection === 'bookshelf' && '📚 Collector Bookshelf'}
+                      {selectedSection === 'mastery' && '👑 Topic Mastery'}
+                      {selectedSection === 'streaks' && '🔥 Daily Check-in'}
+                    </span>
+                  </div>
+                </div>
+                <span className="trigger-chevron">{dropdownOpen ? '▲' : '▼'}</span>
+              </button>
+
+              {dropdownOpen && (
+                <div className="yet-to-receive-dropdown-menu">
+                  <button 
+                    className={`menu-item ${selectedSection === 'bookshelf' ? 'active' : ''}`}
+                    onClick={() => { setSelectedSection('bookshelf'); setDropdownOpen(false); }}
+                    type="button"
+                  >
+                    <span className="item-icon">📚</span>
+                    <div className="item-text">
+                      <strong>Collector Bookshelf</strong>
+                      <span>Progress through albums and unlock custom visual books</span>
+                    </div>
+                  </button>
+                  <button 
+                    className={`menu-item ${selectedSection === 'mastery' ? 'active' : ''}`}
+                    onClick={() => { setSelectedSection('mastery'); setDropdownOpen(false); }}
+                    type="button"
+                  >
+                    <span className="item-icon">👑</span>
+                    <div className="item-text">
+                      <strong>Topic Mastery</strong>
+                      <span>Master math topics to upgrade your badges from blue to gold</span>
+                    </div>
+                  </button>
+                  <button 
+                    className={`menu-item ${selectedSection === 'streaks' ? 'active' : ''}`}
+                    onClick={() => { setSelectedSection('streaks'); setDropdownOpen(false); }}
+                    type="button"
+                  >
+                    <span className="item-icon">🔥</span>
+                    <div className="item-text">
+                      <strong>Daily Check-in</strong>
+                      <span>Solve quizzes consecutively to earn streak milestones</span>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Display Active Shelf Section */}
+            {selectedSection === 'bookshelf' ? (
+              <AchievementCollections completedTopics={completedTopics} onSelectTopic={onSelectTopic} />
+            ) : (
+              <div className="unlocked-badges-grid">
+                {selectedSection === 'mastery' && (
+                  <>
+                    {lockedTopics.length === 0 ? (
+                      <div className="empty-section-card" style={{ gridColumn: '1 / -1', width: '100%', textAlign: 'center', padding: '32px' }}>
+                        🎉 Awesome! You have unlocked Gold Mastery on all topics!
+                      </div>
+                    ) : (
+                      lockedTopics.map(item => {
+                        const itemLevel = getTopicBadgeLevel(item.badgeId, completedTopics);
+                        return (
+                          <div 
+                            key={item.badgeId} 
+                            className={`unlocked-badge-card locked-badge-card level-${itemLevel}`}
+                            title={`${item.name}: ${item.requirement}`}
+                            onClick={() => setActiveBadgeDetail({ ...item, level: itemLevel, isLocked: true })}
+                          >
+                            <div className="badge-lock-overlay-icon">🔒</div>
+                            <BadgeIcon type={item.badgeType} size={64} level={itemLevel} locked={true} />
+                            <span className="unlocked-badge-name">{item.name}</span>
+                            <span className="unlocked-badge-type-tag">{item.type}</span>
+                          </div>
+                        );
+                      })
+                    )}
+                  </>
+                )}
+
+                {selectedSection === 'streaks' && (
+                  <>
+                    {lockedStreaks.length === 0 ? (
+                      <div className="empty-section-card" style={{ gridColumn: '1 / -1', width: '100%', textAlign: 'center', padding: '32px' }}>
+                        🎉 Outstanding! You have unlocked all streak milestone badges!
+                      </div>
+                    ) : (
+                      lockedStreaks.map(item => (
+                        <div 
+                          key={item.badgeId} 
+                          className="unlocked-badge-card locked-badge-card"
+                          title={`${item.name}: ${item.requirement}`}
+                          onClick={() => setActiveBadgeDetail({ ...item, level: '', isLocked: true })}
+                        >
+                          <div className="badge-lock-overlay-icon">🔒</div>
+                          <BadgeIcon type={item.badgeType} size={64} locked={true} />
+                          <span className="unlocked-badge-name">{item.name}</span>
+                          <span className="unlocked-badge-type-tag">{item.type}</span>
+                        </div>
+                      ))
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="profile-timeline-section" style={{ marginTop: '32px' }}>
         <h3>Journey Milestones</h3>
         <div className="timeline-trail">
           {profile && profile.timeline && profile.timeline.map((item, idx) => {
@@ -42413,188 +42449,60 @@ function ProfileShowcase({ onSelectTopic }) {
         </div>
       </div>
 
-      {pinModalOpen && (
-        <div className="modal-overlay" onClick={() => setPinModalOpen(false)}>
-          <div className="modal-content pin-selector-modal" style={{ maxWidth: '800px', width: '90%' }} onClick={e => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setPinModalOpen(false)}>✕</button>
-            <h3 style={{ marginBottom: '4px' }}>Choose a Badge to Feature</h3>
-            <p style={{ color: 'var(--clr-text-soft)', fontSize: '0.85rem', marginBottom: '16px' }}>
-              Select any album badge, topic badge, or streak milestone badge to feature on your showcase.
-            </p>
-
-            {/* Filter Tabs */}
-            <div className="selector-tabs">
-              <button className={`tab-btn ${selectedTab === 'all' ? 'active' : ''}`} onClick={() => setSelectedTab('all')}>All Badges</button>
-              <button className={`tab-btn ${selectedTab === 'collection' ? 'active' : ''}`} onClick={() => setSelectedTab('collection')}>Albums</button>
-              <button className={`tab-btn ${selectedTab === 'topic' ? 'active' : ''}`} onClick={() => setSelectedTab('topic')}>Topics</button>
-              <button className={`tab-btn ${selectedTab === 'streak' ? 'active' : ''}`} onClick={() => setSelectedTab('streak')}>Streaks</button>
+      {/* Interactive Badge Detail Overlay */}
+      {activeBadgeDetail && (
+        <div className="badge-detail-overlay" onClick={() => setActiveBadgeDetail(null)}>
+          <div className="badge-detail-modal" onClick={e => e.stopPropagation()}>
+            <button className="badge-detail-close" onClick={() => setActiveBadgeDetail(null)}>✕</button>
+            
+            <div className="badge-detail-hero">
+              <div className={`badge-detail-aura level-${activeBadgeDetail.level}`} style={{ background: activeBadgeDetail.isLocked ? '#e11d48' : '' }} />
+              <BadgeIcon
+                type={activeBadgeDetail.badgeType}
+                size={110}
+                level={activeBadgeDetail.level}
+                locked={activeBadgeDetail.isLocked}
+              />
+              {activeBadgeDetail.isLocked && (
+                <div style={{ position: 'absolute', fontSize: '2.5rem', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textShadow: '0 4px 8px rgba(0,0,0,0.5)' }}>🔒</div>
+              )}
             </div>
 
-            {/* Search and Sort Row */}
-            <div className="selector-controls-row">
-              <div className="search-input-wrapper">
-                <span className="search-icon">🔍</span>
-                <input
-                  type="text"
-                  className="selector-search-input"
-                  placeholder="Search badges by name, requirements..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                {searchQuery && (
-                  <button className="search-clear-btn" onClick={() => setSearchQuery('')}>✕</button>
+            <h2 className="badge-detail-title">{activeBadgeDetail.name}</h2>
+            <span className="badge-detail-tag" style={{ background: activeBadgeDetail.isLocked ? 'rgba(225, 29, 72, 0.15)' : '', borderColor: activeBadgeDetail.isLocked ? '#e11d48' : '', color: activeBadgeDetail.isLocked ? '#f43f5e' : '' }}>
+              {activeBadgeDetail.isLocked ? 'Locked ' : ''}{activeBadgeDetail.type} Badge
+            </span>
+            
+            <p className="badge-detail-desc">{activeBadgeDetail.description}</p>
+            
+            {activeBadgeDetail.isLocked ? (
+              <div className="badge-detail-requirement">
+                <strong>How to Unlock:</strong>
+                <p style={{ marginBottom: activeBadgeDetail.type === 'topic' ? '14px' : '0' }}>{activeBadgeDetail.requirement}</p>
+                {activeBadgeDetail.type === 'topic' && (
+                  <button 
+                    className="book-next-btn"
+                    style={{ width: '100%', display: 'block' }}
+                    onClick={() => {
+                      setActiveBadgeDetail(null);
+                      onSelectTopic(activeBadgeDetail.badgeId);
+                    }}
+                  >
+                    Go Practice: {activeBadgeDetail.name}
+                  </button>
                 )}
               </div>
-
-              <div className="sort-select-wrapper">
-                <span className="sort-label">Sort:</span>
-                <select
-                  className="selector-sort-select"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                >
-                  <option value="status-unlocked">Unlocked First</option>
-                  <option value="status-locked">Locked First</option>
-                  <option value="name-asc">Alphabetical (A-Z)</option>
-                  <option value="name-desc">Alphabetical (Z-A)</option>
-                  <option value="type">Group by Type</option>
-                </select>
+            ) : (
+              <div className="badge-detail-requirement">
+                <strong>Achievement Requirement:</strong>
+                <p>{activeBadgeDetail.requirement}</p>
               </div>
-            </div>
-
-            {/* Mobile View Toggle */}
-            <div className="selector-mobile-toggle">
-              <button
-                className={`mobile-toggle-btn ${mobileView === 'grid' ? 'active' : ''}`}
-                onClick={() => setMobileView('grid')}
-              >
-                Grid View ({filteredInventory.length})
-              </button>
-              <button
-                className={`mobile-toggle-btn ${mobileView === 'preview' ? 'active' : ''}`}
-                onClick={() => setMobileView('preview')}
-              >
-                Preview Detail {selectedBadge ? `(${selectedBadge.name})` : ''}
-              </button>
-            </div>
-
-            <div className="selector-split-layout">
-              {/* Left Side: Badge Grid */}
-              <div className={`badge-grid-half ${mobileView !== 'grid' ? 'mobile-hidden' : ''}`}>
-                {filteredInventory.length === 0 ? (
-                  <div className="no-badges-found">
-                    <span>🔍</span>
-                    <p>No badges found matching your search.</p>
-                  </div>
-                ) : (
-                  filteredInventory.map(item => {
-                    const isPinned = pins.some(p => p && p.badgeId === item.badgeId);
-                    const isSelected = selectedBadge?.badgeId === item.badgeId;
-                    const itemLevel = item.type === 'collection'
-                      ? 'gold'
-                      : item.type === 'topic'
-                        ? getTopicBadgeLevel(item.badgeId, completedTopics)
-                        : '';
-
-                    return (
-                      <div
-                        key={item.badgeId}
-                        className={`selector-badge-tile ${isSelected ? 'selected' : ''} ${item.locked ? 'tile-locked' : ''} ${isPinned ? 'tile-pinned' : ''}`}
-                        onClick={() => {
-                          setSelectedBadge(item);
-                          setMobileView('preview');
-                        }}
-                      >
-                        {isPinned && <span className="tile-pin-dot">Pinned</span>}
-
-                        <div className={item.locked ? 'locked-badge-overlay-container' : ''}>
-                          <BadgeIcon
-                            type={item.badgeType}
-                            size={48}
-                            level={itemLevel}
-                            locked={item.locked}
-                          />
-                          {item.locked && <div className="locked-badge-padlock">🔒</div>}
-                        </div>
-
-                        <span className="selector-badge-tile-name">{item.name}</span>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-
-              {/* Right Side: Selected Preview */}
-              <div className={`badge-preview-half ${selectedBadge ? 'preview-selected' : ''} ${mobileView !== 'preview' ? 'mobile-hidden' : ''}`}>
-                {selectedBadge ? (
-                  <>
-                    <button className="mobile-back-to-grid-btn" onClick={() => setMobileView('grid')}>
-                      ← Back to Grid
-                    </button>
-
-                    <div className={selectedBadge.locked ? 'locked-badge-overlay-container' : ''} style={{ transform: 'scale(1.2)', marginBottom: '8px' }}>
-                      <BadgeIcon
-                        type={selectedBadge.badgeType}
-                        size={80}
-                        level={
-                          selectedBadge.type === 'collection'
-                            ? 'gold'
-                            : selectedBadge.type === 'topic'
-                              ? getTopicBadgeLevel(selectedBadge.badgeId, completedTopics)
-                              : ''
-                        }
-                        locked={selectedBadge.locked}
-                      />
-                      {selectedBadge.locked && <div className="locked-badge-padlock">🔒</div>}
-                    </div>
-
-                    <span className={`preview-badge-status-pill ${selectedBadge.locked ? 'locked' : 'unlocked'}`}>
-                      {selectedBadge.locked ? 'Locked' : 'Unlocked'}
-                    </span>
-
-                    <h4 className="preview-badge-name">{selectedBadge.name}</h4>
-                    <p className="preview-badge-desc">{selectedBadge.description}</p>
-
-                    {selectedBadge.locked ? (
-                      <>
-                        <div className="preview-requirement-box">
-                          <strong>How to Unlock</strong>
-                          {selectedBadge.requirement}
-                        </div>
-                        <button className="preview-action-btn btn-keep-practicing" disabled>
-                          Keep Practicing!
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        {pins.some(p => p && p.badgeId === selectedBadge.badgeId) ? (
-                          <button className="preview-action-btn" disabled>
-                            Already Featured
-                          </button>
-                        ) : (
-                          <button
-                            className="preview-action-btn btn-pin"
-                            onClick={() => handlePinBadge(selectedBadge.badgeId)}
-                          >
-                            Pin to Showcase
-                          </button>
-                        )}
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <div className="no-select-icon">🏆</div>
-                    <p className="no-select-prompt">Select any badge from the grid to view details and requirements.</p>
-                  </>
-                )}
-              </div>
-            </div>
+            )}
           </div>
         </div>
       )}
     </div>
-  );
+  )
 }
 
 /**
