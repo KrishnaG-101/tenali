@@ -36649,8 +36649,8 @@ const loadQuestion = async (excludeIds) => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -36981,8 +36981,8 @@ const fetchQuestion = async (selectedDifficulty = difficulty) => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -37815,8 +37815,8 @@ function GymQuiz({ title, subtitle, typeKeys, welcomeText, algebraInput, onBack 
             </label>
           </div>
           <div className="question-count-row">
-            <label className="question-count-label">How many questions?</label>
-            <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
+            <label className="question-count-label">How many questions? (max 100)</label>
+            <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
           </div>
           <p style={{ fontSize: '0.85rem', color: 'var(--clr-dim)', textAlign: 'center', margin: '0 0 8px' }}>
             Questions are sorted easy → hard across the session.
@@ -38184,8 +38184,8 @@ const fetchQuestion = async () => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -38506,8 +38506,8 @@ const fetchQuestion = async (selectedDifficulty = difficulty) => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -39431,8 +39431,8 @@ const loadQuestion = async (excludeIds) => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -39795,8 +39795,8 @@ function makeMCQuizApp({ title, subtitle, apiPath, diffLabels, tip, adaptiveOnly
             </>
           )}
           <div className="question-count-row">
-            <label className="question-count-label">How many questions?</label>
-            <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+            <label className="question-count-label">How many questions? (max 100)</label>
+            <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
           </div>
           <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
         </div>}
@@ -40102,8 +40102,8 @@ function makeQuizApp({ title, subtitle, apiPath, diffLabels, placeholders, tip, 
           </>
         )}
           <div className="question-count-row">
-            <label className="question-count-label">How many questions?</label>
-            <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+            <label className="question-count-label">How many questions? (max 100)</label>
+            <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
           </div>
           <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
         </div>}
@@ -40570,8 +40570,8 @@ const loadQuestion = async () => {
           </p>
         )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -42448,8 +42448,8 @@ const loadQuestion = async () => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -43432,8 +43432,8 @@ const loadQuestion = async () => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -43658,8 +43658,8 @@ const loadQuestion = async () => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -43900,8 +43900,8 @@ const loadQuestion = async () => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -44141,8 +44141,8 @@ const loadQuestion = async () => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -44409,8 +44409,8 @@ const loadQuestion = async () => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -44732,8 +44732,8 @@ const loadQuestion = async () => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -45121,8 +45121,8 @@ const loadQuestion = async () => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -45825,8 +45825,8 @@ const fetchQuestion = async (step) => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} placeholder={String(DEFAULT_TOTAL)} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -46121,8 +46121,8 @@ const loadQuestion = async () => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -46433,8 +46433,8 @@ const loadQuestion = async () => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -46776,8 +46776,8 @@ const loadQuestion = async () => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -47085,8 +47085,8 @@ const loadQuestion = async () => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -47423,8 +47423,8 @@ const loadQuestion = async () => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -47710,8 +47710,8 @@ const loadQuestion = async () => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -48003,8 +48003,8 @@ const loadQuestion = async () => {
         </>
       )}
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row"><button onClick={startQuiz}>Start Quiz</button></div>
       </div>}
@@ -49306,8 +49306,8 @@ const startQuiz = async () => {
       )}
 
         <div className="question-count-row">
-          <label className="question-count-label">How many questions?</label>
-          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || /^\d+$/.test(v)) setNumQuestions(v) }} />
+          <label className="question-count-label">How many questions? (max 100)</label>
+          <input className="answer-input question-count-input" type="text" value={numQuestions} onChange={e => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} />
         </div>
         <div className="button-row">
           <button onClick={startQuiz} disabled={selected.length === 0}>Start Custom Quiz</button>
