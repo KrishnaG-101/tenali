@@ -50083,14 +50083,34 @@ function LearningJourneyCheckpointQuizView({ topicId, onBack }) {
           />
         )}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <h2 style={{ color: result.passed ? 'var(--clr-correct, #26de81)' : 'red' }}>
-            {result.passed ? '🎉 Checkpoint Passed!' : '❌ Try Again'}
+          <h2 style={{ color: result.passed ? 'var(--clr-correct, #26de81)' : 'var(--clr-wrong, #eb5e55)' }}>
+            {result.passed ? '🎉 Checkpoint Passed!' : "Oh no, it's okay"}
           </h2>
           <h1 style={{ margin: '8px 0', fontSize: '3rem' }}>{result.scorePercent}%</h1>
           <p className="subtitle">
             Answered {result.correctCount} of {result.totalQuestions} questions correctly.
-            {result.passed ? ' The next topic has been unlocked.' : ' You need 80% (12/15) to pass.'}
           </p>
+          {!result.passed && (
+            <div style={{
+              marginTop: '16px',
+              padding: '12px 20px',
+              borderRadius: '8px',
+              background: 'var(--clr-wrong-light, rgba(235, 94, 85, 0.1))',
+              border: '1px solid var(--clr-wrong, #eb5e55)',
+              color: 'var(--clr-text)',
+              display: 'inline-block',
+              fontSize: '0.95rem',
+              maxWidth: '450px',
+              lineHeight: '1.5'
+            }}>
+              💡 <strong>Revise back old concepts and try again.</strong> You need 80% (12/15) to pass.
+            </div>
+          )}
+          {result.passed && (
+            <p className="subtitle" style={{ color: 'var(--clr-correct, #26de81)', marginTop: '8px' }}>
+              The next topic has been unlocked.
+            </p>
+          )}
         </div>
 
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '32px' }}>
