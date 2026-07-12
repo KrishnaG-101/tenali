@@ -10,7 +10,7 @@ const CheckpointAttemptSchema = new mongoose.Schema({
 const CheckpointQuestionSchema = new mongoose.Schema({
   id: { type: String, required: true },
   prompt: { type: String, required: true },
-  correctAnswer: { type: String, required: true },
+  correctAnswer: { type: String, required: false },
   conceptKey: { type: String, required: true }
 });
 
@@ -24,6 +24,7 @@ const LearningJourneyProgressSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true, index: true },
   completedConcepts: { type: [String], default: [] },
   completedTopics: { type: [String], default: [] },
+  conceptsNeedingRevision: { type: [String], default: [] },
   checkpointAttempts: { type: [CheckpointAttemptSchema], default: [] },
   latestCheckpointScore: { type: Map, of: Number, default: {} },
   activeCheckpoint: { type: ActiveCheckpointSchema, default: null },

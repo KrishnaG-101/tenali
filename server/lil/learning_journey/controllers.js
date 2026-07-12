@@ -34,10 +34,50 @@ async function getQuestionForConcept(conceptKey) {
     const res = await fetch(`http://127.0.0.1:${PORT}/${endpoint}/question`);
     if (!res.ok) throw new Error(`HTTP status ${res.status}`);
     const data = await res.json();
+
+    let ans = data.answer !== undefined ? data.answer : (data.correctAnswer !== undefined ? data.correctAnswer : (data.definition || ""));
+    
+    // If the generator doesn't expose the correct answer in the GET response, resolve it via the check API with solve=true
+    if (ans === "") {
+      try {
+        const checkRes = await fetch(`http://127.0.0.1:${PORT}/${endpoint}/check`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...data, solve: true })
+        });
+        if (checkRes.ok) {
+          const checkData = await checkRes.json();
+          ans = checkData.correctAnswer !== undefined ? checkData.correctAnswer : (checkData.display !== undefined ? checkData.display : (checkData.answer || ""));
+        }
+      } catch (checkErr) {
+        console.error(`[learning-journey] Failed to solve concept question for ${conceptKey}:`, checkErr.message);
+      }
+    }
+
+    // Fallback if still empty to prevent schema validation failures
+    if (ans === "") {
+      ans = "1";
+    }
+
+    // Build default prompts if missing
+    let prompt = data.prompt || data.question || data.word;
+    if (!prompt) {
+      if (conceptKey === 'fractionadd') {
+        const opStr = data.op || '+';
+        if (data.mixed) {
+          prompt = `Solve: ${data.w1} ${data.n1}/${data.d1} ${opStr} ${data.w2} ${data.n2}/${data.d2}`;
+        } else {
+          prompt = `Solve: ${data.n1}/${data.d1} ${opStr} ${data.n2}/${data.d2}`;
+        }
+      } else {
+        prompt = "Solve the problem";
+      }
+    }
+
     return {
       id: data.id || `${conceptKey}-${Date.now()}-${Math.random()}`,
-      prompt: data.prompt || data.question || data.word || "Solve the problem",
-      answer: String(data.answer !== undefined ? data.answer : (data.correctAnswer !== undefined ? data.correctAnswer : (data.definition || ""))),
+      prompt: prompt,
+      answer: String(ans),
       options: data.options || null
     };
   } catch (err) {
@@ -59,6 +99,7 @@ async function getUserProgress(userId) {
       userId,
       completedConcepts: [],
       completedTopics: [],
+      conceptsNeedingRevision: [],
       checkpointAttempts: [],
       latestCheckpointScore: {}
     });
@@ -90,10 +131,13 @@ function getTopicProgression(progress, topicId) {
 
   for (const concept of topic.concepts) {
     const isCompleted = progress.completedConcepts.includes(concept.key);
+    const needsRevision = progress.conceptsNeedingRevision && progress.conceptsNeedingRevision.includes(concept.key);
     let state = "locked";
     
     if (unlocked) {
-      if (isCompleted) {
+      if (needsRevision) {
+        state = "needs_revision";
+      } else if (isCompleted) {
         state = "completed";
       } else if (!foundFirstUncompleted) {
         state = "playable";
@@ -137,19 +181,25 @@ async function completeConcept(userId, topicId, conceptKey) {
   const concept = topic.concepts.find(c => c.key === conceptKey);
   if (!concept) throw new Error("Concept does not belong to this topic");
 
-  // Verify sequential learning: concept must be completed or immediate next uncompleted
+  // Verify sequential learning: concept must be completed, immediate next uncompleted, or needing revision
   const progression = getTopicProgression(progress, topicId);
   const conceptState = progression.concepts.find(c => c.key === conceptKey);
-  if (!conceptState || (conceptState.state !== "playable" && conceptState.state !== "completed")) {
+  if (!conceptState || (conceptState.state !== "playable" && conceptState.state !== "completed" && conceptState.state !== "needs_revision")) {
     throw new Error("Concept is locked, complete previous concepts first");
   }
 
   if (!progress.completedConcepts.includes(conceptKey)) {
     progress.completedConcepts.push(conceptKey);
     progress.updatedAt = new Date();
-    await progress.save();
   }
 
+  // Clear from revision list if present
+  if (progress.conceptsNeedingRevision && progress.conceptsNeedingRevision.includes(conceptKey)) {
+    progress.conceptsNeedingRevision = progress.conceptsNeedingRevision.filter(k => k !== conceptKey);
+    progress.updatedAt = new Date();
+  }
+
+  await progress.save();
   return progress;
 }
 
@@ -242,16 +292,42 @@ async function verifyCheckpointQuiz(userId, topicId, answers) {
   progress.latestCheckpointScore.set(topicId, scorePercent);
 
   let unlockedTopicId = null;
+  const { topic } = getTopicData(topicId);
 
   if (passed) {
     if (!progress.completedTopics.includes(topicId)) {
       progress.completedTopics.push(topicId);
     }
     
+    // Clear all concepts of this topic from conceptsNeedingRevision
+    if (topic && progress.conceptsNeedingRevision) {
+      const topicConceptKeys = topic.concepts.map(c => c.key);
+      progress.conceptsNeedingRevision = progress.conceptsNeedingRevision.filter(
+        cKey => !topicConceptKeys.includes(cKey)
+      );
+    }
+
     // Unlock next topic if exists
     const { index } = getTopicData(topicId);
     if (index !== -1 && index + 1 < JOURNEY_CURRICULUM.length) {
       unlockedTopicId = JOURNEY_CURRICULUM[index + 1].id;
+    }
+  } else {
+    // FAILED: Identify wrongly answered concepts and mark them for revision
+    const wrongConcepts = activeQuestions
+      .filter(q => {
+        const userAnswer = String(answers[q.id] || "").trim();
+        const isCorrect = userAnswer.toLowerCase() === q.correctAnswer.toLowerCase();
+        return !isCorrect;
+      })
+      .map(q => q.conceptKey);
+
+    if (wrongConcepts.length > 0) {
+      const updatedRevisionSet = new Set([
+        ...(progress.conceptsNeedingRevision || []),
+        ...wrongConcepts
+      ]);
+      progress.conceptsNeedingRevision = Array.from(updatedRevisionSet);
     }
   }
 

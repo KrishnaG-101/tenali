@@ -49827,7 +49827,8 @@ function LearningJourneyTopicView({ topicId, onPlayConcept, onStartCheckpoint, o
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '500px', margin: '0 auto', position: 'relative' }}>
         {progression.concepts.map((concept, index) => {
           const isCompleted = concept.state === 'completed';
-          const isPlayable = concept.state === 'playable';
+          const isNeedsRevision = concept.state === 'needs_revision';
+          const isPlayable = concept.state === 'playable' || isNeedsRevision;
           const isLocked = concept.state === 'locked';
 
           return (
@@ -49840,7 +49841,7 @@ function LearningJourneyTopicView({ topicId, onPlayConcept, onStartCheckpoint, o
                   top: '40px',
                   width: '2px',
                   height: 'calc(100% - 20px)',
-                  background: isCompleted ? 'var(--clr-correct, #26de81)' : 'var(--clr-border, #444)',
+                  background: isCompleted || isNeedsRevision ? 'var(--clr-correct, #26de81)' : 'var(--clr-border, #444)',
                   zIndex: 1
                 }} />
               )}
@@ -49851,25 +49852,29 @@ function LearningJourneyTopicView({ topicId, onPlayConcept, onStartCheckpoint, o
                 borderRadius: '50%',
                 background: isCompleted
                   ? 'var(--clr-correct, #26de81)'
-                  : (isPlayable ? 'var(--clr-accent, #feb47b)' : 'var(--clr-surface, #2c2c2f)'),
-                border: '2px solid ' + (isPlayable ? '#fff' : 'var(--clr-border)'),
+                  : (isNeedsRevision ? '#ff9f43' : (isPlayable ? 'var(--clr-accent, #feb47b)' : 'var(--clr-surface, #2c2c2f)')),
+                border: '2px solid ' + (isPlayable || isNeedsRevision ? '#fff' : 'var(--clr-border)'),
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 'bold',
-                color: isCompleted || isPlayable ? '#000' : 'var(--clr-text-soft)',
+                color: isCompleted || isNeedsRevision || isPlayable ? '#000' : 'var(--clr-text-soft)',
                 zIndex: 2,
                 fontSize: '1.1rem'
               }}>
-                {isCompleted ? '✓' : (isLocked ? '🔒' : index + 1)}
+                {isCompleted ? '✓' : (isNeedsRevision ? '↻' : (isLocked ? '🔒' : index + 1))}
               </div>
 
               {/* Card content */}
               <div
                 style={{
                   flex: 1,
-                  background: isPlayable ? 'var(--clr-hover-strong, rgba(255,255,255,0.06))' : 'var(--clr-surface, #1c1c1f)',
-                  border: isPlayable ? '1.5px solid var(--clr-accent)' : '1px solid var(--clr-border)',
+                  background: isNeedsRevision
+                    ? 'rgba(255, 159, 67, 0.08)'
+                    : (isPlayable ? 'var(--clr-hover-strong, rgba(255,255,255,0.06))' : 'var(--clr-surface, #1c1c1f)'),
+                  border: isNeedsRevision
+                    ? '1.5px dashed #ff9f43'
+                    : (isPlayable ? '1.5px solid var(--clr-accent)' : '1px solid var(--clr-border)'),
                   borderRadius: '10px',
                   padding: '12px 18px',
                   display: 'flex',
@@ -49885,12 +49890,14 @@ function LearningJourneyTopicView({ topicId, onPlayConcept, onStartCheckpoint, o
               >
                 <div>
                   <h4 style={{ margin: 0, fontSize: '1.05rem' }}>{concept.name}</h4>
-                  <span style={{ fontSize: '0.78rem', color: 'var(--clr-text-soft)' }}>
-                    {isCompleted ? 'Completed (Click to revise)' : (isPlayable ? 'Playable Now' : 'Locked')}
+                  <span style={{ fontSize: '0.78rem', color: isNeedsRevision ? '#ff9f43' : 'var(--clr-text-soft)' }}>
+                    {isNeedsRevision
+                      ? '⚠️ Revision Required'
+                      : (isCompleted ? 'Completed (Click to revise)' : (isPlayable ? 'Playable Now' : 'Locked'))}
                   </span>
                 </div>
                 {!isLocked && (
-                  <span style={{ fontSize: '1.1rem', color: isPlayable ? 'var(--clr-accent)' : 'var(--clr-text-soft)' }}>▶</span>
+                  <span style={{ fontSize: '1.1rem', color: isNeedsRevision ? '#ff9f43' : (isPlayable ? 'var(--clr-accent)' : 'var(--clr-text-soft)') }}>▶</span>
                 )}
               </div>
             </div>
