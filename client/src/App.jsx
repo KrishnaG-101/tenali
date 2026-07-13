@@ -39815,8 +39815,8 @@ function BalanceScaleApp({ onBack }) {
 }
 
 function App() {
-  // Currently selected quiz mode (null = home menu, or key like 'gk', 'addition', etc.)
   const [mode, setMode] = useState(() => window.location.hash.slice(1) || null)
+  const [isGoalMode, setIsGoalMode] = useState(false)
   const [progressData, setProgressData] = useState(null)
   const [showTour, setShowTour] = useState(() => localStorage.getItem('tenali_tour_seen') !== 'true')
 
@@ -40769,7 +40769,7 @@ function Home({ onSelect, isGoalSelection = false, onBack }) {
         />
       </div>
       <div id="tour-home-grid" className="menu-grid" ref={gridRef}>
-        {apps.map((app) => (
+        {displayGridApps.map((app) => (
           <button key={app.key} className={`menu-card ${app.color}`} onClick={() => onSelect(app.key)}>
             <span className="menu-title">{app.name}</span>
             <span className="menu-subtitle">{app.subtitle}</span>
