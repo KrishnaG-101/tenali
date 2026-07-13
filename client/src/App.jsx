@@ -36476,6 +36476,22 @@ function App() {
       );
     }
 
+    if (mode === 'goalpractice') {
+      return (
+        <Home
+          isGoalSelection={true}
+          onBack={() => {
+            setMode(null);
+            setIsGoalMode(false);
+          }}
+          onSelect={(key) => {
+            setMode(key);
+            setIsGoalMode(true);
+          }}
+        />
+      );
+    }
+
     if (ActiveApp) {
       return (
         <ActiveApp
@@ -36496,12 +36512,30 @@ function App() {
             }
             setJourneyContext(null);
             setMode('learning_journey_topic');
-          } : () => setMode(null)}
+          } : () => {
+            if (isGoalMode) {
+              setMode('goalpractice');
+            } else {
+              setMode(null);
+            }
+          }}
+          isGoalMode={isGoalMode}
         />
       );
     }
 
-    return <Home onSelect={setMode} />;
+    return (
+      <Home
+        onSelect={(key) => {
+          if (key === 'goalpractice') {
+            setMode('goalpractice');
+          } else {
+            setMode(key);
+            setIsGoalMode(false);
+          }
+        }}
+      />
+    );
   };
 
   return (
@@ -36510,48 +36544,7 @@ function App() {
         {theme === 'dark' ? '☀️' : '🌙'}
       </button>
       <div className="card">
-        {!mode ? (
-          <Home onSelect={(key) => {
-            if (key === 'goalpractice') {
-              setMode('goalpractice');
-            } else {
-              setMode(key);
-              setIsGoalMode(false);
-            }
-          }} />
-        ) : mode === 'goalpractice' ? (
-          <Home
-            isGoalSelection={true}
-            onBack={() => {
-              setMode(null);
-              setIsGoalMode(false);
-            }}
-            onSelect={(key) => {
-              setMode(key);
-              setIsGoalMode(true);
-            }}
-          />
-        ) : ActiveApp ? (
-          <ActiveApp
-            onBack={() => {
-              if (isGoalMode) {
-                setMode('goalpractice');
-              } else {
-                setMode(null);
-              }
-            }}
-            isGoalMode={isGoalMode}
-          />
-        ) : (
-          <Home onSelect={(key) => {
-            if (key === 'goalpractice') {
-              setMode('goalpractice');
-            } else {
-              setMode(key);
-              setIsGoalMode(false);
-            }
-          }} />
-        )}
+        {renderContent()}
       </div>
     </div>
   )
@@ -36787,7 +36780,7 @@ function Home({ onSelect, isGoalSelection = false, onBack }) {
           onChange={e => setSearch(e.target.value)}
         />
       </div>
-      {!search && (
+      {!search && !isGoalSelection && (
         <div className="journey-banner-row">
           <button className="journey-banner-btn" onClick={() => onSelect('learning_journey')}>
             <div className="journey-banner-content">
