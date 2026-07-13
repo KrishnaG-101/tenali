@@ -362,7 +362,7 @@ export function useTimer() {
     intervalRef.current = setInterval(() => {
       const secs = Math.floor((Date.now() - startRef.current) / 1000)
       setElapsed(secs)
-      if (goal === 'speed') {
+      if (currentGoal === 'speed') {
         const left = Math.max(0, limitRef.current - secs)
         setRemaining(left)
         if (left === 0 && !firedRef.current) {
@@ -36448,6 +36448,7 @@ function App() {
     conics: ConicsApp,             // Conic Sections
     diffeq: DiffEqApp,             // Differential Equations
     tatsavit: TatsavitApp,         // Tatsavit (progressive math drill)
+    language: LanguageDashboard,   // Language Puzzles Dashboard
     randommix: RandomMixApp,       // Random Mix (adaptive)
     custom: CustomApp,             // Custom lesson builder
     gym: GymApp,                   // Unified adaptive Gym — bundles all 7 below
@@ -36562,6 +36563,7 @@ function Home({ onSelect, isGoalSelection = false, onBack }) {
     { key: 'ineq', name: 'Inequalities', subtitle: 'Linear & quadratic inequalities', color: 'green' },
     { key: 'integ', name: 'Integration', subtitle: 'Reverse differentiation & areas', color: 'blue' },
     { key: 'invtrig', name: 'Inverse Trig', subtitle: 'arcsin, arccos, arctan', color: 'green' },
+    { key: 'language', name: 'Language Puzzles', subtitle: 'Fill in the blanks to create new words', color: 'green' },
     { key: 'limits', name: 'Limits', subtitle: 'Evaluate limits', color: 'purple' },
     { key: 'lineareq', name: 'Linear Equations', subtitle: 'Solve for x in one variable', color: 'blue' },
     { key: 'lineq', name: 'Line Equation', subtitle: 'Find m and c from two points', color: 'green' },

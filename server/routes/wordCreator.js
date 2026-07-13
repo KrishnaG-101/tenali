@@ -43,6 +43,21 @@ router.post('/check', express.json(), async (req, res) => {
     }
   }
 
+  // 1.5 Check if it's a known vocab solution for this puzzle pattern (guarantees instant correct checks)
+  let isKnownVocab = false;
+  if (level && index) {
+    try {
+      const puzzles = wordCreator.getPuzzlesForLevel(parseInt(level, 10));
+      const targetIdx = Math.max(1, Math.min(100, parseInt(index, 10))) - 1;
+      const puzzle = puzzles[targetIdx];
+      if (puzzle && puzzle.solutions) {
+        isKnownVocab = puzzle.solutions.some(s => s.toLowerCase() === cleanWord);
+      }
+    } catch (e) {
+      console.error("Failed to check puzzle solutions:", e);
+    }
+  }
+
   // 2. Offline check against cached dictionary definition
   const cacheDir = path.join(__dirname, '..', 'dictionaryCache');
   if (!fs.existsSync(cacheDir)) {
@@ -64,9 +79,9 @@ router.post('/check', express.json(), async (req, res) => {
   let isNetworkError = false;
 
   if (!dictData) {
-    // Online check with a 5-second timeout
+    // Online check with a shortened 1.8-second timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 1800);
 
     try {
       const apiRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord}`, {
@@ -114,6 +129,17 @@ router.post('/check', express.json(), async (req, res) => {
       partOfSpeech,
       definition,
       phonetic
+    });
+  }
+
+  // Fallback for offline/timeout vocab check if it's a known solution
+  if (isKnownVocab) {
+    return res.json({
+      correct: true,
+      word: cleanWord,
+      partOfSpeech: 'noun',
+      definition: 'A valid vocabulary word matching the puzzle pattern.',
+      phonetic: ''
     });
   }
 
