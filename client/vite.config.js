@@ -51,8 +51,12 @@ export default defineConfig({
       '/sqrt-api': { target: 'http://127.0.0.1:4000', changeOrigin: true },
       // Multiplication quiz API
       '/multiply-api': { target: 'http://127.0.0.1:4000', changeOrigin: true },
+      // Visual Math Lab API (visual multiplication & division)
+      '/visual-math-api': { target: 'http://127.0.0.1:4000', changeOrigin: true },
       // Vocabulary quiz API
       '/vocab-api': { target: 'http://127.0.0.1:4000', changeOrigin: true },
+      // Concept Matching API
+      '/concept-api': { target: 'http://127.0.0.1:4000', changeOrigin: true },
       // Polynomial multiplication quiz API
       '/polymul-api': { target: 'http://127.0.0.1:4000', changeOrigin: true },
       // Polynomial factoring quiz API
@@ -139,6 +143,9 @@ export default defineConfig({
       '/shares-api': { target: 'http://127.0.0.1:4000', changeOrigin: true },
       '/squaring-api': { target: 'http://127.0.0.1:4000', changeOrigin: true },
       '/tatsavit-api': { target: 'http://127.0.0.1:4000', changeOrigin: true },
+      '/linearalgebra-api': { target: 'http://127.0.0.1:4000', changeOrigin: true },
+      '/la-mission-quiz-api': { target: 'http://127.0.0.1:4000', changeOrigin: true },
+      '/darts-api': { target: 'http://127.0.0.1:4000', changeOrigin: true },
     },
   },
 })
