@@ -10101,7 +10101,9 @@ app.post('/la-mission-quiz-api/check', (req, res) => {
   }
   res.json({ correct, display, message: correct ? 'Correct!' : 'Incorrect' });
 });
-* NEW LAB ROUTES (Basic Arithmetic, Mensuration, Visual Math Redux)
+
+/**
+ * NEW LAB ROUTES (Basic Arithmetic, Mensuration, Visual Math Redux)
  */
 const labRoutes = require('./labRoutes');
 app.use('/api', labRoutes);

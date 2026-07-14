@@ -47328,7 +47328,7 @@ function makeMCQuizApp({ title, subtitle, apiPath, diffLabels, tip, adaptiveOnly
 }
 
 function makeQuizApp({ title, subtitle, apiPath, diffLabels, placeholders, tip, answerField }) {
-  return function GeneratedQuizApp({ onBack, initialDifficulty, initialNumQuestions, initialStarted }) {
+  return function GeneratedQuizApp({ onBack, initialDifficulty, initialNumQuestions, initialStarted, isGoalMode = false }) {
     const diffs = Object.keys(diffLabels)
     const [difficulty, setDifficulty] = useState(initialDifficulty || diffs[0])
     const [isAdaptive, setIsAdaptive] = useState(false)
