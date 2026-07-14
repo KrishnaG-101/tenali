@@ -40989,7 +40989,6 @@ const TENTH_UNITS = [
   },
 ]
 
-function Chapter4App({ onBack }) { return null; }
 function TenthApp({ onBack }) {
   const { user } = useAuth()
   return (
@@ -48253,8 +48252,6 @@ function BasicArithApp({ onBack, completedTopics = [], goldMastery = [], markTop
       }
     }
   }, [finished, score, totalQ, markTopicCompleted, isAdaptive, difficulty])
-
-  const effectiveDiff = () => isAdaptive ? adaptiveLevel(adaptScoreRef.current) : difficulty
 
   const effectiveDiff = () => (isAdaptive) ? adaptiveLevel(adaptScoreRef.current) : difficulty
 
