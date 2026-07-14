@@ -199,8 +199,8 @@ export default function VocabExplorer() {
   const [vocabSessionIncorrectWords, setVocabSessionIncorrectWords] = useState([]);
   const [vocabSelectedMcq, setVocabSelectedMcq] = useState(null);
   const [vocabHasAnswered, setVocabHasAnswered] = useState(false);
-  const [vocabMsg, setVocabMsg] = useState('');
   const [vocabSessionFinished, setVocabSessionFinished] = useState(false);
+  const [vocabSessionSelections, setVocabSessionSelections] = useState([]);
   const autoAdvanceTimeoutRef = useRef(null);
   const clearAutoAdvance = () => {
     if (autoAdvanceTimeoutRef.current) {
@@ -232,6 +232,7 @@ export default function VocabExplorer() {
       setVocabSessionQuestions([]);
       setVocabSessionQIndex(0);
       setVocabSessionAnswers([]);
+      setVocabSessionSelections([]);
       setVocabSessionIncorrectWords([]);
       setVocabSessionFinished(false);
       const chunkIndex = vocabState.currentLevelIndex === 1 ? 0 : 5;
@@ -320,10 +321,10 @@ export default function VocabExplorer() {
     setVocabSessionQuestions(questions);
     setVocabSessionQIndex(0);
     setVocabSessionAnswers([]);
+    setVocabSessionSelections([]);
     setVocabSessionIncorrectWords([]);
     setVocabSelectedMcq(null);
     setVocabHasAnswered(false);
-    setVocabMsg('');
     setVocabSessionFinished(false);
     clearAutoAdvance();
     setVocabSessionActive(true);
@@ -350,10 +351,10 @@ export default function VocabExplorer() {
     setVocabSessionQuestions([question]);
     setVocabSessionQIndex(0);
     setVocabSessionAnswers([]);
+    setVocabSessionSelections([]);
     setVocabSessionIncorrectWords([]);
     setVocabSelectedMcq(null);
     setVocabHasAnswered(false);
-    setVocabMsg('');
     setVocabSessionFinished(false);
     clearAutoAdvance();
     setVocabSessionActive(true);
@@ -397,7 +398,6 @@ export default function VocabExplorer() {
       setVocabSessionQuestions([nextQ]);
       setVocabSelectedMcq(null);
       setVocabHasAnswered(false);
-      setVocabMsg('');
     } else {
       let placedTier = vocabState.placementTier;
       if (!isCorrect) {
@@ -444,11 +444,14 @@ export default function VocabExplorer() {
 
     setVocabSelectedMcq(selected);
     setVocabHasAnswered(true);
+
+    const newSelections = [...vocabSessionSelections, selected];
+    setVocabSessionSelections(newSelections);
+
     const newAnswers = [...vocabSessionAnswers, isCorrect];
     setVocabSessionAnswers(newAnswers);
 
-    autoAdvanceTimeoutRef.current = setTimeout(handleVocabNextQuestion, 1000);
-    setVocabMsg(currentQ.explanation);
+    autoAdvanceTimeoutRef.current = setTimeout(handleVocabNextQuestion, 3000);
 
     if (!vocabState.isPlacing) {
       const wordId = currentQ.wordId;
@@ -484,8 +487,24 @@ export default function VocabExplorer() {
     }
   };
 
+  const handleVocabPrevQuestion = () => {
+    clearAutoAdvance();
+    if (vocabSessionQIndex > 0) {
+      setVocabSessionQIndex(vocabSessionQIndex - 1);
+    }
+  };
+
   const handleVocabNextQuestion = () => {
     clearAutoAdvance();
+
+    if (vocabSessionQIndex < vocabSessionSelections.length) {
+      setVocabSessionQIndex(vocabSessionQIndex + 1);
+      if (vocabSessionQIndex + 1 === vocabSessionSelections.length) {
+        setVocabSelectedMcq(null);
+        setVocabHasAnswered(false);
+      }
+      return;
+    }
 
     if (vocabState.isPlacing) {
       handlePlacementAnswer(vocabSessionAnswers[vocabSessionAnswers.length - 1]);
@@ -496,7 +515,6 @@ export default function VocabExplorer() {
       setVocabSessionQIndex(vocabSessionQIndex + 1);
       setVocabSelectedMcq(null);
       setVocabHasAnswered(false);
-      setVocabMsg('');
     } else {
       const correctCount = vocabSessionAnswers.filter(Boolean).length;
       const totalCount = vocabSessionQuestions.length;
@@ -571,27 +589,30 @@ export default function VocabExplorer() {
       }
       const currentQ = vocabSessionQuestions[vocabSessionQIndex];
       if (!currentQ) return;
-      const key = e.key.toLowerCase();
+      const key = e.key;
 
-      if (!vocabHasAnswered) {
-        if (key === 'a' && currentQ.options.length > 0) {
+      const isPastQuestion = vocabSessionQIndex < vocabSessionSelections.length;
+      const currentQHasAnswered = isPastQuestion ? true : vocabHasAnswered;
+
+      if (!currentQHasAnswered) {
+        if ((key === '1' || key === 'numpad1') && currentQ.options.length > 0) {
           e.preventDefault();
-          handleVocabAnswerSubmit(currentQ.options[0]);
-        } else if (key === 'b' && currentQ.options.length > 1) {
+          setVocabSelectedMcq(currentQ.options[0]);
+        } else if ((key === '2' || key === 'numpad2') && currentQ.options.length > 1) {
           e.preventDefault();
-          handleVocabAnswerSubmit(currentQ.options[1]);
-        } else if (key === 'c' && currentQ.options.length > 2) {
+          setVocabSelectedMcq(currentQ.options[1]);
+        } else if ((key === '3' || key === 'numpad3') && currentQ.options.length > 2) {
           e.preventDefault();
-          handleVocabAnswerSubmit(currentQ.options[2]);
-        } else if (key === 'd' && currentQ.options.length > 3) {
+          setVocabSelectedMcq(currentQ.options[2]);
+        } else if ((key === '4' || key === 'numpad4') && currentQ.options.length > 3) {
           e.preventDefault();
-          handleVocabAnswerSubmit(currentQ.options[3]);
+          setVocabSelectedMcq(currentQ.options[3]);
         }
       }
 
-      if (key === 'enter') {
+      if (key === 'Enter' || key === 'Enter') {
         e.preventDefault();
-        if (!vocabHasAnswered) {
+        if (!currentQHasAnswered) {
           if (vocabSelectedMcq) {
             handleVocabAnswerSubmit();
           }
@@ -603,7 +624,7 @@ export default function VocabExplorer() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [vocabSessionActive, vocabSessionFinished, vocabSessionQuestions, vocabSessionQIndex, vocabHasAnswered, vocabSelectedMcq]);
+  }, [vocabSessionActive, vocabSessionFinished, vocabSessionQuestions, vocabSessionQIndex, vocabHasAnswered, vocabSelectedMcq, vocabSessionSelections, handleVocabAnswerSubmit, handleVocabNextQuestion]);
 
   const handleCompleteTeachLevel = () => {
     const tierWords = VOCAB_CORPUS.filter(w => w.tier === vocabState.currentTier);
@@ -645,10 +666,10 @@ export default function VocabExplorer() {
       setVocabSessionQuestions(questions);
       setVocabSessionQIndex(0);
       setVocabSessionAnswers([]);
+      setVocabSessionSelections([]);
       setVocabSessionIncorrectWords([]);
       setVocabSelectedMcq(null);
       setVocabHasAnswered(false);
-      setVocabMsg('');
       setVocabSessionFinished(false);
       setVocabSessionActive(true);
     }, 50);
@@ -717,16 +738,7 @@ export default function VocabExplorer() {
           }}>
             🎯
           </div>
-          <h4 style={{
-            fontSize: '1.6rem',
-            fontWeight: '700',
-            marginBottom: '16px',
-            fontFamily: 'var(--font-display)',
-            letterSpacing: '-0.02em',
-            color: 'var(--clr-text)'
-          }}>
-            Welcome to Vocab Explorer
-          </h4>
+
           <p style={{
             color: 'var(--clr-text-soft)',
             fontSize: '1rem',
@@ -900,41 +912,64 @@ export default function VocabExplorer() {
             {/* Option buttons */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px' }}>
               {vocabSessionQuestions[vocabSessionQIndex].options.map((opt, idx) => {
-                const isSelected = vocabSelectedMcq === opt;
-                const keyLetter = String.fromCharCode(65 + idx); // A, B, C, D
+                const isPastQuestion = vocabSessionQIndex < vocabSessionSelections.length;
+                const currentQSelected = isPastQuestion ? vocabSessionSelections[vocabSessionQIndex] : vocabSelectedMcq;
+                const currentQHasAnswered = isPastQuestion ? true : vocabHasAnswered;
+
+                const isSelected = currentQSelected === opt;
+                const isCorrectAnswer = opt === vocabSessionQuestions[vocabSessionQIndex].answer;
+                
+                let optionBorder = '1.5px solid var(--clr-border)';
+                let optionBg = 'var(--clr-card)';
+                
+                if (currentQHasAnswered) {
+                  if (isSelected) {
+                    if (isCorrectAnswer) {
+                      optionBorder = '1.5px solid var(--clr-correct, #2ea043)';
+                      optionBg = 'rgba(46, 160, 67, 0.1)';
+                    } else {
+                      optionBorder = '1.5px solid #f44336';
+                      optionBg = 'rgba(244, 67, 54, 0.1)';
+                    }
+                  } else if (isCorrectAnswer) {
+                    optionBorder = '1.5px solid var(--clr-correct, #2ea043)';
+                    optionBg = 'rgba(46, 160, 67, 0.05)';
+                  }
+                } else if (isSelected) {
+                  optionBorder = '1.5px solid var(--clr-accent)';
+                  optionBg = 'rgba(232, 134, 74, 0.08)';
+                }
+
+                const keyLetter = String(idx + 1); // 1, 2, 3, 4
                 
                 return (
                   <button
                     key={idx}
-                    disabled={vocabHasAnswered}
-                    onClick={() => { if (!vocabHasAnswered) handleVocabAnswerSubmit(opt); }}
+                    disabled={currentQHasAnswered}
+                    onClick={() => { if (!currentQHasAnswered) setVocabSelectedMcq(opt); }}
                     style={{
                       textAlign: 'left',
                       padding: '16px 20px',
                       borderRadius: '16px',
-                      border: isSelected
-                        ? '1.5px solid var(--clr-accent)'
-                        : '1.5px solid var(--clr-border)',
-                      background: isSelected
-                        ? 'rgba(232, 134, 74, 0.08)'
-                        : 'var(--clr-card)',
-                      cursor: vocabHasAnswered ? 'not-allowed' : 'pointer',
+                      border: optionBorder,
+                      background: optionBg,
+                      cursor: currentQHasAnswered ? 'not-allowed' : 'pointer',
                       color: 'var(--clr-text)',
                       fontSize: '1rem',
                       transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
-                      opacity: vocabHasAnswered && !isSelected ? 0.5 : 1,
+                      opacity: currentQHasAnswered && !isSelected && !isCorrectAnswer ? 0.5 : 1,
                       display: 'flex',
                       alignItems: 'center',
                       width: '100%'
                     }}
                     onMouseEnter={e => {
-                      if (!isSelected && !vocabHasAnswered) {
+                      if (!isSelected && !currentQHasAnswered) {
                         e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
                         e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
                       }
                     }}
                     onMouseLeave={e => {
-                      if (!isSelected && !vocabHasAnswered) {
+                      if (!isSelected && !currentQHasAnswered) {
                         e.currentTarget.style.borderColor = 'var(--clr-border)';
                         e.currentTarget.style.background = 'var(--clr-card)';
                       }
@@ -944,8 +979,10 @@ export default function VocabExplorer() {
                       width: '28px',
                       height: '28px',
                       borderRadius: '50%',
-                      background: isSelected ? 'var(--clr-accent)' : 'rgba(255, 255, 255, 0.08)',
-                      color: isSelected ? '#fff' : 'var(--clr-text-soft)',
+                      background: currentQHasAnswered
+                        ? (isCorrectAnswer ? 'var(--clr-correct, #2ea043)' : (isSelected ? '#f44336' : 'rgba(255, 255, 255, 0.08)'))
+                        : (isSelected ? 'var(--clr-accent)' : 'rgba(255, 255, 255, 0.08)'),
+                      color: (isSelected || (currentQHasAnswered && isCorrectAnswer)) ? '#fff' : 'var(--clr-text-soft)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -957,7 +994,7 @@ export default function VocabExplorer() {
                       {keyLetter}
                     </span>
                     <span style={{ flexGrow: 1 }}>{opt}</span>
-                    {!vocabHasAnswered && (
+                    {!currentQHasAnswered && (
                       <span style={{
                         fontSize: '0.75rem',
                         color: 'rgba(255, 255, 255, 0.2)',
@@ -976,109 +1013,159 @@ export default function VocabExplorer() {
             </div>
 
             {/* Action buttons */}
-            {!vocabHasAnswered ? (
-              <button
-                className="submit-btn"
-                disabled={!vocabSelectedMcq}
-                onClick={() => handleVocabAnswerSubmit()}
-                style={{
-                  padding: '14px',
-                  opacity: !vocabSelectedMcq ? 0.6 : 1,
-                  fontSize: '1rem',
-                  fontWeight: '600',
-                  borderRadius: '12px',
-                  background: 'var(--clr-accent)',
-                  color: '#fff',
-                  border: 'none',
-                  cursor: vocabSelectedMcq ? 'pointer' : 'not-allowed',
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <span>Check Answer</span>
-                {vocabSelectedMcq && (
-                  <span style={{
-                    fontSize: '0.8rem',
-                    opacity: 0.8,
-                    border: '1px solid rgba(255, 255, 255, 0.4)',
-                    padding: '1px 6px',
-                    borderRadius: '4px'
-                  }}>
-                    Enter
-                  </span>
-                )}
-              </button>
-            ) : (
-              <button
-                className="submit-btn"
-                onClick={handleVocabNextQuestion}
-                style={{
-                  padding: '14px',
-                  background: 'var(--clr-correct, #5cb87a)',
-                  color: '#fff',
-                  fontSize: '1rem',
-                  fontWeight: '600',
-                  borderRadius: '12px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <span>
-                  {vocabState.isPlacing
-                    ? (vocabState.placementStep < 15 ? 'Next Question' : 'Finish Session')
-                    : (vocabSessionQIndex < vocabSessionQuestions.length - 1 ? 'Next Question' : 'Finish Session')}
-                </span>
-                <span style={{
-                  fontSize: '0.8rem',
-                  opacity: 0.8,
-                  border: '1px solid rgba(255, 255, 255, 0.4)',
-                  padding: '1px 6px',
-                  borderRadius: '4px'
-                }}>
-                  Enter
-                </span>
-              </button>
-            )}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: '24px'
+            }}>
+              {/* Previous Button */}
+              {vocabSessionQIndex > 0 ? (
+                <button
+                  onClick={handleVocabPrevQuestion}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid var(--clr-border)',
+                    color: 'var(--clr-text-soft)',
+                    cursor: 'pointer',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    fontSize: '0.9rem',
+                    fontWeight: '500',
+                    transition: 'all 0.15s ease'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--clr-text-soft)'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--clr-border)'}
+                >
+                  ← Previous
+                </button>
+              ) : <div />}
+
+              {/* Submit or Next Button */}
+              {(() => {
+                const isPastQuestion = vocabSessionQIndex < vocabSessionSelections.length;
+                const currentQHasAnswered = isPastQuestion ? true : vocabHasAnswered;
+
+                if (!currentQHasAnswered) {
+                  return (
+                    <button
+                      className="submit-btn"
+                      disabled={!vocabSelectedMcq}
+                      onClick={() => handleVocabAnswerSubmit()}
+                      style={{
+                        padding: '10px 20px',
+                        opacity: !vocabSelectedMcq ? 0.6 : 1,
+                        fontSize: '0.95rem',
+                        fontWeight: '600',
+                        borderRadius: '8px',
+                        background: 'var(--clr-accent)',
+                        color: '#fff',
+                        border: 'none',
+                        cursor: vocabSelectedMcq ? 'pointer' : 'not-allowed',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        transition: 'all 0.15s ease',
+                        width: 'auto'
+                      }}
+                    >
+                      <span>Submit</span>
+                      {vocabSelectedMcq && (
+                        <span style={{
+                          fontSize: '0.8rem',
+                          opacity: 0.8,
+                          border: '1px solid rgba(255, 255, 255, 0.4)',
+                          padding: '1px 6px',
+                          borderRadius: '4px'
+                        }}>
+                          Enter
+                        </span>
+                      )}
+                    </button>
+                  );
+                } else {
+                  return (
+                    <button
+                      className="submit-btn"
+                      onClick={handleVocabNextQuestion}
+                      style={{
+                        padding: '10px 20px',
+                        background: 'var(--clr-correct, #5cb87a)',
+                        color: '#fff',
+                        fontSize: '0.95rem',
+                        fontWeight: '600',
+                        borderRadius: '8px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        transition: 'all 0.15s ease',
+                        width: 'auto'
+                      }}
+                    >
+                      <span>
+                        {vocabState.isPlacing
+                          ? (vocabState.placementStep < 15 ? 'Next →' : 'Finish Session 🏆')
+                          : (vocabSessionQIndex < vocabSessionQuestions.length - 1 ? 'Next →' : 'Finish Session 🏆')}
+                      </span>
+                      <span style={{
+                        fontSize: '0.8rem',
+                        opacity: 0.8,
+                        border: '1px solid rgba(255, 255, 255, 0.4)',
+                        padding: '1px 6px',
+                        borderRadius: '4px'
+                      }}>
+                        Enter
+                      </span>
+                    </button>
+                  );
+                }
+              })()}
+            </div>
           </div>
 
           {/* Feedback Reveal Card */}
-          {vocabHasAnswered && vocabMsg && (
-            <div style={{
-              fontSize: '0.98rem',
-              padding: '24px',
-              borderRadius: '20px',
-              marginTop: '20px',
-              background: vocabSessionAnswers[vocabSessionAnswers.length - 1] ? 'rgba(92, 184, 122, 0.08)' : 'rgba(239, 83, 80, 0.08)',
-              border: vocabSessionAnswers[vocabSessionAnswers.length - 1] ? '1px solid var(--clr-correct)' : '1px solid #ef5350',
-              color: 'var(--clr-text)',
-              lineHeight: '1.6',
-              animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-            }}>
-              <div style={{
-                fontWeight: '700',
-                marginBottom: '8px',
-                fontSize: '1.1rem',
-                color: vocabSessionAnswers[vocabSessionAnswers.length - 1] ? 'var(--clr-correct)' : '#ef5350',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}>
-                <span>{vocabSessionAnswers[vocabSessionAnswers.length - 1] ? '✓' : '✗'}</span>
-                <span>{vocabSessionAnswers[vocabSessionAnswers.length - 1] ? 'Correct!' : 'Incorrect'}</span>
-              </div>
-              <div style={{ whiteSpace: 'pre-wrap', color: 'rgba(255,255,255,0.95)' }}>{vocabMsg}</div>
-            </div>
-          )}
+          {(() => {
+            const isPastQuestion = vocabSessionQIndex < vocabSessionSelections.length;
+            const currentQHasAnswered = isPastQuestion ? true : vocabHasAnswered;
+            const currentQSelected = isPastQuestion ? vocabSessionSelections[vocabSessionQIndex] : vocabSelectedMcq;
+            const currentQ = vocabSessionQuestions[vocabSessionQIndex];
+            const isCorrect = currentQSelected === currentQ.answer;
+
+            if (currentQHasAnswered && currentQ.explanation) {
+              return (
+                <div style={{
+                  fontSize: '0.98rem',
+                  padding: '24px',
+                  borderRadius: '20px',
+                  marginTop: '20px',
+                  background: isCorrect ? 'rgba(92, 184, 122, 0.08)' : 'rgba(239, 83, 80, 0.08)',
+                  border: isCorrect ? '1px solid var(--clr-correct)' : '1px solid #ef5350',
+                  color: 'var(--clr-text)',
+                  lineHeight: '1.6',
+                  animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                }}>
+                  <div style={{
+                    fontWeight: '700',
+                    marginBottom: '8px',
+                    fontSize: '1.1rem',
+                    color: isCorrect ? 'var(--clr-correct)' : '#ef5350',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    <span>{isCorrect ? '✓' : '✗'}</span>
+                    <span>{isCorrect ? 'Correct!' : 'Incorrect'}</span>
+                  </div>
+                  <div style={{ whiteSpace: 'pre-wrap', color: 'rgba(255,255,255,0.95)' }}>{currentQ.explanation}</div>
+                </div>
+              );
+            }
+            return null;
+          })()}
         </div>
       )}
 
