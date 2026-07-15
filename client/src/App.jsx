@@ -43406,24 +43406,24 @@ function ColumnAdditionApp({ onBack, initialDifficulty, initialNumQuestions, ini
 
   if (!started && !finished) {
     return (
-      <div style={{ minHeight: '100vh', background: '#181512', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: 'Inter, sans-serif' }}>
-        <div style={{ background: '#2D2520', border: '1.5px solid #4A4038', borderRadius: '28px', boxShadow: '0 20px 40px rgba(0,0,0,.45)', padding: '48px 40px', maxWidth: '720px', width: '100%', textAlign: 'center', position: 'relative' }}>
-          <button onClick={onBack} style={{ position: 'absolute', top: '24px', left: '24px', background: 'transparent', border: '1px solid #5B5048', borderRadius: '6px', padding: '6px 14px', color: '#A89C93', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>← Home</button>
-          <h1 style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontWeight: 700, fontSize: '48px', color: '#F4F1ED', margin: '0 0 12px', lineHeight: 1.1 }}>Column Addition</h1>
-          <p style={{ color: '#988D84', fontSize: '0.9rem', margin: '0 0 24px', fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>Add numbers vertically with carrying</p>
+      <div style={{ minHeight: '100vh', background: 'var(--clr-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ background: 'var(--clr-card)', border: '1.5px solid var(--clr-border)', borderRadius: '28px', boxShadow: '0 20px 40px rgba(0,0,0,.45)', padding: '48px 40px', maxWidth: '720px', width: '100%', textAlign: 'center', position: 'relative' }}>
+          <button onClick={onBack} style={{ position: 'absolute', top: '24px', left: '24px', background: 'transparent', border: '1px solid var(--clr-border)', borderRadius: '6px', padding: '6px 14px', color: 'var(--clr-text-soft)', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>← Home</button>
+          <h1 style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontWeight: 700, fontSize: '48px', color: 'var(--clr-text)', margin: '0 0 12px', lineHeight: 1.1 }}>Column Addition</h1>
+          <p style={{ color: 'var(--clr-text-soft)', fontSize: '0.9rem', margin: '0 0 24px', fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>Add numbers vertically with carrying</p>
           <div style={{ marginBottom: '24px' }}>
-            <h3 style={{ color: '#F4F1ED', fontSize: '0.9rem', margin: '0 0 16px', fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>Select Difficulty:</h3>
+            <h3 style={{ color: 'var(--clr-text)', fontSize: '0.9rem', margin: '0 0 16px', fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>Select Difficulty:</h3>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
               {['easy', 'medium', 'hard', 'extrahard'].map(d => (
-                <button key={d} onClick={() => setDifficulty(d)} style={{ background: difficulty === d ? '#F08C46' : 'transparent', border: difficulty === d ? '1px solid #F08C46' : '1px solid #5B5048', borderRadius: '50px', padding: '8px 16px', color: difficulty === d ? '#FFF' : '#988D84', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>{diffLabels[d]}</button>
+                <button key={d} onClick={() => setDifficulty(d)} style={{ background: difficulty === d ? 'var(--clr-accent)' : 'transparent', border: difficulty === d ? '1px solid var(--clr-accent)' : '1px solid var(--clr-border)', borderRadius: '50px', padding: '8px 16px', color: difficulty === d ? '#FFF' : 'var(--clr-text-soft)', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>{diffLabels[d]}</button>
               ))}
             </div>
           </div>
           <div style={{ marginBottom: '32px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <label style={{ color: '#988D84', fontSize: '0.85rem', margin: '0 0 12px', fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>How many questions? (max 100)</label>
-            <input type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} style={{ background: '#463B34', border: '1px solid #5B5048', borderRadius: '6px', padding: '10px', color: '#FFF', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.9rem', width: '100px', textAlign: 'center', outline: 'none' }} placeholder={String(DEFAULT_TOTAL)} />
+            <label style={{ color: 'var(--clr-text-soft)', fontSize: '0.85rem', margin: '0 0 12px', fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>How many questions? (max 100)</label>
+            <input type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} style={{ background: 'var(--clr-input)', border: '1px solid var(--clr-border)', borderRadius: '6px', padding: '10px', color: 'var(--clr-text)', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.9rem', width: '100px', textAlign: 'center', outline: 'none' }} placeholder={String(DEFAULT_TOTAL)} />
           </div>
-          <button onClick={startQuiz} style={{ background: '#F08C46', border: 'none', borderRadius: '6px', padding: '10px 24px', color: '#FFF', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Start Quiz</button>
+          <button onClick={startQuiz} style={{ background: 'var(--clr-accent)', border: 'none', borderRadius: '6px', padding: '10px 24px', color: '#FFF', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Start Quiz</button>
         </div>
       </div>
     )
@@ -43456,7 +43456,7 @@ function ColumnAdditionApp({ onBack, initialDifficulty, initialNumQuestions, ini
                       onChange={e => handleInput(i, e.target.value, true)}
                       onKeyDown={e => handleKeyDown(i, e, true)}
                       disabled={revealed}
-                      style={{ width: '40px', height: '36px', textAlign: 'center', fontSize: '1rem', fontWeight: 700, background: isRight ? '#1a472a' : isWrong ? '#5c1a1a' : '#3a2f28', border: `2px solid ${isRight ? '#2ecc71' : isWrong ? '#e74c3c' : '#5B5048'}`, borderRadius: '8px', color: isRight ? '#2ecc71' : isWrong ? '#e74c3c' : '#F4F1ED', fontFamily: '"Courier New", monospace', outline: 'none' }}
+                      style={{ width: '40px', height: '36px', textAlign: 'center', fontSize: '1rem', fontWeight: 700, background: isRight ? 'var(--clr-correct-bg)' : isWrong ? 'var(--clr-wrong-bg)' : 'var(--clr-input)', border: `2px solid ${isRight ? 'var(--clr-correct)' : isWrong ? 'var(--clr-wrong)' : 'var(--clr-border)'}`, borderRadius: '8px', color: isRight ? 'var(--clr-correct)' : isWrong ? 'var(--clr-wrong)' : 'var(--clr-text)', fontFamily: '"Courier New", monospace', outline: 'none' }}
                     />
                   )
                 })}
@@ -43465,20 +43465,20 @@ function ColumnAdditionApp({ onBack, initialDifficulty, initialNumQuestions, ini
               <div style={{ display: 'flex', gap: '4px', marginBottom: '2px' }}>
                 <span style={{ width: '44px' }} />
                 {question.aDigits.map((d, i) => (
-                  <span key={i} style={{ width: '40px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F4F1ED' }}>{d !== null ? d : ''}</span>
+                  <span key={i} style={{ width: '40px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--clr-text)' }}>{d !== null ? d : ''}</span>
                 ))}
               </div>
               {/* Second number: right-aligned in ansLen columns */}
               <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
-                <span style={{ width: '44px', textAlign: 'center', color: '#988D84', fontSize: '1.4rem' }}>+</span>
+                <span style={{ width: '44px', textAlign: 'center', color: 'var(--clr-text-soft)', fontSize: '1.4rem' }}>+</span>
                 {question.bDigits.map((d, i) => (
-                  <span key={i} style={{ width: '40px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F4F1ED' }}>{d !== null ? d : ''}</span>
+                  <span key={i} style={{ width: '40px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--clr-text)' }}>{d !== null ? d : ''}</span>
                 ))}
               </div>
               {/* Line separator: full width of answer */}
               <div style={{ display: 'flex', gap: '4px' }}>
                 <span style={{ width: '44px' }} />
-                <div style={{ width: `${ansLen * 44}px`, height: '3px', background: '#5B5048', borderRadius: '2px' }} />
+                <div style={{ width: `${ansLen * 44}px`, height: '3px', background: 'var(--clr-border)', borderRadius: '2px' }} />
               </div>
               {/* Answer row: ansLen input boxes */}
               <div style={{ display: 'flex', gap: '4px', marginTop: '8px' }}>
@@ -43494,7 +43494,7 @@ function ColumnAdditionApp({ onBack, initialDifficulty, initialNumQuestions, ini
                       onChange={e => handleInput(i, e.target.value, false)}
                       onKeyDown={e => handleKeyDown(i, e, false)}
                       disabled={revealed}
-                      style={{ width: '40px', height: '48px', textAlign: 'center', fontSize: '1.4rem', fontWeight: 700, background: isRight ? '#1a472a' : isWrong ? '#5c1a1a' : '#3a2f28', border: `2px solid ${isRight ? '#2ecc71' : isWrong ? '#e74c3c' : '#5B5048'}`, borderRadius: '8px', color: isRight ? '#2ecc71' : isWrong ? '#e74c3c' : '#F4F1ED', fontFamily: '"Courier New", monospace', outline: 'none' }}
+                      style={{ width: '40px', height: '48px', textAlign: 'center', fontSize: '1.4rem', fontWeight: 700, background: isRight ? 'var(--clr-correct-bg)' : isWrong ? 'var(--clr-wrong-bg)' : 'var(--clr-input)', border: `2px solid ${isRight ? 'var(--clr-correct)' : isWrong ? 'var(--clr-wrong)' : 'var(--clr-border)'}`, borderRadius: '8px', color: isRight ? 'var(--clr-correct)' : isWrong ? 'var(--clr-wrong)' : 'var(--clr-text)', fontFamily: '"Courier New", monospace', outline: 'none' }}
                     />
                   )
                 })}
@@ -43503,18 +43503,18 @@ function ColumnAdditionApp({ onBack, initialDifficulty, initialNumQuestions, ini
             {feedback && (
               <div style={{
                 textAlign: 'left', padding: '12px 16px', borderRadius: '8px', margin: '8px 0',
-                background: revealed && !isCorrect && feedback.length > 50 ? 'rgba(58,47,40,0.95)' : isCorrect ? 'rgba(46,204,113,0.15)' : 'rgba(231,76,60,0.15)',
-                color: isCorrect ? '#2ecc71' : feedback.length > 50 ? '#F4F1ED' : '#e74c3c',
+                background: revealed && !isCorrect && feedback.length > 50 ? 'var(--clr-card)' : isCorrect ? 'var(--clr-correct-bg)' : 'var(--clr-wrong-bg)',
+                color: isCorrect ? 'var(--clr-correct)' : feedback.length > 50 ? 'var(--clr-text)' : 'var(--clr-wrong)',
                 fontWeight: feedback.length > 50 ? 400 : 600, fontSize: '0.9rem',
                 whiteSpace: 'pre-line', lineHeight: '1.6',
                 maxHeight: '300px', overflowY: 'auto',
-                border: feedback.length > 50 ? '1px solid #5B5048' : 'none'
+                border: feedback.length > 50 ? '1px solid var(--clr-border)' : 'none'
               }}>{feedback}</div>
             )}
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', margin: '12px 0', flexWrap: 'wrap' }}>
-              {!revealed && <button onClick={handleSubmit} disabled={loading} style={{ background: '#F08C46', border: 'none', borderRadius: '8px', padding: '10px 24px', color: '#FFF', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Submit</button>}
-              {!revealed && <button onClick={handleSolve} disabled={loading} style={{ background: 'transparent', border: '1px solid #5B5048', borderRadius: '8px', padding: '10px 24px', color: '#A89C93', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Solve</button>}
-              {revealed && <button onClick={advanceQuestion} style={{ background: '#F08C46', border: 'none', borderRadius: '8px', padding: '10px 24px', color: '#FFF', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Next Question →</button>}
+              {!revealed && <button onClick={handleSubmit} disabled={loading} style={{ background: 'var(--clr-accent)', border: 'none', borderRadius: '8px', padding: '10px 24px', color: '#FFF', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Submit</button>}
+              {!revealed && <button onClick={handleSolve} disabled={loading} style={{ background: 'transparent', border: '1px solid var(--clr-border)', borderRadius: '8px', padding: '10px 24px', color: 'var(--clr-text-soft)', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Solve</button>}
+              {revealed && <button onClick={advanceQuestion} style={{ background: 'var(--clr-accent)', border: 'none', borderRadius: '8px', padding: '10px 24px', color: '#FFF', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Next Question →</button>}
             </div>
           </>
         )}
@@ -43522,10 +43522,10 @@ function ColumnAdditionApp({ onBack, initialDifficulty, initialNumQuestions, ini
       </>}
       {finished && (
         <div style={{ textAlign: 'center', padding: '24px' }}>
-          <h2 style={{ color: '#F4F1ED', marginBottom: '16px' }}>Score: {score}/{totalQ}</h2>
+          <h2 style={{ color: 'var(--clr-text)', marginBottom: '16px' }}>Score: {score}/{totalQ}</h2>
           <ResultsTable results={results} />
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '24px' }}>
-            <button onClick={() => { setStarted(false); setFinished(false) }} style={{ background: '#F08C46', border: 'none', borderRadius: '8px', padding: '10px 24px', color: '#FFF', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Play Again</button>
+            <button onClick={() => { setStarted(false); setFinished(false) }} style={{ background: 'var(--clr-accent)', border: 'none', borderRadius: '8px', padding: '10px 24px', color: '#FFF', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Play Again</button>
           </div>
         </div>
       )}
@@ -43721,24 +43721,24 @@ function ColumnMultiplicationApp({ onBack, initialDifficulty, initialNumQuestion
 
   if (!started && !finished) {
     return (
-      <div style={{ minHeight: '100vh', background: '#181512', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: 'Inter, sans-serif' }}>
-        <div style={{ background: '#2D2520', border: '1.5px solid #4A4038', borderRadius: '28px', boxShadow: '0 20px 40px rgba(0,0,0,.45)', padding: '48px 40px', maxWidth: '720px', width: '100%', textAlign: 'center', position: 'relative' }}>
-          <button onClick={onBack} style={{ position: 'absolute', top: '24px', left: '24px', background: 'transparent', border: '1px solid #5B5048', borderRadius: '6px', padding: '6px 14px', color: '#A89C93', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>← Home</button>
-          <h1 style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontWeight: 700, fontSize: '48px', color: '#F4F1ED', margin: '0 0 12px', lineHeight: 1.1 }}>Column Multiplication</h1>
-          <p style={{ color: '#988D84', fontSize: '0.9rem', margin: '0 0 24px', fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>Multiply vertically with carrying</p>
+      <div style={{ minHeight: '100vh', background: 'var(--clr-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ background: 'var(--clr-card)', border: '1.5px solid var(--clr-border)', borderRadius: '28px', boxShadow: '0 20px 40px rgba(0,0,0,.45)', padding: '48px 40px', maxWidth: '720px', width: '100%', textAlign: 'center', position: 'relative' }}>
+          <button onClick={onBack} style={{ position: 'absolute', top: '24px', left: '24px', background: 'transparent', border: '1px solid var(--clr-border)', borderRadius: '6px', padding: '6px 14px', color: 'var(--clr-text-soft)', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>← Home</button>
+          <h1 style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontWeight: 700, fontSize: '48px', color: 'var(--clr-text)', margin: '0 0 12px', lineHeight: 1.1 }}>Column Multiplication</h1>
+          <p style={{ color: 'var(--clr-text-soft)', fontSize: '0.9rem', margin: '0 0 24px', fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>Multiply vertically with carrying</p>
           <div style={{ marginBottom: '24px' }}>
-            <h3 style={{ color: '#F4F1ED', fontSize: '0.9rem', margin: '0 0 16px', fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>Select Difficulty:</h3>
+            <h3 style={{ color: 'var(--clr-text)', fontSize: '0.9rem', margin: '0 0 16px', fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>Select Difficulty:</h3>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
               {['easy', 'medium', 'hard', 'extrahard'].map(d => (
-                <button key={d} onClick={() => setDifficulty(d)} style={{ background: difficulty === d ? '#F08C46' : 'transparent', border: difficulty === d ? '1px solid #F08C46' : '1px solid #5B5048', borderRadius: '50px', padding: '8px 16px', color: difficulty === d ? '#FFF' : '#988D84', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>{diffLabels[d]}</button>
+                <button key={d} onClick={() => setDifficulty(d)} style={{ background: difficulty === d ? 'var(--clr-accent)' : 'transparent', border: difficulty === d ? '1px solid var(--clr-accent)' : '1px solid var(--clr-border)', borderRadius: '50px', padding: '8px 16px', color: difficulty === d ? '#FFF' : 'var(--clr-text-soft)', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>{diffLabels[d]}</button>
               ))}
             </div>
           </div>
           <div style={{ marginBottom: '32px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <label style={{ color: '#988D84', fontSize: '0.85rem', margin: '0 0 12px', fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>How many questions? (max 100)</label>
-            <input type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} style={{ background: '#463B34', border: '1px solid #5B5048', borderRadius: '6px', padding: '10px', color: '#FFF', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.9rem', width: '100px', textAlign: 'center', outline: 'none' }} placeholder={String(DEFAULT_TOTAL)} />
+            <label style={{ color: 'var(--clr-text-soft)', fontSize: '0.85rem', margin: '0 0 12px', fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>How many questions? (max 100)</label>
+            <input type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} style={{ background: 'var(--clr-input)', border: '1px solid var(--clr-border)', borderRadius: '6px', padding: '10px', color: 'var(--clr-text)', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.9rem', width: '100px', textAlign: 'center', outline: 'none' }} placeholder={String(DEFAULT_TOTAL)} />
           </div>
-          <button onClick={startQuiz} style={{ background: '#F08C46', border: 'none', borderRadius: '6px', padding: '10px 24px', color: '#FFF', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Start Quiz</button>
+          <button onClick={startQuiz} style={{ background: 'var(--clr-accent)', border: 'none', borderRadius: '6px', padding: '10px 24px', color: '#FFF', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Start Quiz</button>
         </div>
       </div>
     )
@@ -43770,7 +43770,7 @@ function ColumnMultiplicationApp({ onBack, initialDifficulty, initialNumQuestion
                       onChange={e => handleInput(i, e.target.value, true)}
                       onKeyDown={e => handleKeyDown(i, e, true)}
                       disabled={revealed}
-                      style={{ width: '40px', height: '36px', textAlign: 'center', fontSize: '1rem', fontWeight: 700, background: isRight ? '#1a472a' : isWrong ? '#5c1a1a' : '#3a2f28', border: `2px solid ${isRight ? '#2ecc71' : isWrong ? '#e74c3c' : '#5B5048'}`, borderRadius: '8px', color: isRight ? '#2ecc71' : isWrong ? '#e74c3c' : '#F4F1ED', fontFamily: '"Courier New", monospace', outline: 'none' }}
+                      style={{ width: '40px', height: '36px', textAlign: 'center', fontSize: '1rem', fontWeight: 700, background: isRight ? 'var(--clr-correct-bg)' : isWrong ? 'var(--clr-wrong-bg)' : 'var(--clr-input)', border: `2px solid ${isRight ? 'var(--clr-correct)' : isWrong ? 'var(--clr-wrong)' : 'var(--clr-border)'}`, borderRadius: '8px', color: isRight ? 'var(--clr-correct)' : isWrong ? 'var(--clr-wrong)' : 'var(--clr-text)', fontFamily: '"Courier New", monospace', outline: 'none' }}
                     />
                   )
                 })}
@@ -43779,20 +43779,20 @@ function ColumnMultiplicationApp({ onBack, initialDifficulty, initialNumQuestion
               <div style={{ display: 'flex', gap: '4px', marginBottom: '2px' }}>
                 <span style={{ width: '44px' }} />
                 {question.aDigits.map((d, i) => (
-                  <span key={i} style={{ width: '40px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F4F1ED' }}>{d !== null ? d : ''}</span>
+                  <span key={i} style={{ width: '40px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--clr-text)' }}>{d !== null ? d : ''}</span>
                 ))}
               </div>
               {/* Multiplier: single digit below */}
               <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
-                <span style={{ width: '44px', textAlign: 'center', color: '#988D84', fontSize: '1.4rem' }}>×</span>
+                <span style={{ width: '44px', textAlign: 'center', color: 'var(--clr-text-soft)', fontSize: '1.4rem' }}>×</span>
                 {question.aDigits.map((_, i) => (
-                  <span key={i} style={{ width: '40px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: i === question.aDigits.length - 1 ? '#F4F1ED' : 'transparent' }}>{i === question.aDigits.length - 1 ? question.b : ''}</span>
+                  <span key={i} style={{ width: '40px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: i === question.aDigits.length - 1 ? 'var(--clr-text)' : 'transparent' }}>{i === question.aDigits.length - 1 ? question.b : ''}</span>
                 ))}
               </div>
               {/* Line */}
               <div style={{ display: 'flex', gap: '4px' }}>
                 <span style={{ width: '44px' }} />
-                <div style={{ width: `${ansLen * 44}px`, height: '3px', background: '#5B5048', borderRadius: '2px' }} />
+                <div style={{ width: `${ansLen * 44}px`, height: '3px', background: 'var(--clr-border)', borderRadius: '2px' }} />
               </div>
               {/* Product row */}
               <div style={{ display: 'flex', gap: '4px', marginTop: '8px' }}>
@@ -43808,7 +43808,7 @@ function ColumnMultiplicationApp({ onBack, initialDifficulty, initialNumQuestion
                       onChange={e => handleInput(i, e.target.value, false)}
                       onKeyDown={e => handleKeyDown(i, e, false)}
                       disabled={revealed}
-                      style={{ width: '40px', height: '48px', textAlign: 'center', fontSize: '1.4rem', fontWeight: 700, background: isRight ? '#1a472a' : isWrong ? '#5c1a1a' : '#3a2f28', border: `2px solid ${isRight ? '#2ecc71' : isWrong ? '#e74c3c' : '#5B5048'}`, borderRadius: '8px', color: isRight ? '#2ecc71' : isWrong ? '#e74c3c' : '#F4F1ED', fontFamily: '"Courier New", monospace', outline: 'none' }}
+                      style={{ width: '40px', height: '48px', textAlign: 'center', fontSize: '1.4rem', fontWeight: 700, background: isRight ? 'var(--clr-correct-bg)' : isWrong ? 'var(--clr-wrong-bg)' : 'var(--clr-input)', border: `2px solid ${isRight ? 'var(--clr-correct)' : isWrong ? 'var(--clr-wrong)' : 'var(--clr-border)'}`, borderRadius: '8px', color: isRight ? 'var(--clr-correct)' : isWrong ? 'var(--clr-wrong)' : 'var(--clr-text)', fontFamily: '"Courier New", monospace', outline: 'none' }}
                     />
                   )
                 })}
@@ -43817,18 +43817,18 @@ function ColumnMultiplicationApp({ onBack, initialDifficulty, initialNumQuestion
             {feedback && (
               <div style={{
                 textAlign: 'left', padding: '12px 16px', borderRadius: '8px', margin: '8px 0',
-                background: revealed && !isCorrect && feedback.length > 50 ? 'rgba(58,47,40,0.95)' : isCorrect ? 'rgba(46,204,113,0.15)' : 'rgba(231,76,60,0.15)',
-                color: isCorrect ? '#2ecc71' : feedback.length > 50 ? '#F4F1ED' : '#e74c3c',
+                background: revealed && !isCorrect && feedback.length > 50 ? 'var(--clr-card)' : isCorrect ? 'var(--clr-correct-bg)' : 'var(--clr-wrong-bg)',
+                color: isCorrect ? 'var(--clr-correct)' : feedback.length > 50 ? 'var(--clr-text)' : 'var(--clr-wrong)',
                 fontWeight: feedback.length > 50 ? 400 : 600, fontSize: '0.9rem',
                 whiteSpace: 'pre-line', lineHeight: '1.6',
                 maxHeight: '300px', overflowY: 'auto',
-                border: feedback.length > 50 ? '1px solid #5B5048' : 'none'
+                border: feedback.length > 50 ? '1px solid var(--clr-border)' : 'none'
               }}>{feedback}</div>
             )}
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', margin: '12px 0', flexWrap: 'wrap' }}>
-              {!revealed && <button onClick={handleSubmit} disabled={loading} style={{ background: '#F08C46', border: 'none', borderRadius: '8px', padding: '10px 24px', color: '#FFF', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Submit</button>}
-              {!revealed && <button onClick={handleSolve} disabled={loading} style={{ background: 'transparent', border: '1px solid #5B5048', borderRadius: '8px', padding: '10px 24px', color: '#A89C93', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Solve</button>}
-              {revealed && <button onClick={advanceQuestion} style={{ background: '#F08C46', border: 'none', borderRadius: '8px', padding: '10px 24px', color: '#FFF', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Next Question →</button>}
+              {!revealed && <button onClick={handleSubmit} disabled={loading} style={{ background: 'var(--clr-accent)', border: 'none', borderRadius: '8px', padding: '10px 24px', color: '#FFF', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Submit</button>}
+              {!revealed && <button onClick={handleSolve} disabled={loading} style={{ background: 'transparent', border: '1px solid var(--clr-border)', borderRadius: '8px', padding: '10px 24px', color: 'var(--clr-text-soft)', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Solve</button>}
+              {revealed && <button onClick={advanceQuestion} style={{ background: 'var(--clr-accent)', border: 'none', borderRadius: '8px', padding: '10px 24px', color: '#FFF', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Next Question →</button>}
             </div>
           </>
         )}
@@ -43836,10 +43836,10 @@ function ColumnMultiplicationApp({ onBack, initialDifficulty, initialNumQuestion
       </>}
       {finished && (
         <div style={{ textAlign: 'center', padding: '24px' }}>
-          <h2 style={{ color: '#F4F1ED', marginBottom: '16px' }}>Score: {score}/{totalQ}</h2>
+          <h2 style={{ color: 'var(--clr-text)', marginBottom: '16px' }}>Score: {score}/{totalQ}</h2>
           <ResultsTable results={results} />
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '24px' }}>
-            <button onClick={() => { setStarted(false); setFinished(false) }} style={{ background: '#F08C46', border: 'none', borderRadius: '8px', padding: '10px 24px', color: '#FFF', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Play Again</button>
+            <button onClick={() => { setStarted(false); setFinished(false) }} style={{ background: 'var(--clr-accent)', border: 'none', borderRadius: '8px', padding: '10px 24px', color: '#FFF', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Play Again</button>
           </div>
         </div>
       )}
@@ -43868,6 +43868,7 @@ function ColumnSubtractionApp({ onBack, initialDifficulty, initialNumQuestions, 
   const [results, setResults] = useState([])
   const timer = useTimer()
   const [sessionGoal, setSessionGoal] = useState(isGoalMode ? 'speed' : 'standard')
+  const [showHelp, setShowHelp] = useState(false)
 
   const [answerInputs, setAnswerInputs] = useState([])
   const [borrowInputs, setBorrowInputs] = useState([])
@@ -44047,24 +44048,109 @@ function ColumnSubtractionApp({ onBack, initialDifficulty, initialNumQuestions, 
 
   if (!started && !finished) {
     return (
-      <div style={{ minHeight: '100vh', background: '#181512', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: 'Inter, sans-serif' }}>
-        <div style={{ background: '#2D2520', border: '1.5px solid #4A4038', borderRadius: '28px', boxShadow: '0 20px 40px rgba(0,0,0,.45)', padding: '48px 40px', maxWidth: '720px', width: '100%', textAlign: 'center', position: 'relative' }}>
-          <button onClick={onBack} style={{ position: 'absolute', top: '24px', left: '24px', background: 'transparent', border: '1px solid #5B5048', borderRadius: '6px', padding: '6px 14px', color: '#A89C93', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>← Home</button>
-          <h1 style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontWeight: 700, fontSize: '48px', color: '#F4F1ED', margin: '0 0 12px', lineHeight: 1.1 }}>Column Subtraction</h1>
-          <p style={{ color: '#988D84', fontSize: '0.9rem', margin: '0 0 24px', fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>Subtract vertically with borrowing</p>
+      <div style={{ minHeight: '100vh', background: 'var(--clr-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ background: 'var(--clr-card)', border: '1.5px solid var(--clr-border)', borderRadius: '28px', boxShadow: '0 20px 40px rgba(0,0,0,.45)', padding: '48px 40px', maxWidth: '720px', width: '100%', textAlign: 'center', position: 'relative' }}>
+          <button onClick={onBack} style={{ position: 'absolute', top: '24px', left: '24px', background: 'transparent', border: '1px solid var(--clr-border)', borderRadius: '6px', padding: '6px 14px', color: 'var(--clr-text-soft)', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>← Home</button>
+          <h1 style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontWeight: 700, fontSize: '48px', color: 'var(--clr-text)', margin: '0 0 12px', lineHeight: 1.1 }}>Column Subtraction</h1>
+          <p style={{ color: 'var(--clr-text-soft)', fontSize: '0.9rem', margin: '0 0 24px', fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>Subtract vertically with borrowing</p>
+
+          {/* Help toggle */}
+          <div style={{ marginBottom: '20px' }}>
+            <button onClick={() => setShowHelp(h => !h)} style={{ background: showHelp ? 'var(--clr-input)' : 'transparent', border: '1px solid var(--clr-border)', borderRadius: '50px', padding: '6px 16px', color: 'var(--clr-accent)', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}>{showHelp ? '✕ Close' : '? How to play'}</button>
+          </div>
+
+          {showHelp && (
+            <div style={{ textAlign: 'left', background: 'var(--clr-surface)', border: '1px solid var(--clr-border)', borderRadius: '16px', padding: '28px 28px', marginBottom: '24px', maxWidth: '580px', margin: '0 auto 24px' }}>
+              <h3 style={{ color: 'var(--clr-accent)', fontSize: '1.05rem', margin: '0 0 20px', fontFamily: 'Inter, sans-serif', fontWeight: 700, textAlign: 'center' }}>How Column Subtraction Works</h3>
+
+              {/* Step 1 */}
+              <div style={{ display: 'flex', gap: '14px', marginBottom: '18px', alignItems: 'flex-start' }}>
+                <div style={{ minWidth: '28px', height: '28px', borderRadius: '50%', background: 'var(--clr-accent)', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700, fontFamily: 'Inter, sans-serif' }}>1</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: 'var(--clr-text)', fontSize: '0.85rem', fontWeight: 600, fontFamily: 'Inter, sans-serif', marginBottom: '6px' }}>See the problem</div>
+                  <div style={{ color: 'var(--clr-text-soft)', fontSize: '0.82rem', fontFamily: 'Inter, sans-serif', lineHeight: '1.5', marginBottom: '10px' }}>The problem appears vertically. Start from the <strong style={{ color: 'var(--clr-text)' }}>rightmost column</strong> and work left.</div>
+                  <div style={{ background: 'var(--clr-card)', borderRadius: '10px', padding: '14px 16px', fontFamily: '"Courier New", monospace', fontSize: '1.2rem', fontWeight: 700, lineHeight: '1.5', textAlign: 'center' }}>
+                    <div><span style={{ color: 'var(--clr-text)' }}>2</span><span style={{ color: 'var(--clr-text)' }}>3</span></div>
+                    <div><span style={{ color: 'var(--clr-text-soft)', fontSize: '0.9rem' }}>− </span><span style={{ color: 'var(--clr-text)' }}>1</span><span style={{ color: 'var(--clr-text)' }}>8</span></div>
+                    <div style={{ width: '80px', height: '2px', background: 'var(--clr-border)', margin: '4px auto' }} />
+                    <div><span style={{ color: 'var(--clr-text)' }}>_</span><span style={{ color: 'var(--clr-text)' }}>_</span></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div style={{ display: 'flex', gap: '14px', marginBottom: '18px', alignItems: 'flex-start' }}>
+                <div style={{ minWidth: '28px', height: '28px', borderRadius: '50%', background: 'var(--clr-accent)', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700, fontFamily: 'Inter, sans-serif' }}>2</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: 'var(--clr-text)', fontSize: '0.85rem', fontWeight: 600, fontFamily: 'Inter, sans-serif', marginBottom: '6px' }}>Can't subtract? Click the top digit to borrow</div>
+                  <div style={{ color: 'var(--clr-text-soft)', fontSize: '0.82rem', fontFamily: 'Inter, sans-serif', lineHeight: '1.5', marginBottom: '10px' }}>3 − 8 is not possible, so click the <strong style={{ color: 'var(--clr-accent)' }}>3</strong> above. It gets a <span style={{ textDecoration: 'line-through', color: 'var(--clr-accent)' }}>strikethrough</span> and a box appears above it.</div>
+                  <div style={{ background: 'var(--clr-card)', borderRadius: '10px', padding: '14px 16px', fontFamily: '"Courier New", monospace', fontSize: '1.2rem', fontWeight: 700, lineHeight: '1.5', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--clr-accent)', marginBottom: '2px', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>↑ box appears here</div>
+                    <div><span style={{ color: 'var(--clr-text-soft)', opacity: 0.5, textDecoration: 'line-through' }}>2</span><span style={{ color: 'var(--clr-accent)', border: '1.5px solid var(--clr-accent)', borderRadius: '4px', padding: '0 4px' }}>3</span></div>
+                    <div><span style={{ color: 'var(--clr-text-soft)', fontSize: '0.9rem' }}>− </span><span style={{ color: 'var(--clr-text)' }}>1</span><span style={{ color: 'var(--clr-text)' }}>8</span></div>
+                    <div style={{ width: '80px', height: '2px', background: 'var(--clr-border)', margin: '4px auto' }} />
+                    <div><span style={{ color: 'var(--clr-text)' }}>_</span><span style={{ color: 'var(--clr-text)' }}>_</span></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div style={{ display: 'flex', gap: '14px', marginBottom: '18px', alignItems: 'flex-start' }}>
+                <div style={{ minWidth: '28px', height: '28px', borderRadius: '50%', background: 'var(--clr-accent)', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700, fontFamily: 'Inter, sans-serif' }}>3</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: 'var(--clr-text)', fontSize: '0.85rem', fontWeight: 600, fontFamily: 'Inter, sans-serif', marginBottom: '6px' }}>Type the converted value</div>
+                  <div style={{ color: 'var(--clr-text-soft)', fontSize: '0.82rem', fontFamily: 'Inter, sans-serif', lineHeight: '1.5', marginBottom: '10px' }}>3 becomes <strong style={{ color: 'var(--clr-text)' }}>13</strong> after borrowing. Type <strong style={{ color: 'var(--clr-text)' }}>13</strong> in the box. Now 13 − 8 = <strong style={{ color: 'var(--clr-text)' }}>5</strong>.</div>
+                  <div style={{ background: 'var(--clr-card)', borderRadius: '10px', padding: '14px 16px', fontFamily: '"Courier New", monospace', fontSize: '1.2rem', fontWeight: 700, lineHeight: '1.5', textAlign: 'center' }}>
+                    <div style={{ marginBottom: '2px' }}><span style={{ fontSize: '1.1rem', color: 'var(--clr-accent)', border: '1.5px solid var(--clr-accent)', borderRadius: '4px', padding: '2px 6px' }}>13</span></div>
+                    <div><span style={{ color: 'var(--clr-text-soft)', textDecoration: 'line-through', opacity: 0.5 }}>2</span><span style={{ color: 'var(--clr-text-soft)' }}>3</span></div>
+                    <div><span style={{ color: 'var(--clr-text-soft)', fontSize: '0.9rem' }}>− </span><span style={{ color: 'var(--clr-text)' }}>1</span><span style={{ color: 'var(--clr-text)' }}>8</span></div>
+                    <div style={{ width: '80px', height: '2px', background: 'var(--clr-border)', margin: '4px auto' }} />
+                    <div><span style={{ color: 'var(--clr-text)' }}>_</span><span style={{ color: 'var(--clr-correct)' }}>5</span></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 4 */}
+              <div style={{ display: 'flex', gap: '14px', marginBottom: '18px', alignItems: 'flex-start' }}>
+                <div style={{ minWidth: '28px', height: '28px', borderRadius: '50%', background: 'var(--clr-accent)', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700, fontFamily: 'Inter, sans-serif' }}>4</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: 'var(--clr-text)', fontSize: '0.85rem', fontWeight: 600, fontFamily: 'Inter, sans-serif', marginBottom: '6px' }}>Move left, subtract next column</div>
+                  <div style={{ color: 'var(--clr-text-soft)', fontSize: '0.82rem', fontFamily: 'Inter, sans-serif', lineHeight: '1.5', marginBottom: '10px' }}>The 2 became <strong style={{ color: 'var(--clr-text)' }}>1</strong> after lending. Now 1 − 1 = <strong style={{ color: 'var(--clr-text)' }}>0</strong>. Answer is <strong style={{ color: 'var(--clr-correct)' }}>05</strong> = 5. Correct!</div>
+                  <div style={{ background: 'var(--clr-card)', borderRadius: '10px', padding: '14px 16px', fontFamily: '"Courier New", monospace', fontSize: '1.2rem', fontWeight: 700, lineHeight: '1.5', textAlign: 'center' }}>
+                    <div style={{ marginBottom: '2px' }}><span style={{ fontSize: '1.1rem', color: 'var(--clr-text-soft)' }}>  </span></div>
+                    <div><span style={{ color: 'var(--clr-text-soft)', textDecoration: 'line-through', opacity: 0.5 }}>2</span><span style={{ color: 'var(--clr-text-soft)', textDecoration: 'line-through', opacity: 0.5 }}>3</span></div>
+                    <div><span style={{ color: 'var(--clr-text-soft)', fontSize: '0.9rem' }}>− </span><span style={{ color: 'var(--clr-text)' }}>1</span><span style={{ color: 'var(--clr-text)' }}>8</span></div>
+                    <div style={{ width: '80px', height: '2px', background: 'var(--clr-border)', margin: '4px auto' }} />
+                    <div><span style={{ color: 'var(--clr-correct)' }}>0</span><span style={{ color: 'var(--clr-correct)' }}>5</span></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation tips */}
+              <div style={{ background: 'var(--clr-card)', borderRadius: '10px', padding: '14px 18px', marginTop: '4px' }}>
+                <div style={{ color: 'var(--clr-text)', fontSize: '0.82rem', fontWeight: 600, fontFamily: 'Inter, sans-serif', marginBottom: '8px' }}>Keyboard shortcuts</div>
+                <div style={{ color: 'var(--clr-text-soft)', fontSize: '0.78rem', fontFamily: 'Inter, sans-serif', lineHeight: '1.8' }}>
+                  <div><span style={{ color: 'var(--clr-accent)', fontFamily: '"Courier New", monospace', background: 'var(--clr-input)', padding: '1px 6px', borderRadius: '3px', fontSize: '0.75rem' }}>← →</span> Move between answer digits</div>
+                  <div><span style={{ color: 'var(--clr-accent)', fontFamily: '"Courier New", monospace', background: 'var(--clr-input)', padding: '1px 6px', borderRadius: '3px', fontSize: '0.75rem' }}>↑ ↓</span> Jump between answer and borrow box</div>
+                  <div><span style={{ color: 'var(--clr-accent)', fontFamily: '"Courier New", monospace', background: 'var(--clr-input)', padding: '1px 6px', borderRadius: '3px', fontSize: '0.75rem' }}>Backspace</span> Clear and move right</div>
+                </div>
+                <div style={{ color: 'var(--clr-text-soft)', fontSize: '0.78rem', fontFamily: 'Inter, sans-serif', marginTop: '8px', lineHeight: '1.5' }}>Click a top digit again to <strong>cancel</strong> the borrow. If a column doesn't need borrowing, just fill the answer directly.</div>
+              </div>
+            </div>
+          )}
           <div style={{ marginBottom: '24px' }}>
-            <h3 style={{ color: '#F4F1ED', fontSize: '0.9rem', margin: '0 0 16px', fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>Select Difficulty:</h3>
+            <h3 style={{ color: 'var(--clr-text)', fontSize: '0.9rem', margin: '0 0 16px', fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>Select Difficulty:</h3>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
               {['easy', 'medium', 'hard', 'extrahard'].map(d => (
-                <button key={d} onClick={() => setDifficulty(d)} style={{ background: difficulty === d ? '#F08C46' : 'transparent', border: difficulty === d ? '1px solid #F08C46' : '1px solid #5B5048', borderRadius: '50px', padding: '8px 16px', color: difficulty === d ? '#FFF' : '#988D84', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>{diffLabels[d]}</button>
+                <button key={d} onClick={() => setDifficulty(d)} style={{ background: difficulty === d ? 'var(--clr-accent)' : 'transparent', border: difficulty === d ? '1px solid var(--clr-accent)' : '1px solid var(--clr-border)', borderRadius: '50px', padding: '8px 16px', color: difficulty === d ? '#FFF' : 'var(--clr-text-soft)', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>{diffLabels[d]}</button>
               ))}
             </div>
           </div>
           <div style={{ marginBottom: '32px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <label style={{ color: '#988D84', fontSize: '0.85rem', margin: '0 0 12px', fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>How many questions? (max 100)</label>
-            <input type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} style={{ background: '#463B34', border: '1px solid #5B5048', borderRadius: '6px', padding: '10px', color: '#FFF', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.9rem', width: '100px', textAlign: 'center', outline: 'none' }} placeholder={String(DEFAULT_TOTAL)} />
+            <label style={{ color: 'var(--clr-text-soft)', fontSize: '0.85rem', margin: '0 0 12px', fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>How many questions? (max 100)</label>
+            <input type="text" value={numQuestions} onChange={(e) => { const v = e.target.value; if (v === '' || (/^\d+$/.test(v) && Number(v) <= 100)) setNumQuestions(v) }} style={{ background: 'var(--clr-input)', border: '1px solid var(--clr-border)', borderRadius: '6px', padding: '10px', color: 'var(--clr-text)', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.9rem', width: '100px', textAlign: 'center', outline: 'none' }} placeholder={String(DEFAULT_TOTAL)} />
           </div>
-          <button onClick={startQuiz} style={{ background: '#F08C46', border: 'none', borderRadius: '6px', padding: '10px 24px', color: '#FFF', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Start Quiz</button>
+          <button onClick={startQuiz} style={{ background: 'var(--clr-accent)', border: 'none', borderRadius: '6px', padding: '10px 24px', color: '#FFF', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Start Quiz</button>
         </div>
       </div>
     )
@@ -44099,7 +44185,7 @@ function ColumnSubtractionApp({ onBack, initialDifficulty, initialNumQuestions, 
                       onChange={e => handleInput(i, e.target.value, true)}
                       onKeyDown={e => handleKeyDown(i, e, true)}
                       disabled={revealed}
-                      style={{ width: '40px', height: '36px', textAlign: 'center', fontSize: '1rem', fontWeight: 700, background: revealed ? (isRight ? '#1a472a' : (isWrong ? '#5c1a1a' : '#3a2f28')) : '#3a2f28', border: `2px solid ${revealed && isRight ? '#2ecc71' : (revealed && isWrong ? '#e74c3c' : '#5B5048')}`, borderRadius: '8px', color: revealed && isRight ? '#2ecc71' : (revealed && isWrong ? '#e74c3c' : '#F4F1ED'), fontFamily: '"Courier New", monospace', outline: 'none' }}
+                      style={{ width: '40px', height: '36px', textAlign: 'center', fontSize: '1rem', fontWeight: 700, background: revealed ? (isRight ? 'var(--clr-correct-bg)' : (isWrong ? 'var(--clr-wrong-bg)' : 'var(--clr-input)')) : 'var(--clr-input)', border: `2px solid ${revealed && isRight ? 'var(--clr-correct)' : (revealed && isWrong ? 'var(--clr-wrong)' : 'var(--clr-border)')}`, borderRadius: '8px', color: revealed && isRight ? 'var(--clr-correct)' : (revealed && isWrong ? 'var(--clr-wrong)' : 'var(--clr-text)'), fontFamily: '"Courier New", monospace', outline: 'none' }}
                     />
                   );
                 })}
@@ -44114,7 +44200,7 @@ function ColumnSubtractionApp({ onBack, initialDifficulty, initialNumQuestions, 
                       onClick={() => { if (!revealed && d != null) activateBorrow(i, activeBorrows.has(i)) }}
                       style={{
                         width: '40px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: struck ? '#988D84' : '#F4F1ED',
+                        color: struck ? 'var(--clr-text-soft)' : 'var(--clr-text)',
                         textDecoration: struck ? 'line-through' : 'none',
                         cursor: revealed || d == null ? 'default' : 'pointer',
                         opacity: struck ? 0.5 : 1,
@@ -44127,15 +44213,15 @@ function ColumnSubtractionApp({ onBack, initialDifficulty, initialNumQuestions, 
               </div>
               {/* Subtrahend */}
               <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
-                <span style={{ width: '44px', textAlign: 'center', color: '#988D84', fontSize: '1.4rem' }}>−</span>
+                <span style={{ width: '44px', textAlign: 'center', color: 'var(--clr-text-soft)', fontSize: '1.4rem' }}>−</span>
                 {question.bDigits.map((d, i) => (
-                  <span key={i} style={{ width: '40px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F4F1ED' }}>{d !== null ? d : ''}</span>
+                  <span key={i} style={{ width: '40px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--clr-text)' }}>{d !== null ? d : ''}</span>
                 ))}
               </div>
               {/* Line */}
               <div style={{ display: 'flex', gap: '4px' }}>
                 <span style={{ width: '44px' }} />
-                <div style={{ width: `${ansLen * 44}px`, height: '3px', background: '#5B5048', borderRadius: '2px' }} />
+                <div style={{ width: `${ansLen * 44}px`, height: '3px', background: 'var(--clr-border)', borderRadius: '2px' }} />
               </div>
               {/* Difference row */}
               <div style={{ display: 'flex', gap: '4px', marginTop: '8px' }}>
@@ -44151,7 +44237,7 @@ function ColumnSubtractionApp({ onBack, initialDifficulty, initialNumQuestions, 
                       onChange={e => handleInput(i, e.target.value, false)}
                       onKeyDown={e => handleKeyDown(i, e, false)}
                       disabled={revealed}
-                      style={{ width: '40px', height: '48px', textAlign: 'center', fontSize: '1.4rem', fontWeight: 700, background: isRight ? '#1a472a' : isWrong ? '#5c1a1a' : '#3a2f28', border: `2px solid ${isRight ? '#2ecc71' : isWrong ? '#e74c3c' : '#5B5048'}`, borderRadius: '8px', color: isRight ? '#2ecc71' : isWrong ? '#e74c3c' : '#F4F1ED', fontFamily: '"Courier New", monospace', outline: 'none' }}
+                      style={{ width: '40px', height: '48px', textAlign: 'center', fontSize: '1.4rem', fontWeight: 700, background: isRight ? 'var(--clr-correct-bg)' : isWrong ? 'var(--clr-wrong-bg)' : 'var(--clr-input)', border: `2px solid ${isRight ? 'var(--clr-correct)' : isWrong ? 'var(--clr-wrong)' : 'var(--clr-border)'}`, borderRadius: '8px', color: isRight ? 'var(--clr-correct)' : isWrong ? 'var(--clr-wrong)' : 'var(--clr-text)', fontFamily: '"Courier New", monospace', outline: 'none' }}
                     />
                   )
                 })}
@@ -44160,18 +44246,18 @@ function ColumnSubtractionApp({ onBack, initialDifficulty, initialNumQuestions, 
             {feedback && (
               <div style={{
                 textAlign: 'left', padding: '12px 16px', borderRadius: '8px', margin: '8px 0',
-                background: revealed && !isCorrect && feedback.length > 50 ? 'rgba(58,47,40,0.95)' : isCorrect ? 'rgba(46,204,113,0.15)' : 'rgba(231,76,60,0.15)',
-                color: isCorrect ? '#2ecc71' : feedback.length > 50 ? '#F4F1ED' : '#e74c3c',
+                background: revealed && !isCorrect && feedback.length > 50 ? 'var(--clr-card)' : isCorrect ? 'var(--clr-correct-bg)' : 'var(--clr-wrong-bg)',
+                color: isCorrect ? 'var(--clr-correct)' : feedback.length > 50 ? 'var(--clr-text)' : 'var(--clr-wrong)',
                 fontWeight: feedback.length > 50 ? 400 : 600, fontSize: '0.9rem',
                 whiteSpace: 'pre-line', lineHeight: '1.6',
                 maxHeight: '300px', overflowY: 'auto',
-                border: feedback.length > 50 ? '1px solid #5B5048' : 'none'
+                border: feedback.length > 50 ? '1px solid var(--clr-border)' : 'none'
               }}>{feedback}</div>
             )}
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', margin: '12px 0', flexWrap: 'wrap' }}>
-              {!revealed && <button onClick={handleSubmit} disabled={loading} style={{ background: '#F08C46', border: 'none', borderRadius: '8px', padding: '10px 24px', color: '#FFF', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Submit</button>}
-              {!revealed && <button onClick={handleSolve} disabled={loading} style={{ background: 'transparent', border: '1px solid #5B5048', borderRadius: '8px', padding: '10px 24px', color: '#A89C93', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Solve</button>}
-              {revealed && <button onClick={advanceQuestion} style={{ background: '#F08C46', border: 'none', borderRadius: '8px', padding: '10px 24px', color: '#FFF', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Next Question →</button>}
+              {!revealed && <button onClick={handleSubmit} disabled={loading} style={{ background: 'var(--clr-accent)', border: 'none', borderRadius: '8px', padding: '10px 24px', color: '#FFF', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Submit</button>}
+              {!revealed && <button onClick={handleSolve} disabled={loading} style={{ background: 'transparent', border: '1px solid var(--clr-border)', borderRadius: '8px', padding: '10px 24px', color: 'var(--clr-text-soft)', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Solve</button>}
+              {revealed && <button onClick={advanceQuestion} style={{ background: 'var(--clr-accent)', border: 'none', borderRadius: '8px', padding: '10px 24px', color: '#FFF', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Next Question →</button>}
             </div>
           </>
         )}
@@ -44179,10 +44265,10 @@ function ColumnSubtractionApp({ onBack, initialDifficulty, initialNumQuestions, 
       </>}
       {finished && (
         <div style={{ textAlign: 'center', padding: '24px' }}>
-          <h2 style={{ color: '#F4F1ED', marginBottom: '16px' }}>Score: {score}/{totalQ}</h2>
+          <h2 style={{ color: 'var(--clr-text)', marginBottom: '16px' }}>Score: {score}/{totalQ}</h2>
           <ResultsTable results={results} />
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '24px' }}>
-            <button onClick={() => { setStarted(false); setFinished(false) }} style={{ background: '#F08C46', border: 'none', borderRadius: '8px', padding: '10px 24px', color: '#FFF', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Play Again</button>
+            <button onClick={() => { setStarted(false); setFinished(false) }} style={{ background: 'var(--clr-accent)', border: 'none', borderRadius: '8px', padding: '10px 24px', color: '#FFF', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Play Again</button>
           </div>
         </div>
       )}
@@ -48549,7 +48635,7 @@ function makeQuizApp({ title, subtitle, apiPath, diffLabels, placeholders, tip, 
 
     if (!started && !finished) {
       return (
-        <div style={{ minHeight: '100vh', background: '#181512', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: 'Inter, sans-serif' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--clr-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: 'Inter, sans-serif' }}>
           <div style={{
             background: '#2D2520', border: '1.5px solid #4A4038', borderRadius: '28px',
             boxShadow: '0 20px 40px rgba(0,0,0,.45)', padding: '48px 40px', maxWidth: '720px', width: '100%',
