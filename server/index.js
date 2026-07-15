@@ -614,6 +614,158 @@ app.post('/column-addition-api/check', (req, res) => {
 });
 
 /**
+ * COLUMN MULTIPLICATION API
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Vertical column multiplication: single-digit multiplier × N-digit multiplicand.
+ * Mirrors the column-addition UI: user fills carries above + product digits below.
+ * GET  returns numbers + precomputed carries/digits
+ * POST validates answer digits and carry digits
+ */
+
+function computeMulData(multiplicand, multiplier) {
+  const product = multiplicand * multiplier;
+  const aStr = String(multiplicand);
+  const pStr = String(product);
+  const opLen = aStr.length;
+  const ansLen = pStr.length;
+  const aPad = aStr.padStart(ansLen, ' ');
+  // carries[i] = carry INTO position i of the product (from right multiplication step)
+  // carries[0] is always 0 (rightmost multiplication has no carry in)
+  const carries = new Array(ansLen).fill(0);
+  let carry = 0;
+  for (let i = ansLen - 1; i >= 0; i--) {
+    const da = parseInt(aPad[i]) || 0;
+    const colProd = da * multiplier + carry;
+    carry = Math.floor(colProd / 10);
+    if (i > 0) carries[i - 1] = carry;
+  }
+  const answerDigits = pStr.split('').map(Number);
+  const aDigits = aPad.split('').map(d => d === ' ' ? null : Number(d));
+  return { answerDigits, aDigits, carries, digits: opLen };
+}
+
+app.get('/column-multiplication-api/question', (req, res) => {
+  const difficulty = req.query.difficulty || 'easy';
+  const digitMap = { easy: 1, medium: 2, hard: 3, extrahard: 4 };
+  const numDigits = digitMap[difficulty] || 1;
+  const range = digitRange(numDigits);
+  let a, m, data;
+  let attempts = 0;
+  do {
+    a = randomInt(Math.max(range.min, 1), range.max);
+    m = randomInt(2, 9); // multiplier single digit, avoid 0 and 1 for meaningful carries
+    data = computeMulData(a, m);
+    attempts++;
+  } while (data.carries.slice(1).every(c => c === 0) && attempts < 20);
+  res.json({
+    id: `cm-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    a, b: m,
+    multiplier: m,
+    answer: a * m,
+    ...data,
+  });
+});
+
+app.post('/column-multiplication-api/check', (req, res) => {
+  const { a, b, userAnswer, userCarries } = req.body || {};
+  const numA = Number(a), numB = Number(b);
+  const correctAnswer = numA * numB;
+  const data = computeMulData(numA, numB);
+  const answerCorrect = Array.isArray(userAnswer) &&
+    userAnswer.map(Number).join('') === data.answerDigits.join('');
+  const carriesCorrect = Array.isArray(userCarries) &&
+    userCarries.map(Number).join('') === data.carries.join('');
+  const correct = answerCorrect && carriesCorrect;
+  res.json({
+    correct,
+    correctAnswer,
+    answerDigits: data.answerDigits,
+    correctCarries: data.carries,
+    message: correct ? 'Correct!' : carriesCorrect ? 'Product digits wrong' : answerCorrect ? 'Carries wrong' : 'Try again',
+  });
+});
+
+/**
+ * COLUMN SUBTRACTION API
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Vertical column subtraction: minuend − subtrahend (minuend >= subtrahend).
+ * Mirrors the column-addition UI: user fills borrows above + difference digits below.
+ * GET  returns numbers + precomputed borrows/digits
+ * POST validates difference digits and borrow digits
+ */
+
+function computeSubData(minuend, subtrahend) {
+  const diff = minuend - subtrahend;
+  const aStr = String(minuend);
+  const bStr = String(subtrahend);
+  const dStr = String(diff);
+  const opLen = Math.max(aStr.length, bStr.length);
+  const ansLen = dStr.length;
+  const aPad = aStr.padStart(ansLen, ' ');
+  const bPad = bStr.padStart(ansLen, ' ');
+  // borrows[i] = borrow box ABOVE answer column i (shown to the LEFT of the answer digit).
+  // Marks that column i needed to borrow from column i-1. Position 0 (leftmost) is always 0.
+  const borrows = new Array(ansLen).fill(0);
+  let borrow = 0;
+  for (let i = ansLen - 1; i >= 0; i--) {
+    let da = (parseInt(aPad[i]) || 0) - borrow;
+    const db = parseInt(bPad[i]) || 0;
+    if (da < db) {
+      da += 10;
+      borrow = 1;
+      if (i > 0) borrows[i - 1] = 1;
+    } else {
+      borrow = 0;
+    }
+  }
+  const answerDigits = dStr.split('').map(Number);
+  const aDigits = aPad.split('').map(d => d === ' ' ? null : Number(d));
+  const bDigits = bPad.split('').map(d => d === ' ' ? null : Number(d));
+  return { answerDigits, aDigits, bDigits, borrows, digits: opLen };
+}
+
+app.get('/column-subtraction-api/question', (req, res) => {
+  const difficulty = req.query.difficulty || 'easy';
+  // Subtraction needs at least 2 digits to have any borrows; bump easy to 2
+  const digitMap = { easy: 2, medium: 2, hard: 3, extrahard: 4 };
+  const numDigits = digitMap[difficulty] || 2;
+  const range = digitRange(numDigits);
+  let a, b, data;
+  let attempts = 0;
+  do {
+    a = randomInt(Math.max(range.min, 10), range.max);
+    b = randomInt(Math.max(range.min, 1), Math.max(a - 1, Math.max(range.min, 1)));
+    data = computeSubData(a, b);
+    attempts++;
+  } while (data.borrows.slice(0, -1).every(x => x === 0) && attempts < 20);
+  res.json({
+    id: `cs-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    a, b,
+    answer: a - b,
+    ...data,
+  });
+});
+
+app.post('/column-subtraction-api/check', (req, res) => {
+  const { a, b, userAnswer, userBorrows } = req.body || {};
+  const numA = Number(a), numB = Number(b);
+  const correctAnswer = numA - numB;
+  const data = computeSubData(numA, numB);
+  const answerCorrect = Array.isArray(userAnswer) &&
+    userAnswer.map(Number).join('') === data.answerDigits.join('');
+  const borrowsCorrect = Array.isArray(userBorrows) &&
+    userBorrows.map(String).join('') === data.borrows.map(String).join('');
+  const correct = answerCorrect && borrowsCorrect;
+  res.json({
+    correct,
+    correctAnswer,
+    answerDigits: data.answerDigits,
+    correctBorrows: data.borrows,
+    message: correct ? 'Correct!' : borrowsCorrect ? 'Difference digits wrong' : answerCorrect ? 'Borrows wrong' : 'Try again',
+  });
+});
+
+/**
  * QUADRATIC EVALUATION API
  * ═══════════════════════════════════════════════════════════════════════════
  */

@@ -87,6 +87,48 @@ function generateExplanation(req, data) {
     return s;
   }
 
+  // ── Column Multiplication ────────────────────────────────────
+  if (p.includes('column-multiplication-api')) {
+    const { a, b: num2 } = b;
+    const product = (d.correctAnswer != null) ? d.correctAnswer : a * num2;
+    const aStr = String(a);
+    let s = `Problem: Column multiplication of ${a} × ${num2}\n\n`;
+    s += `Multiply each digit of ${a} by ${num2}, right to left, carrying as needed:\n`;
+    let carry = 0;
+    for (let i = aStr.length - 1; i >= 0; i--) {
+      const da = parseInt(aStr[i]) || 0;
+      const total = da * num2 + carry;
+      const outDigit = total % 10;
+      const newCarry = Math.floor(total / 10);
+      s += `  ${da} × ${num2}${carry ? ' + carry ' + carry : ''} = ${total} → write ${outDigit}${newCarry ? ', carry ' + newCarry : ''}\n`;
+      carry = newCarry;
+    }
+    s += `\nAnswer: ${a} × ${num2} = ${product}`;
+    return s;
+  }
+
+  // ── Column Subtraction (must check before plain subtraction-api) ──
+  if (p.includes('column-subtraction-api')) {
+    const { a, b: num2 } = b;
+    const diff = (d.correctAnswer != null) ? d.correctAnswer : a - num2;
+    const aStr = String(a), bStr = String(num2), dStr = String(diff);
+    const ansLen = dStr.length;
+    const aPad = aStr.padStart(ansLen, ' '), bPad = bStr.padStart(ansLen, ' ');
+    let s = `Problem: Column subtraction of ${a} − ${num2}\n\n`;
+    s += `Working right to left, column by column, borrowing as needed:\n`;
+    let borrow = 0;
+    for (let i = ansLen - 1; i >= 0; i--) {
+      let da = (parseInt(aPad[i]) || 0) - borrow;
+      const db = parseInt(bPad[i]) || 0;
+      const borrowed = da < db ? 1 : 0;
+      const sub = da + (borrowed ? 10 : 0) - db;
+      s += `  ${da + (borrowed ? 10 : 0)} − ${db}${borrow ? ' (after borrowing in)' : ''} = ${sub} → write ${sub}${borrowed ? ', borrow 1 from next column' : ''}\n`;
+      borrow = borrowed;
+    }
+    s += `\nAnswer: ${a} − ${num2} = ${diff}`;
+    return s;
+  }
+
   // ── Addition ──────────────────────────────────────────────────
   if (p.includes('addition-api')) {
     const { a, b: num2 } = b;
