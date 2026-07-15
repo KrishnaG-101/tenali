@@ -46618,6 +46618,8 @@ function GKApp({ onBack, markTopicCompleted, isGoalMode = false }) {
  * @param {Function} props.onBack - Callback to return to home menu
  */
 function AdditionApp({ onBack, completedTopics = [], goldMastery = [], markTopicCompleted, setTransferTopic, setMode, initialMode, initialDifficulty, initialNumQuestions, initialStarted, isGoalMode = false }) {
+  // Mode selection: 'standard' (default), 'counting' (Visual Counting), 'scale' (Balance Scale)
+  const [additionMode, setAdditionMode] = useState(initialMode || 'standard')
   // Difficulty level: 'easy' (1-digit), 'medium' (2-digit), 'hard' (3-digit), 'extrahard' (4-digit)
   const [difficulty, setDifficulty] = useState(initialDifficulty || 'easy')
   // Adaptive mode enabled?
@@ -51176,6 +51178,9 @@ function TransferChallengeApp({ topicKey, onBack, completedTopics, goldMastery, 
 
 function makeQuizApp({ title, subtitle, apiPath, diffLabels, placeholders, tip, answerField }) {
   return function GeneratedQuizApp({ onBack, completedTopics = [], goldMastery = [], markTopicCompleted, markGoldMastery, updateCoins, setMode, setTransferTopic, initialDifficulty, initialNumQuestions, initialStarted, isGoalMode = false }) {
+    const diffs = Object.keys(diffLabels)
+    const [difficulty, setDifficulty] = useState(initialDifficulty || diffs[0])
+    const topicKey = apiPath.replace('-api', '')
     const [isAdaptive, setIsAdaptive] = useState(false)
     const [adaptScore, setAdaptScore] = useState(0) // 0.0 (easy) → 3.0 (extrahard)
     const [reportAck, setReportAck] = useState('')
