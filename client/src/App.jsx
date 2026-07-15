@@ -41102,7 +41102,7 @@ function App() {
   // ========== ROUTING: MODE-BASED (HOME MENU + QUIZZES) ==========
   // Map quiz mode keys to their component classes
   const modeMap = {
-    vachana: VachanaApp,          // Vachana Mathematical Literacy Lab
+    vachana: Vachana,          // Vachana Mathematical Literacy Lab
     linearalgebra: LinearAlgebraApp, // Linear Algebra Module 1
     missionquiz: MissionQuizApp, // Mission-specific Linear Algebra Quiz
     'math-lab': MathLabHubApp,
@@ -59906,6 +59906,18 @@ function TatsavitLineApp({ onBack }) {
 
 // The Vachana Literary Lab is now imported from its own directory to avoid bloating App.jsx.
 
+/**
+ * QuizLayout Component
+ * Wrapper layout for quiz apps (PolyFactorApp, PrimeFactorApp, QFormulaApp, etc.)
+ * Provides consistent header with back button and title section
+ * All quiz content is rendered via children prop
+ *
+ * @param {Object} props
+ * @param {string} props.title - Main heading (e.g., "Prime Factors")
+ * @param {string} props.subtitle - Subtitle/description
+ * @param {Function} props.onBack - Callback when back button is clicked
+ * @param {React.ReactNode} props.children - Quiz content to display
+ */
 export function QuizLayout({ title, subtitle, onBack, children, timer, sessionGoal }) {
   // Derive display values from the timer object
   const isSpeed   = timer && (timer.mode === 'speed'   || sessionGoal === 'speed')
