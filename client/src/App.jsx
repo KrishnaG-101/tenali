@@ -41322,6 +41322,10 @@ function App() {
 
   return (
     <div className="app-shell">
+      {showTour && <OnboardingTour onFinish={() => { localStorage.setItem('tenali_tour_seen', 'true'); setShowTour(false) }} mode={mode} />}
+      <button className="guide-toggle" onClick={() => setShowTour(true)} title="Take a Tour">
+        🧭 Guide
+      </button>
       <button className="theme-toggle" onClick={toggleTheme} title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
         {theme === 'dark' ? '☀️' : '🌙'}
       </button>
@@ -41644,7 +41648,7 @@ function Home({ onSelect, isGoalSelection = false, onBack }) {
           onChange={e => setSearch(e.target.value)}
         />
       </div>
-      <div className="menu-grid" ref={gridRef}>
+      <div id="tour-home-grid" className="menu-grid" ref={gridRef}>
         {displayGridApps.map((app) => (
           <button key={app.key} className={`menu-card ${app.color}`} onClick={() => onSelect(app.key)}>
             <span className="menu-title">{app.name}</span>
