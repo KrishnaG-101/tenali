@@ -44267,13 +44267,13 @@ function ColumnMultiplicationApp({ onBack, initialDifficulty, initialNumQuestion
           const isDone = idx < currentPP
 
           return (
-            <div key={idx} style={{ ...rowGap, marginTop: '6px' }}>
+            <div key={idx} style={{ ...rowGap, marginTop: '6px', padding: isDone ? '2px 4px' : isActive ? '2px 4px' : '0', borderRadius: '8px', background: isDone ? 'var(--clr-correct-bg)' : 'transparent', borderLeft: isActive ? '3px solid var(--clr-accent)' : 'none' }}>
               <span style={{ width: `${LEFT_MARGIN}px`, textAlign: 'center', color: 'var(--clr-text-soft)', fontSize: '1.4rem' }}>+</span>
               {ppRow.digits.map((d, j) => {
                 if (d === null) return emptyCell(j)
                 if (isDone) {
                   const val = ppInputs[idx]?.[j] ?? ''
-                  return <div key={j} style={{ width: `${COL}px`, height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 700, color: 'var(--clr-text)', opacity: 0.3 }}>{val}</div>
+                  return <div key={j} style={{ width: `${COL}px`, height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 700, color: 'var(--clr-correct)' }}>{val}</div>
                 }
                 const isRight = isPpRight(idx, j)
                 const isWrong = isPpWrong(idx, j)
