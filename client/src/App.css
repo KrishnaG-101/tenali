@@ -1,3 +1,4 @@
+
 ﻿/**
 * ============================================================================
  * TENALI CSS ARCHITECTURE
@@ -3697,6 +3698,163 @@ button:disabled {
   -ms-overflow-style: none;
 }
 
-.word-explorer-list::-webkit-scrollbar {
-  display: none;
+/* ===== Badge Detail Modal Overlay (merged from upstream/main) ===== */
+
+.badge-detail-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+
+.badge-detail-modal {
+  background: var(--clr-card);
+  border: 2px solid var(--clr-border);
+  border-radius: 24px;
+  max-width: 460px;
+  width: 90%;
+  padding: 24px 24px 28px;
+  position: relative;
+  animation: modal-pop 0.3s ease;
+  text-align: center;
+}
+
+.badge-detail-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: var(--clr-hover-strong);
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--clr-text);
+  padding: 0;
+  box-sizing: border-box;
+  line-height: 1;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  z-index: 10;
+}
+
+.badge-detail-close:hover {
+  transform: scale(1.1);
+  background: #ea580c !important;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(234, 88, 12, 0.6);
+}
+
+.badge-detail-hero {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 140px;
+  position: relative;
+}
+
+.badge-detail-aura {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  filter: blur(28px);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.badge-detail-aura.level-gold {
+  background: #ffd700;
+}
+
+.badge-detail-aura.level-silver {
+  background: #cbd5e1;
+}
+
+.badge-detail-aura.level-bronze {
+  background: #d97706;
+}
+
+.badge-detail-aura.level-blue {
+  background: #3b82f6;
+}
+
+.badge-detail-title {
+  font-size: 1.6rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--clr-text);
+  margin: 8px 0 4px;
+  font-family: var(--font-display);
+}
+
+.badge-detail-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: var(--clr-accent-soft);
+  border: 1.5px solid var(--clr-accent);
+  color: var(--clr-accent);
+  margin-top: 6px;
+}
+
+.badge-detail-desc {
+  color: var(--clr-text-soft);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 16px 0;
+}
+
+.badge-detail-requirement {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1.5px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 12px 16px;
+  text-align: left;
+}
+
+.badge-detail-requirement strong {
+  display: block;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--clr-accent);
+  margin-bottom: 6px;
+}
+
+.badge-detail-requirement p {
+  margin: 0;
+  color: var(--clr-text-soft);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+@keyframes modal-pop {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
