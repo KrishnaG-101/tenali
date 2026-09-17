@@ -39,6 +39,7 @@ import CrossSectionApp from './CrossSectionApp';
 window.React = React;
 console.log("React version:", React.version);
 import LinearAlgebraApp from './LinearAlgebraApp'
+import MatrixMysticsApp from './matrixmystics/MatrixMysticsApp'
 import { TILES, FEATURED_TILES, MATH_LAB_ENTRY, GEOCRAFT_ENTRY } from './features/tiles'
 
 
@@ -43197,6 +43198,18 @@ function App() {
     )
   }
 
+  // Route: /matrixmystics → Matrix Mystics (Geometric Linear Algebra Lab)
+  if (pathname === '/matrixmystics' || pathname === '/mm') {
+    return (
+      <>
+        <button className="theme-toggle" onClick={toggleTheme} title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
+        <MatrixMysticsApp onBack={() => { window.location.href = withBase('/') }} />
+      </>
+    )
+  }
+
   // Route: /chapter1 → Cambridge IGCSE Chapter 1 (Reviewing Number Concepts)
   if (pathname === '/chapter1') {
     return (
@@ -44886,7 +44899,7 @@ function App() {
     indicesgym: IndicesGymApp,     // Indices-Gym — index laws (MCQ)
     polygym: PolyGymApp,           // Polynomials Gym — arithmetic → monomial algebra (MCQ)
     treasurehunt: TreasureHuntApp, // Treasure Hunt — solve & seek grid game
-    // matrixmystics mode removed — Matrix Mystics content now embedded in LinearAlgebraApp's mission quiz
+    matrixmystics: MatrixMysticsApp, // Matrix Mystics — 3-Stage Geometric Linear Algebra Lab
     trackProgress: ProgressTrackerApp,
     riddle: RiddleApp,              // Math Riddles
     'water-jug-lab': WaterJugLab,
@@ -56364,8 +56377,9 @@ const PolyGymApp = makeMCQuizApp({
 // 6 modules, 53 topics, 1855+ questions across easy/medium/hard + real app.
 // ───────────────────────────────────────────────────────────────────────────
 
-const MatrixMysticsApp = makeMCQuizApp({
-  title: 'Matrix Mystics',
+// Legacy single-screen MCQ quiz (superseded by ./matrixmystics/MatrixMysticsApp)
+const _LegacyMatrixMysticsQuiz = makeMCQuizApp({
+  title: 'Matrix Mystics (Legacy)',
   subtitle: 'Linear Algebra — 6 modules, 53 topics',
   apiPath: 'matrixmystics-api',
   adaptiveOnly: true,
