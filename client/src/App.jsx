@@ -43198,16 +43198,9 @@ function App() {
     )
   }
 
-  // Route: /matrixmystics → Matrix Mystics (Geometric Linear Algebra Lab)
+  // Route: /matrixmystics → Matrix Mystics (Standalone Independent App)
   if (pathname === '/matrixmystics' || pathname === '/mm') {
-    return (
-      <>
-        <button className="theme-toggle" onClick={toggleTheme} title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
-          {theme === 'dark' ? '☀️' : '🌙'}
-        </button>
-        <MatrixMysticsApp onBack={() => { window.location.href = withBase('/') }} />
-      </>
-    )
+    return <MatrixMysticsApp />
   }
 
   // Route: /chapter1 → Cambridge IGCSE Chapter 1 (Reviewing Number Concepts)

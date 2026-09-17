@@ -150,11 +150,6 @@ export default function MatrixMysticsApp({ onBack }) {
       {/* Top Main Navigation Bar */}
       <header className="mm-navbar">
         <div className="mm-nav-left">
-          {onBack && (
-            <button className="mm-btn-back" onClick={onBack} title="Return to Tenali Home">
-              ← Tenali
-            </button>
-          )}
           <div className="mm-brand" onClick={() => setView('dashboard')}>
             <span className="mm-brand-icon">🔮</span>
             <div className="mm-brand-text">

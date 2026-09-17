@@ -27,7 +27,7 @@ export default function ProofOfCompletionModal({
   };
 
   const handleCopyProof = () => {
-    const text = `Matrix Mystics Certificate of Competency\nMission: #${mission.id} ${mission.title}\nModule: ${moduleData?.title || 'Linear Algebra'}\nProof ID: ${proofData?.proofId || 'MM-' + mission.id}\nIssued: ${proofData?.completedAt ? new Date(proofData.completedAt).toLocaleString() : new Date().toLocaleString()}\nVerified on Tenali Linear Algebra Platform`;
+    const text = `Matrix Mystics Certificate of Competency\nMission: #${mission.id} ${mission.title}\nModule: ${moduleData?.title || 'Linear Algebra'}\nProof ID: ${proofData?.proofId || 'MM-' + mission.id}\nIssued: ${proofData?.completedAt ? new Date(proofData.completedAt).toLocaleString() : new Date().toLocaleString()}\nVerified on Matrix Mystics Platform`;
     navigator.clipboard?.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
@@ -57,7 +57,7 @@ export default function ProofOfCompletionModal({
             <div className="mm-cert-header">
               <div className="mm-cert-badge">
                 <span className="mm-cert-badge-icon">🏛️</span>
-                <span className="mm-cert-badge-tag">TENALI LINEAR ALGEBRA LAB</span>
+                <span className="mm-cert-badge-tag">MATRIX MYSTICS RESEARCH LAB</span>
               </div>
               <h2 className="mm-cert-title">PROOF OF COMPETENCY</h2>
               <p className="mm-cert-subtitle">Geometric & Algebraic Mastery Certification</p>
