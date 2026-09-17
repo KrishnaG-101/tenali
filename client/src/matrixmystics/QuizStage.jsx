@@ -25,8 +25,16 @@ export default function QuizStage({
     setLoading(true);
 
     const loadQuestions = async () => {
+      // Priority 1: Use deeply mapped curriculum quiz from mission data
+      if (Array.isArray(mission.quiz) && mission.quiz.length > 0 && mission.quiz[0].question) {
+        setQuestions(mission.quiz);
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await fetch(`${API}/matrixmystics-api/mission/${mission.id}`);
+
         if (!res.ok) throw new Error('API fetch failed');
         const data = await res.json();
         if (cancelled) return;

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { MODULES, MISSIONS } from './geogebraMissionsData';
+import { MODULES, QUESTIONS as MISSIONS } from './matrixMysticsData';
 import QuestionStage from './QuestionStage';
 import GeoGebraLabStage from './GeoGebraLabStage';
 import QuizStage from './QuizStage';
 import ProofOfCompletionModal from './ProofOfCompletionModal';
 import './matrixMystics.css';
+
 
 const STORAGE_KEY = 'matrix_mystics_progress_v1';
 
@@ -123,12 +124,13 @@ export default function MatrixMysticsApp({ onBack }) {
 
   const handleNextMission = () => {
     setProofModalMission(null);
-    if (activeMissionId < 56) {
+    if (activeMissionId < MISSIONS.length) {
       handleOpenMission(activeMissionId + 1, 1);
     } else {
       setView('dashboard');
     }
   };
+
 
   // Filter missions for the dashboard
   const currentModuleMissions = MISSIONS.filter(m => {
@@ -162,9 +164,10 @@ export default function MatrixMysticsApp({ onBack }) {
         <div className="mm-nav-right">
           <div className="mm-progress-pill" title="Overall Mastery Progress">
             <span className="mm-pill-label">Mastery:</span>
-            <span className="mm-pill-val">{totalMastered} / 56</span>
-            <span className="mm-pill-pct">({Math.round((totalMastered / 56) * 100)}%)</span>
+            <span className="mm-pill-val">{totalMastered} / {MISSIONS.length}</span>
+            <span className="mm-pill-pct">({MISSIONS.length ? Math.round((totalMastered / MISSIONS.length) * 100) : 0}%)</span>
           </div>
+
 
           {view === 'workspace' && (
             <button
@@ -210,14 +213,15 @@ export default function MatrixMysticsApp({ onBack }) {
                   <span className="mm-stat-label">Mastered Proofs</span>
                 </div>
                 <div className="mm-stat-item">
-                  <span className="mm-stat-val">{56 - totalMastered}</span>
+                  <span className="mm-stat-val">{Math.max(0, MISSIONS.length - totalMastered)}</span>
                   <span className="mm-stat-label">Remaining</span>
                 </div>
                 <div className="mm-stat-item">
-                  <span className="mm-stat-val">6</span>
+                  <span className="mm-stat-val">{MODULES.length}</span>
                   <span className="mm-stat-label">Modules</span>
                 </div>
               </div>
+
             </div>
 
             {/* Module Selector Bar */}
