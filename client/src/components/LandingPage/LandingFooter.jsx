@@ -138,35 +138,13 @@ export default function LandingFooter({
               </li>
               <li>
                 <a
-                  href="https://github.com/vicharanashala/tenali/blob/tenali-root/LICENSE"
+                  href="https://vicharanashala.ai/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="footer-link-btn"
                 >
-                  📜 MIT Open Source License
+                  🧪 Vicharanashala Lab (VLED)
                 </a>
-              </li>
-              <li>
-                <span className="footer-link-btn" style={{ cursor: 'default' }}>
-                  🏛️ IIT Ropar Education Design
-                </span>
-              </li>
-              <li>
-                <span className="footer-link-btn" style={{ cursor: 'default' }}>
-                  🧪 Vicharanashala Research Lab
-                </span>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  className="footer-link-btn"
-                  onClick={() => {
-                    const el = document.getElementById('demo');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                >
-                  ▶️ Interactive Application Demo
-                </button>
               </li>
             </ul>
           </div>
