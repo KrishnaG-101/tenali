@@ -24,6 +24,7 @@
 import { useEffect, useState, useRef, useMemo } from 'react'
 import './App.css'
 import LandingPage from './components/LandingPage/LandingPage'
+import LandingNavbar from './components/LandingPage/LandingNavbar'
 
 // API base URL from environment variables (Vite)
 const API = import.meta.env.VITE_API_BASE_URL || '';
@@ -36146,20 +36147,41 @@ function App() {
   }
 
   return (
-    <div className="app-shell">
-      <button className="theme-toggle" onClick={toggleTheme} title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
-        {theme === 'dark' ? '☀️' : '🌙'}
-      </button>
-      <div className="card">
-        {!mode ? (
-          <Home onSelect={setMode} onBackToLanding={() => setCurrentView('landing')} />
-        ) : showProgress ? (
-          <ProgressTrackerApp onBack={() => setMode(null)} />
-        ) : ActiveApp ? (
-          <ActiveApp onBack={() => setMode(null)} />
-        ) : (
-          <Home onSelect={setMode} onBackToLanding={() => setCurrentView('landing')} />
+    <div style={{ width: '100%', minHeight: '100vh', background: 'var(--clr-bg)' }}>
+      {mode === null && (
+        <LandingNavbar
+          currentView={currentView}
+          onViewChange={(v) => {
+            setCurrentView(v);
+            try {
+              if (v === 'puzzles') {
+                window.history.replaceState({}, '', `/?view=puzzles`);
+              } else {
+                window.history.replaceState({}, '', `/`);
+              }
+            } catch (e) {}
+          }}
+          theme={theme}
+          toggleTheme={toggleTheme}
+        />
+      )}
+      <div className="app-shell" style={{ paddingTop: mode === null ? 24 : undefined }}>
+        {mode !== null && (
+          <button className="theme-toggle" onClick={toggleTheme} title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
         )}
+        <div className="card">
+          {!mode ? (
+            <Home onSelect={setMode} />
+          ) : showProgress ? (
+            <ProgressTrackerApp onBack={() => setMode(null)} />
+          ) : ActiveApp ? (
+            <ActiveApp onBack={() => setMode(null)} />
+          ) : (
+            <Home onSelect={setMode} />
+          )}
+        </div>
       </div>
     </div>
   )
@@ -36173,7 +36195,7 @@ function App() {
  * @param {Object} props
  * @param {Function} props.onSelect - Callback when user selects a quiz: receives mode key (e.g., 'gk')
  */
-function Home({ onSelect, onBackToLanding }) {
+function Home({ onSelect }) {
   // Special featured apps (shown in highlighted first row)
   const featuredApps = [
     { key: 'randommix', name: 'Random Mix', subtitle: 'Adaptive cross-topic quiz', color: 'featured' },
@@ -36312,30 +36334,6 @@ function Home({ onSelect, onBackToLanding }) {
   return (
     <>
       <div style={{ position: 'relative' }}>
-        {onBackToLanding && (
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
-            <button
-              type="button"
-              onClick={onBackToLanding}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '6px 14px',
-                borderRadius: '999px',
-                border: '1px solid var(--clr-border)',
-                background: 'var(--clr-surface)',
-                color: 'var(--clr-text)',
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-                fontWeight: 500,
-                transition: 'all var(--transition)',
-              }}
-            >
-              <span>← Back to Overview / Landing Page</span>
-            </button>
-          </div>
-        )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '4px' }}>
           <div style={{ background: '#fff', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
             <img src="/iit-ropar-logo.png" alt="IIT Ropar" style={{ width: '70px', height: 'auto' }} />

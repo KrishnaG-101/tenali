@@ -3,8 +3,8 @@ import React from 'react';
 /**
  * LandingHero Component
  * Hero presentation introducing the Tenali platform with core value proposition,
- * quick action buttons, platform statistics, and animated mascot visual.
- * Tailored specifically for Tenali's algorithmic practice engine and curriculum.
+ * quick action buttons, platform statistics, and clean mascot visual.
+ * Cleaned up with no pop-up cards obscuring Tenali.
  */
 export default function LandingHero({ onExplorePuzzles = () => {} }) {
   const scrollToDemo = () => {
@@ -27,7 +27,7 @@ export default function LandingHero({ onExplorePuzzles = () => {} }) {
           </h1>
 
           <p className="hero-description">
-            Named after the legendary wit <strong>Tenali Raman</strong>, Tenali turns math practice into an interactive adventure. With <strong>40+ algorithmic practice apps</strong>, Cambridge IGCSE curriculum chapters, high-intensity Gym workouts, and dynamic step solvers, every problem is synthesized on the fly—ensuring practice is never repetitive.
+            Named after the legendary wit <strong>Tenali Raman</strong>, Tenali turns math practice into an interactive adventure. With <strong>40+ algorithmic practice apps</strong>, high-intensity Gym workouts, and dynamic step solvers, every problem is synthesized on the fly—ensuring practice is never repetitive.
           </p>
 
           <div className="hero-cta-group">
@@ -56,10 +56,6 @@ export default function LandingHero({ onExplorePuzzles = () => {} }) {
               <span className="hero-stat-label">Algorithmic Puzzles</span>
             </div>
             <div className="hero-stat-card">
-              <span className="hero-stat-number">24</span>
-              <span className="hero-stat-label">Cambridge IGCSE Chapters</span>
-            </div>
-            <div className="hero-stat-card">
               <span className="hero-stat-number">7</span>
               <span className="hero-stat-label">Adaptive Gym Drills</span>
             </div>
@@ -67,10 +63,14 @@ export default function LandingHero({ onExplorePuzzles = () => {} }) {
               <span className="hero-stat-number">0</span>
               <span className="hero-stat-label">Repetition (Dynamic)</span>
             </div>
+            <div className="hero-stat-card">
+              <span className="hero-stat-number">100%</span>
+              <span className="hero-stat-label">Free & Open Source</span>
+            </div>
           </div>
         </div>
 
-        {/* Right Column: Visual Mascot & Floating Feature Badges */}
+        {/* Right Column: Visual Mascot (Clean with no overlapping cards) */}
         <div className="landing-hero-visual">
           <div className="hero-mascot-container">
             <div className="hero-mascot-circle-bg" aria-hidden="true" />
@@ -83,31 +83,6 @@ export default function LandingHero({ onExplorePuzzles = () => {} }) {
                 e.target.style.display = 'none';
               }}
             />
-
-            {/* Minimalist Floating Feature Badges */}
-            <div className="hero-floating-card hero-floating-card-1">
-              <span className="hero-floating-icon">⚡</span>
-              <div>
-                <span className="hero-floating-text">Adaptive Gym</span>
-                <span className="hero-floating-sub">Speed & accuracy drills</span>
-              </div>
-            </div>
-
-            <div className="hero-floating-card hero-floating-card-2">
-              <span className="hero-floating-icon">📖</span>
-              <div>
-                <span className="hero-floating-text">Cambridge IGCSE</span>
-                <span className="hero-floating-sub">24 structured chapters</span>
-              </div>
-            </div>
-
-            <div className="hero-floating-card hero-floating-card-3">
-              <span className="hero-floating-icon">🎯</span>
-              <div>
-                <span className="hero-floating-text">Step Solvers</span>
-                <span className="hero-floating-sub">Instant feedback & hints</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>

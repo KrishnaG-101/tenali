@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 /**
  * LandingNavbar Component
  * Responsive glassmorphic navigation bar for Tenali.
- * Provides direct access between the Landing Page and the full Puzzles view,
- * with integrated theme toggle.
+ * Provides consistent access between the Landing Page and the full Puzzles view,
+ * with integrated theme toggle and clean navigation links.
  */
 export default function LandingNavbar({
   currentView = 'landing',
@@ -42,6 +42,11 @@ export default function LandingNavbar({
     }
   };
 
+  const handleOpenAuth = () => {
+    setMobileOpen(false);
+    window.dispatchEvent(new CustomEvent('tenali:openAuth'));
+  };
+
   return (
     <header className="landing-navbar">
       <div className="landing-navbar-inner">
@@ -62,7 +67,7 @@ export default function LandingNavbar({
           />
           <div className="landing-nav-title-group">
             <span className="landing-nav-title">Tenali</span>
-            <span className="landing-nav-badge">Algorithmic Engine</span>
+            <span className="landing-nav-badge">v1.1 Adaptive</span>
           </div>
         </button>
 
@@ -126,7 +131,7 @@ export default function LandingNavbar({
           </ul>
         </nav>
 
-        {/* Right Actions: Theme Toggle and Explore CTA */}
+        {/* Right Actions: Theme Toggle, Account Menu, and Mobile Hamburger */}
         <div className="landing-nav-actions">
           <button
             type="button"
@@ -140,11 +145,12 @@ export default function LandingNavbar({
 
           <button
             type="button"
-            className="hero-btn-primary"
-            style={{ padding: '8px 16px', fontSize: '0.85rem' }}
-            onClick={() => handleNavClick('puzzles')}
+            className="landing-icon-btn"
+            onClick={handleOpenAuth}
+            title="Account & Login"
+            aria-label="Account"
           >
-            <span>Play Puzzles ➔</span>
+            👤
           </button>
 
           {/* Mobile hamburger toggle */}
@@ -163,17 +169,17 @@ export default function LandingNavbar({
       <div className={`landing-mobile-menu ${mobileOpen ? 'open' : ''}`}>
         <button
           type="button"
-          className="landing-nav-link-btn"
+          className={`landing-nav-link-btn ${currentView === 'landing' ? 'active' : ''}`}
           onClick={() => handleNavClick('hero')}
         >
-          🏠 Home Overview
+          🏠 Home
         </button>
         <button
           type="button"
-          className="landing-nav-link-btn"
+          className={`landing-nav-link-btn ${currentView === 'puzzles' ? 'active' : ''}`}
           onClick={() => handleNavClick('puzzles')}
         >
-          🧩 All 40+ Puzzles & Games
+          🧩 All Puzzles
         </button>
         <button
           type="button"
