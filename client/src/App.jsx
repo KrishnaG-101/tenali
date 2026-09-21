@@ -23,6 +23,7 @@
 
 import { useEffect, useState, useRef, useMemo } from 'react'
 import './App.css'
+import LandingPage from './components/LandingPage/LandingPage'
 
 // API base URL from environment variables (Vite)
 const API = import.meta.env.VITE_API_BASE_URL || '';
@@ -35521,6 +35522,16 @@ function App() {
   // Currently selected quiz mode (null = home menu, or key like 'gk', 'addition', etc.)
   const [mode, setMode] = useState(null)
 
+  // Current view: 'landing' or 'puzzles'
+  const [currentView, setCurrentView] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('view') === 'puzzles' ? 'puzzles' : 'landing';
+    } catch {
+      return 'landing';
+    }
+  })
+
   // Listen for navigation events from AuthMenu
   useEffect(() => {
     const onNav = (e) => { setMode(e.detail.mode) }
@@ -36120,6 +36131,20 @@ function App() {
   const ActiveApp = mode && modeMap[mode] ? modeMap[mode] : null
   const showProgress = mode === 'trackProgress'
 
+  // When no mode is selected, check whether to render LandingPage or Home puzzle grid
+  if (!mode && currentView === 'landing') {
+    return (
+      <LandingPage
+        currentView="landing"
+        onViewChange={setCurrentView}
+        onExplorePuzzles={() => setCurrentView('puzzles')}
+        onSelectTopic={(topicKey) => setMode(topicKey)}
+        theme={theme}
+        toggleTheme={toggleTheme}
+      />
+    )
+  }
+
   return (
     <div className="app-shell">
       <button className="theme-toggle" onClick={toggleTheme} title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
@@ -36127,13 +36152,13 @@ function App() {
       </button>
       <div className="card">
         {!mode ? (
-          <Home onSelect={setMode} />
+          <Home onSelect={setMode} onBackToLanding={() => setCurrentView('landing')} />
         ) : showProgress ? (
           <ProgressTrackerApp onBack={() => setMode(null)} />
         ) : ActiveApp ? (
           <ActiveApp onBack={() => setMode(null)} />
         ) : (
-          <Home onSelect={setMode} />
+          <Home onSelect={setMode} onBackToLanding={() => setCurrentView('landing')} />
         )}
       </div>
     </div>
@@ -36148,7 +36173,7 @@ function App() {
  * @param {Object} props
  * @param {Function} props.onSelect - Callback when user selects a quiz: receives mode key (e.g., 'gk')
  */
-function Home({ onSelect }) {
+function Home({ onSelect, onBackToLanding }) {
   // Special featured apps (shown in highlighted first row)
   const featuredApps = [
     { key: 'randommix', name: 'Random Mix', subtitle: 'Adaptive cross-topic quiz', color: 'featured' },
@@ -36287,6 +36312,30 @@ function Home({ onSelect }) {
   return (
     <>
       <div style={{ position: 'relative' }}>
+        {onBackToLanding && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
+            <button
+              type="button"
+              onClick={onBackToLanding}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '6px 14px',
+                borderRadius: '999px',
+                border: '1px solid var(--clr-border)',
+                background: 'var(--clr-surface)',
+                color: 'var(--clr-text)',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                fontWeight: 500,
+                transition: 'all var(--transition)',
+              }}
+            >
+              <span>← Back to Overview / Landing Page</span>
+            </button>
+          </div>
+        )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '4px' }}>
           <div style={{ background: '#fff', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
             <img src="/iit-ropar-logo.png" alt="IIT Ropar" style={{ width: '70px', height: 'auto' }} />
