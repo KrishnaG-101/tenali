@@ -50,7 +50,7 @@
 <!-- live-snapshot:start -->
 | 🏆 Commits | 🔀 Merged PRs | 👥 Contributors | 🧩 Puzzles | 📚 Vocab | 🌍 GK |
 |----------:|------------:|--------------:|---------:|-------:|----:|
-| **1052** | **111** | **42** | **93** | **7,662** | **991** |
+| **1053** | **111** | **42** | **93** | **7,662** | **991** |
 <!-- live-snapshot:end -->
 
 ## 🥇 Leaderboard
@@ -77,8 +77,8 @@ _Live data — last regenerated 2026-09-22 · auto-refreshed by [`github-actions
 | 15. | **athira**<br/><sub>↳ also commits as <b>Athira</b></sub> | [athira](https://github.com/athira) | **15** | 0  | — |
 | 16. | **jinal-gupta**<br/><sub>↳ also commits as <b>JINAL GUPTA</b></sub> | [jinal-gupta](https://github.com/jinal-gupta) | **12** | 0  | — |
 | 17. | **tanvish desai** | [tanvishdesai](https://github.com/tanvishdesai) | **9** | 2  | — |
-| 18. | **shreejal-bangera**<br/><sub>↳ also commits as <b>Shreejal Bangera</b></sub> | [shreejal-bangera](https://github.com/shreejal-bangera) | **8** | 0  | — |
-| 19. | **Krishna Gelra** | [KrishnaG-101](https://github.com/KrishnaG-101) | **7** | 2  | Language Puzzles Framework |
+| 18. | **Krishna Gelra** | [KrishnaG-101](https://github.com/KrishnaG-101) | **8** | 2  | Language Puzzles Framework |
+| 19. | **shreejal-bangera**<br/><sub>↳ also commits as <b>Shreejal Bangera</b></sub> | [shreejal-bangera](https://github.com/shreejal-bangera) | **8** | 0  | — |
 | 20. | **ayushkochhar**<br/><sub>↳ also commits as <b>AYUSHKOCHHAR</b></sub> | [ayushkochhar](https://github.com/ayushkochhar) | **6** | 0  | — |
 | 21. | **krishna009-pro**<br/><sub>↳ also commits as <b>Krishna009-pro</b></sub> | [krishna009-pro](https://github.com/krishna009-pro) | **6** | 0  | — |
 | 22. | **SemiColonSlayer** | [sharonyamita-spec](https://github.com/sharonyamita-spec) | **6** | 1  | Math Detective Agency |
@@ -545,18 +545,18 @@ _Live data — last regenerated 2026-09-22 · auto-refreshed by [`github-actions
   <table>
     <tr>
       <td align="center" width="220">
-        <a href="https://github.com/shreejal-bangera"><img src="https://github.com/shreejal-bangera.png?size=120&s=120" width="120" style="border-radius:50%; border:3px solid #888888;" alt="shreejal-bangera"/></a>
-        <br/><b>shreejal-bangera</b>
-        <br/><a href="https://github.com/shreejal-bangera">@shreejal-bangera</a>
-        <br/><sub>🏆 8 commits · 0 PRs merged</sub>
-        <br/><sub>🔗 also commits as: <b>Shreejal Bangera</b></sub>
+        <a href="https://github.com/KrishnaG-101"><img src="https://avatars.githubusercontent.com/u/155518412?v=4&s=120" width="120" style="border-radius:50%; border:3px solid #27AE60;" alt="Krishna Gelra"/></a>
+        <br/><b>Krishna Gelra</b>
+        <br/><a href="https://github.com/KrishnaG-101">@KrishnaG-101</a>
+        <br/><sub>🏆 8 commits · 2 PRs merged</sub>
       </td>
       <td valign="top" width="*">
-        <h4>18. New Contributor</h4>
+        <h4>18. Language Puzzles Framework</h4>
         <ul>
-          <li>🆕 <b>New contributor</b> — auto-added by the readme-bot</li>
-          <li>📊 <b>8 commits</b> across this repo's history</li>
-          <li>🔗 <i>Add a <code>FALLBACK_PROFILES</code> entry in <code>scripts/update-readme-contributors.js</code> to enrich this card with real name, avatar, location, and curated feature list</i></li>
+          <li>🧩 <b>Modular Language Puzzles framework (PR #35)</b> — pluggable architecture for word/letter puzzles</li>
+          <li>🆕 <b>Word Creator</b> — fill-in-the-blanks to create new words</li>
+          <li>⚡ <b>Latency optimization</b> — reduced <code>wordCreator</code> verification time</li>
+          <li>🔀 <b>Merge conflict resolution</b> — clean upstream merge</li>
         </ul>
       </td>
     </tr>
@@ -567,18 +567,18 @@ _Live data — last regenerated 2026-09-22 · auto-refreshed by [`github-actions
   <table>
     <tr>
       <td align="center" width="220">
-        <a href="https://github.com/KrishnaG-101"><img src="https://avatars.githubusercontent.com/u/155518412?v=4&s=120" width="120" style="border-radius:50%; border:3px solid #27AE60;" alt="Krishna Gelra"/></a>
-        <br/><b>Krishna Gelra</b>
-        <br/><a href="https://github.com/KrishnaG-101">@KrishnaG-101</a>
-        <br/><sub>🏆 7 commits · 2 PRs merged</sub>
+        <a href="https://github.com/shreejal-bangera"><img src="https://github.com/shreejal-bangera.png?size=120&s=120" width="120" style="border-radius:50%; border:3px solid #888888;" alt="shreejal-bangera"/></a>
+        <br/><b>shreejal-bangera</b>
+        <br/><a href="https://github.com/shreejal-bangera">@shreejal-bangera</a>
+        <br/><sub>🏆 8 commits · 0 PRs merged</sub>
+        <br/><sub>🔗 also commits as: <b>Shreejal Bangera</b></sub>
       </td>
       <td valign="top" width="*">
-        <h4>19. Language Puzzles Framework</h4>
+        <h4>19. New Contributor</h4>
         <ul>
-          <li>🧩 <b>Modular Language Puzzles framework (PR #35)</b> — pluggable architecture for word/letter puzzles</li>
-          <li>🆕 <b>Word Creator</b> — fill-in-the-blanks to create new words</li>
-          <li>⚡ <b>Latency optimization</b> — reduced <code>wordCreator</code> verification time</li>
-          <li>🔀 <b>Merge conflict resolution</b> — clean upstream merge</li>
+          <li>🆕 <b>New contributor</b> — auto-added by the readme-bot</li>
+          <li>📊 <b>8 commits</b> across this repo's history</li>
+          <li>🔗 <i>Add a <code>FALLBACK_PROFILES</code> entry in <code>scripts/update-readme-contributors.js</code> to enrich this card with real name, avatar, location, and curated feature list</i></li>
         </ul>
       </td>
     </tr>
